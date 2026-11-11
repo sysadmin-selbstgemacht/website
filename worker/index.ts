@@ -14,7 +14,7 @@ import { deriveKey } from 'altcha-lib/algorithms/web/pbkdf2';
 interface Env {
   ASSETS: Fetcher;
   ALTCHA_SECRET?: string;
-  CF_VERSION_METADATA: { id: string };
+  CF_VERSION_METADATA?: { id?: string };
 }
 
 const ALGORITHMUS = 'PBKDF2/SHA-256';
@@ -31,7 +31,8 @@ async function sha256Hex(text: string): Promise<string> {
 async function schluessel(env: Env) {
   // TEST-RÜCKFALL: ohne Secret wird aus der Versions-ID abgeleitet.
   // Nur für die Messung; das Formular darf so nicht live gehen.
-  const basis = env.ALTCHA_SECRET ?? 'nur-test:' + env.CF_VERSION_METADATA.id;
+  // In Vorschau-Umgebungen fehlt die Versions-Bindung teils; dann fester Testwert.
+  const basis = env.ALTCHA_SECRET ?? 'nur-test:' + (env.CF_VERSION_METADATA?.id ?? 'vorschau');
   return {
     sig: await sha256Hex('altcha-sig:' + basis),
     key: await sha256Hex('altcha-key:' + basis),
@@ -53,6 +54,17 @@ function raeumen() {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    try {
+      return await bearbeiten(request, env);
+    } catch (e) {
+      // Messstufe: Fehler sichtbar machen. Vor dem Go-live auf eine allgemeine Meldung kürzen.
+      console.error(e);
+      return json({ status: 'error', message: 'intern', detail: String(e) }, 500);
+    }
+  },
+};
+
+async function bearbeiten(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/anfrage/challenge' && request.method === 'GET') {
@@ -105,5 +117,4 @@ export default {
 
     if (url.pathname.startsWith('/api/')) return json({ status: 'error', message: 'not_found' }, 404);
     return env.ASSETS.fetch(request);
-  },
-};
+}

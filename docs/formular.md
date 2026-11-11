@@ -34,8 +34,8 @@ Auf der Vorschau im Browser: siehe Pull Request zu dieser Datei.
 
 ## Vor dem echten Formular
 
-- **Secret setzen:** `ALTCHA_SECRET` als Secret am Worker (Cloudflare → Worker → Settings → Variables and Secrets). Ohne Secret leitet der Worker zu Testzwecken aus der Versions-ID ab. Dieser Rückfall muss vor dem Go-live raus.
+- **Secret setzen:** `ALTCHA_SECRET` als Secret am Worker (Cloudflare → Worker → Settings → Variables and Secrets). Ohne Secret leitet der Worker zu Testzwecken aus der Versions-ID ab (in Vorschauen aus einem festen Testwert). Dieser Rückfall und die ausführliche Fehlermeldung im Worker müssen vor dem Go-live raus.
 - **Wiederverwendung:** Die Liste benutzter Aufgaben liegt nur im Speicher eines Isolates. Workers verteilen Anfragen auf viele Isolates, eine Wiederholung wird deshalb nur zufällig erkannt. Die kurze Gültigkeit (20 Minuten) begrenzt den Schaden. Strenger ginge es mit Workers KV, das ist dann Speicherung (Datenschutzerklärung).
 - **Rate Limit:** Rate-Limiting-Binding von Workers oder WAF-Regel prüfen (Verfügbarkeit im Free-Tarif offen).
-- **Versand:** Cloudflare Email Service an eine bestätigte Adresse. Braucht Email Routing auf einer Absender-Subdomain, vorher Fabian anrufen.
+- **Versand:** Cloudflare Email Service an eine bestätigte Adresse. Braucht Email Routing auf einer Absender-Subdomain (z. B. `formular.selbst-gemacht.eu`). Vorher und nachher jeden DNS-Eintrag in `docs/betrieb.md` festhalten; bei Problemen zurückrollen.
 - **Keine Bestätigungsmail** an Anfragende. Spam würde sonst an fremde Adressen gehen.
