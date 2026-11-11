@@ -5,5 +5,5 @@ import { defineConfig } from 'astro/config';
 // `site` wird beim Go-live auf https://selbst-gemacht.eu gesetzt.
 export default defineConfig({
   output: 'static',
-  site: 'https://selbst-gemacht.pages.dev',
+  site: 'https://selbst-gemacht.fabian-liesch.workers.dev',
 });

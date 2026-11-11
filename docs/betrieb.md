@@ -7,8 +7,22 @@ Stand: 11.11.2026
 | Dienst | Konto | Zweck |
 |---|---|---|
 | GitHub | `sysadmin-selbstgemacht` (systeme@selbst-gemacht.eu) | Repo `website` |
-| Cloudflare | Konto „selbst-gemacht.eu“ | DNS-Zone, Pages-Projekt `selbst-gemacht` |
+| Cloudflare | Konto von Fabian (enthält Zone selbst-gemacht.eu); Matthias als Mitglied | DNS-Zone, Worker `selbst-gemacht` |
 | all-inkl.com | über Fabian | Domain-Registrierung, Mail-Postfächer |
+
+## Apps mit Zugriff auf das Repo
+
+Beide nur für das Repo `website` installiert, unter GitHub → Settings → Applications widerrufbar.
+
+| App | Zweck |
+|---|---|
+| Cloudflare Workers and Pages | baut bei jedem Push, Vorschau je Branch |
+| Claude | Änderungen per Pull Request (Bau, später ggf. Termine) |
+
+## Adressen
+
+- Test (bis zum Go-live): https://selbst-gemacht.fabian-liesch.workers.dev
+- Vorschau je Branch/Pull Request: Link erscheint im Pull Request
 
 Wiederherstellungscodes und Zwei-Faktor-Zugang des GitHub-Kontos liegen bei: **[offen, bei Übergabe eintragen]**
 
@@ -35,6 +49,7 @@ Die Zone enthält Einträge für Dienste des Hauses (NAS, Home Assistant u. a.) 
 ## Übergabe-Checkliste
 
 - [ ] Weiterleitung von systeme@ an Matthias abschalten
-- [ ] Matthias' Zugänge entziehen (GitHub-Collaborator, Cloudflare-Mitglied)
+- [ ] Matthias' Zugänge entziehen (GitHub-Collaborator `medzeen-dev`, Cloudflare-Mitglied)
+- [ ] Claude-App prüfen: behalten (Option A, Weg 1) oder entfernen
 - [ ] CODEOWNERS mit Pflegepartner scharf schalten
 - [ ] Wiederherstellungscodes übergeben
