@@ -1,0 +1,58 @@
+---
+// Detailseite je Termin: teilbarer Link und Veranstaltungsdaten für Suchmaschinen (Brief 6d).
+import { getCollection, render } from 'astro:content';
+import Basis from '../../layouts/Basis.astro';
+import { kategorieText, datumText } from '../../lib/termine';
+
+export async function getStaticPaths() {
+  const termine = await getCollection('termine', (t) => !t.data.entwurf);
+  return termine.map((t) => ({ params: { id: t.id }, props: { termin: t } }));
+}
+
+const { termin } = Astro.props;
+const d = termin.data;
+const { Content } = await render(termin);
+
+const mailLink = d.kontakt_mail
+  ? `mailto:${d.kontakt_mail}?subject=${encodeURIComponent('Anfrage: ' + d.titel)}&body=${encodeURIComponent('Hallo,\n\nich interessiere mich für „' + d.titel + '“ (' + datumText(d.beginn, d.ende) + ').\n\n')}`
+  : undefined;
+
+// schema.org/Event für Suchmaschinen
+const eventDaten = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: d.titel,
+  startDate: d.beginn.toISOString().slice(0, 10),
+  endDate: d.ende.toISOString().slice(0, 10),
+  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  eventStatus: 'https://schema.org/EventScheduled',
+  location: {
+    '@type': 'Place',
+    name: 'SELBSTGEMACHT – Seminar- und Gästehaus',
+    address: { '@type': 'PostalAddress', streetAddress: 'Arnsgrün 56', postalCode: '07937', addressLocality: 'Zeulenroda-Triebes', addressCountry: 'DE' },
+  },
+  organizer: { '@type': 'Person', name: d.leitung },
+};
+---
+<Basis titel={d.titel} beschreibung={`${d.titel} · ${datumText(d.beginn, d.ende)} · SELBSTGEMACHT`} anliegen={d.eigener_termin ? 'sonstiges' : undefined}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(eventDaten)} />
+  <p><a href="/termine/">← Alle Termine</a></p>
+  <span class="etikett">{kategorieText[d.kategorie]}</span>
+  <h1>{d.titel}</h1>
+  <p>{datumText(d.beginn, d.ende)} · {d.naechte} {d.naechte === 1 ? 'Nacht' : 'Nächte'} · Leitung: {d.leitung}</p>
+  {d.kursgebuehr && <p>Kursgebühr: {d.kursgebuehr}</p>}
+  <Content />
+
+  <section class="abschnitt">
+    <h2>Anmeldung</h2>
+    {d.eigener_termin ? (
+      <p>Anfrage über das Formular unten.</p>
+    ) : (
+      <p>
+        Die Anmeldung läuft direkt über die Kursleitung:
+        {mailLink && <> <a href={mailLink}>Mail an {d.leitung}</a></>}
+        {d.kontakt_web && <> · <a href={d.kontakt_web} rel="noopener">Website</a></>}
+      </p>
+    )}
+  </section>
+</Basis>

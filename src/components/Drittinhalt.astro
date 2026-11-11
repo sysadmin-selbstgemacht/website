@@ -1,0 +1,38 @@
+---
+// Platzhalter für Inhalte von Dritten (Karte, Video, Widget). Architektur D-06.
+// Lädt NICHTS von außen, bis jemand klickt. Ein späteres Consent-Tool
+// ändert nur diese eine Datei.
+interface Props {
+  anbieter: string; // z. B. "Google Maps"
+  src: string; // URL des iframes
+  titel: string; // Barrierefreiheit
+  hinweis?: string;
+  seitenverhaeltnis?: string; // z. B. "16 / 9"
+}
+const {
+  anbieter,
+  src,
+  titel,
+  hinweis = `Beim Laden werden Daten an ${anbieter} übertragen.`,
+  seitenverhaeltnis = '16 / 9',
+} = Astro.props;
+---
+<div class="drittinhalt" style={`aspect-ratio: ${seitenverhaeltnis}`} data-src={src} data-titel={titel}>
+  <p><strong>{titel}</strong></p>
+  <p>{hinweis} <a href="/datenschutz/">Mehr dazu</a></p>
+  <button type="button">{anbieter} laden</button>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.drittinhalt').forEach((box) => {
+    box.querySelector('button')?.addEventListener('click', () => {
+      const f = document.createElement('iframe');
+      f.src = box.dataset.src ?? '';
+      f.title = box.dataset.titel ?? '';
+      f.loading = 'lazy';
+      f.referrerPolicy = 'strict-origin-when-cross-origin';
+      f.style.cssText = 'width:100%;height:100%;border:0';
+      box.replaceChildren(f);
+    });
+  });
+</script>

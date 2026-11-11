@@ -1,24 +1,39 @@
 ---
+import Kopf from '../components/Kopf.astro';
+import Fuss from '../components/Fuss.astro';
+import '../styles/geruest.css';
+
 interface Props {
   titel: string;
   beschreibung?: string;
+  anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges';
 }
-const { titel, beschreibung = 'SELBSTGEMACHT – Seminar- und Gästehaus in Arnsgrün' } = Astro.props;
+const {
+  titel,
+  beschreibung = 'SELBSTGEMACHT – Seminar- und Gästehaus in Arnsgrün',
+  anliegen,
+} = Astro.props;
 
 // Bis zum Go-live wird keine Seite indexiert.
 // Beim Go-live auf false setzen (siehe docs/go-live.md).
 const NOINDEX = true;
+const seitentitel = titel === 'Start' ? 'SELBSTGEMACHT' : `${titel} · SELBSTGEMACHT`;
 ---
 <!doctype html>
 <html lang="de">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{titel}</title>
+    <title>{seitentitel}</title>
     <meta name="description" content={beschreibung} />
     {NOINDEX && <meta name="robots" content="noindex, nofollow" />}
+    <slot name="head" />
   </head>
   <body>
-    <slot />
+    <Kopf />
+    <main>
+      <slot />
+    </main>
+    <Fuss anliegen={anliegen} />
   </body>
 </html>

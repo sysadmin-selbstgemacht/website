@@ -1,0 +1,40 @@
+---
+// Terminliste: die nächsten 12 Monate, nach Monat gegliedert, Kategorie als Etikett (Brief 6d).
+// Statische Seite: "heute" ist der Zeitpunkt des Builds. Siehe docs/termine.md.
+import { getCollection } from 'astro:content';
+import Basis from '../../layouts/Basis.astro';
+import { kategorieText, monatsName, datumText } from '../../lib/termine';
+
+const heute = new Date();
+heute.setHours(0, 0, 0, 0);
+const grenze = new Date(heute);
+grenze.setMonth(grenze.getMonth() + 12);
+
+const termine = (await getCollection('termine', (t) => !t.data.entwurf))
+  .filter((t) => t.data.ende >= heute && t.data.beginn <= grenze)
+  .sort((a, b) => a.data.beginn.valueOf() - b.data.beginn.valueOf());
+
+const nachMonat = new Map<string, typeof termine>();
+for (const t of termine) {
+  const k = monatsName(t.data.beginn);
+  nachMonat.set(k, [...(nachMonat.get(k) ?? []), t]);
+}
+---
+<Basis titel="Termine">
+  <h1>Termine</h1>
+  <p class="zweck">Kurse, Retreats und Veranstaltungen der nächsten 12 Monate.</p>
+  {termine.length === 0 && <p>Zurzeit sind keine Termine veröffentlicht.</p>}
+  {[...nachMonat].map(([monat, liste]) => (
+    <section>
+      <h2 class="monat">{monat}</h2>
+      {liste.map((t) => (
+        <article class="termin">
+          <span class="etikett">{kategorieText[t.data.kategorie]}</span>
+          <h3><a href={`/termine/${t.id}/`}>{t.data.titel}</a></h3>
+          <p>{datumText(t.data.beginn, t.data.ende)} · Leitung: {t.data.leitung}</p>
+        </article>
+      ))}
+    </section>
+  ))}
+  <p class="offen">Offen: Kennzeichen „ausgebucht“ ja oder nein.</p>
+</Basis>

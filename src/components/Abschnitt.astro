@@ -1,0 +1,16 @@
+---
+// Grauer Platzhalter-Abschnitt: Titel, Zweck, optional offene Fragen.
+// Wird im Sprint durch echte Inhalte ersetzt.
+interface Props {
+  titel: string;
+  zweck: string;
+  offen?: string;
+}
+const { titel, zweck, offen } = Astro.props;
+---
+<section class="abschnitt">
+  <h2>{titel}</h2>
+  <p class="zweck">{zweck}</p>
+  <slot />
+  {offen && <p class="offen">Offen: {offen}</p>}
+</section>

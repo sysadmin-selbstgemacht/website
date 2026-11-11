@@ -1,0 +1,22 @@
+---
+// Kopfzeile mit Menü nach Zielgruppen (Wireframes v1, Brief 6d).
+const menue = [
+  { href: '/gruppen-und-familien/', text: 'Gruppen und Familien' },
+  { href: '/firmen/', text: 'Firmen' },
+  { href: '/kursleitende/', text: 'Kursleitende' },
+  { href: '/termine/', text: 'Termine' },
+  { href: '/ueber-uns/', text: 'Über uns' },
+];
+const aktuell = Astro.url.pathname;
+---
+<header class="kopf">
+  <a class="marke" href="/">SELBSTGEMACHT</a>
+  <nav aria-label="Hauptmenü">
+    <ul>
+      {menue.map((m) => (
+        <li><a href={m.href} aria-current={aktuell.startsWith(m.href) ? 'page' : undefined}>{m.text}</a></li>
+      ))}
+    </ul>
+  </nav>
+  <a class="knopf" href="#anfrage">Anfragen</a>
+</header>
