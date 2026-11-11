@@ -15,8 +15,12 @@ import Basis from '../../layouts/Basis.astro';
 
     async function durchlauf(n: number) {
       const t0 = performance.now();
+      log(`#${n} hole Aufgabe …`);
       const res = await fetch('/api/anfrage/challenge', { cache: 'no-store' });
-      const challenge = await res.json();
+      const roh = await res.text();
+      let challenge: any;
+      try { challenge = JSON.parse(roh); } catch { throw new Error(`Antwort ${res.status} ist kein JSON: ${roh.slice(0, 120)}`); }
+      log(`#${n} rechne …`);
       const tHolen = performance.now() - t0;
       const t1 = performance.now();
       const solution = await solveChallenge({ challenge, deriveKey: pbkdf2.deriveKey, timeout: 120000 });
@@ -34,8 +38,12 @@ import Basis from '../../layouts/Basis.astro';
 
     document.getElementById('start')!.addEventListener('click', async () => {
       aus.textContent = navigator.userAgent;
-      for (let i = 1; i <= 3; i++) await durchlauf(i);
-      log('fertig');
+      try {
+        for (let i = 1; i <= 3; i++) await durchlauf(i);
+        log('fertig');
+      } catch (e: any) {
+        log('FEHLER: ' + (e?.name ?? '') + ' ' + (e?.message ?? String(e)));
+      }
     });
   </script>
 </Basis>
