@@ -1,0 +1,41 @@
+---
+// Fußzeile mit dem gemeinsamen Anfrageformular (Brief 6d).
+// Das Anliegen ist je Seite vorausgewählt. Versand ist noch NICHT angebunden.
+interface Props {
+  anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges';
+}
+const { anliegen = 'sonstiges' } = Astro.props;
+const optionen = [
+  { wert: 'gruppe', text: 'Gruppe / Familie' },
+  { wert: 'firma', text: 'Firma' },
+  { wert: 'kursleitung', text: 'Kursleitung' },
+  { wert: 'sonstiges', text: 'Sonstiges' },
+];
+---
+<footer class="fuss">
+  <section id="anfrage" class="anfrage">
+    <h2>Anfrage</h2>
+    <p class="offen">Offen: Felder je Anliegen, Empfängeradresse, Ansprache du/Sie. Formular sendet noch nicht.</p>
+    <form method="post" action="/api/anfrage" data-formular>
+      <label>Anliegen
+        <select name="anliegen">
+          {optionen.map((o) => <option value={o.wert} selected={o.wert === anliegen}>{o.text}</option>)}
+        </select>
+      </label>
+      <label>Name <input name="name" autocomplete="name" required /></label>
+      <label>E-Mail <input name="email" type="email" autocomplete="email" required /></label>
+      <label>Zeitraum <input name="zeitraum" /></label>
+      <label>Nachricht <textarea name="nachricht" rows="4" required></textarea></label>
+      <div class="hp" aria-hidden="true"><input type="text" name="sg_hp" tabindex="-1" autocomplete="off" /></div>
+      <button type="submit" disabled>Anfrage senden (noch inaktiv)</button>
+    </form>
+  </section>
+  <section class="kontakt">
+    <p>SELBSTGEMACHT – Seminar- und Gästehaus · Arnsgrün</p>
+    <p class="offen">Offen: Telefon, Mail, Anfahrt, Social-Media-Links (Katrins Profile oder Haus-Profile?)</p>
+    <ul class="rechtliches">
+      <li><a href="/impressum/">Impressum</a></li>
+      <li><a href="/datenschutz/">Datenschutz</a></li>
+    </ul>
+  </section>
+</footer>

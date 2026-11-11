@@ -13,7 +13,10 @@
     "check": "astro check"
   },
   "dependencies": {
-    "astro": "7.4.10"
+    "altcha": "3.5.0",
+    "altcha-lib": "2.8.0",
+    "astro": "7.4.10",
+    "sharp": "0.35.5"
   },
   "devDependencies": {
     "wrangler": "4.160.0"

@@ -1,14 +1,29 @@
 ---
-import { getCollection } from 'astro:content';
 import Basis from '../layouts/Basis.astro';
-
-const termine = (await getCollection('termine', (t) => !t.data.entwurf))
-  .sort((a, b) => a.data.beginn.valueOf() - b.data.beginn.valueOf());
+import Abschnitt from '../components/Abschnitt.astro';
+import Bild from '../components/Bild.astro';
+import platzhalter from '../assets/bilder/platzhalter.webp';
 ---
-<Basis titel="SELBSTGEMACHT · Testseite">
-  <main>
-    <h1>SELBSTGEMACHT</h1>
-    <p>Technische Testseite. Die neue Website entsteht hier.</p>
-    <p>Veröffentlichte Termine: {termine.length}</p>
-  </main>
+<Basis titel="Start">
+  <div class="held">
+    <div>
+      <p class="zweck">Imagevideo (aus R2) · noch nicht eingebunden</p>
+      <h1>Platz für Viele – Raum für Ideen</h1>
+      <p>Wenige Sätze: Was man hier bekommt. Ein Haus, exklusiv für eure Gruppe.</p>
+    </div>
+  </div>
+
+  <Abschnitt titel="Drei Wege zu uns" zweck="Führt in die drei Zielgruppen-Seiten.">
+    <div class="raster">
+      <a class="kachel" href="/gruppen-und-familien/">Gruppen und Familien</a>
+      <a class="kachel" href="/firmen/">Firmen: Tagung · Workshop · Seminar</a>
+      <a class="kachel" href="/kursleitende/">Kursleitende: Kurse · Retreats</a>
+    </div>
+  </Abschnitt>
+
+  <Abschnitt titel="Das läuft bei uns" zweck="Die nächsten Termine als Anker, Link zur Terminliste." />
+
+  <Abschnitt titel="Gemeinsamzeit" zweck="Haltung des Hauses in wenigen Sätzen, Link zu Über uns." offen="Text aus Katrins Stichpunkten verdichten.">
+    <Bild src={platzhalter} alt="Platzhalter" sizes="(min-width: 72rem) 70rem, 100vw" priorisiert />
+  </Abschnitt>
 </Basis>

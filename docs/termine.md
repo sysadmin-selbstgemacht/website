@@ -21,3 +21,9 @@ Text der Kursleitung.
 ```
 
 Stimmt ein Feld nicht, scheitert der Build. Der Termin geht dann nicht live, die bisherige Seite bleibt online.
+
+## Anzeige
+
+- Die Terminliste zeigt die **nächsten 12 Monate**, nach Monat gegliedert, mit Kategorie als Etikett.
+- Jeder Termin bekommt eine eigene Seite unter `/termine/<dateiname>/` mit Veranstaltungsdaten für Suchmaschinen (schema.org/Event).
+- **„Heute“ ist der Zeitpunkt des letzten Builds.** Vergangene Termine verschwinden erst beim nächsten Build. Offen: regelmäßiger Build (z. B. nachts) oder Ausblenden im Browser.

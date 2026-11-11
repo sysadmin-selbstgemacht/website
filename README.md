@@ -19,6 +19,14 @@ Statische Seite mit [Astro](https://astro.build), ausgeliefert als Cloudflare Wo
 - Inhalte liegen als Dateien im Repo. Termine: `src/content/termine/*.md`
 - Ein fehlerhafter Termin (falsches Feld, Ende vor Beginn) lässt den Build scheitern und geht nicht live. Das Schema steht in `src/content.config.ts`.
 
+## Bilder und Videos
+
+- **Ins Repo kommen nur web-taugliche Fassungen:** WebP, längste Kante höchstens 2.400 px, Ablage in `src/assets/bilder/`. Originale bleiben im OneDrive des Hauses. Grund: Das Repo ist öffentlich, Originale in voller Auflösung wären frei herunterladbar.
+- **Nur Bilder mit geklärten Nutzungsrechten**, keine Bilder mit eingebranntem ©-Vermerk. Fotografen stehen im Bildnachweis (Impressum).
+- Bilder immer über `src/components/Bild.astro` einbinden. Astro erzeugt daraus beim Build mehrere Breiten (480 bis 2.400 px, AVIF und WebP), der Browser lädt je Bildschirm die kleinste passende.
+- **Videos liegen nicht im Repo**, sondern im Cloudflare-Dateispeicher R2 (Bucket `selbst-gemacht-medien`). Workers liefern Einzeldateien nur bis 25 MiB aus.
+- **Inhalte von Dritten** (Karte, fremdes Video, Widgets) nur über `src/components/Drittinhalt.astro`. Sie laden erst nach Klick.
+
 ## Lokal bauen
 
 Node.js 22 (siehe `.nvmrc`).
@@ -39,3 +47,4 @@ Details, Zuständigkeiten und Übergabe: `docs/betrieb.md`.
 - `docs/betrieb.md` – Konten, Zuständigkeiten, Regeln für DNS
 - `docs/go-live.md` – Checkliste für die Umstellung auf selbst-gemacht.eu
 - `docs/termine.md` – Aufbau eines Termin-Eintrags
+- `docs/formular.md` – Anfrageformular und Spamschutz (Messstand)

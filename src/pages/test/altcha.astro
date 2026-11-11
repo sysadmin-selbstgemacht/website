@@ -1,0 +1,49 @@
+---
+// MESSSEITE für den Spamschutz (Architektur D-13, Frage 16). Nicht verlinkt, noindex.
+// Wird vor dem Go-live gelöscht.
+import Basis from '../../layouts/Basis.astro';
+---
+<Basis titel="Test ALTCHA">
+  <h1>Messung ALTCHA auf dem Worker</h1>
+  <button id="start" type="button">Messung starten (3 Durchläufe)</button>
+  <pre id="ausgabe">bereit</pre>
+
+  <script>
+    import { solveChallenge, pbkdf2 } from 'altcha/lib';
+    const aus = document.getElementById('ausgabe')!;
+    const log = (z: string) => { aus.textContent += '\n' + z; };
+
+    async function durchlauf(n: number) {
+      const t0 = performance.now();
+      log(`#${n} hole Aufgabe …`);
+      const res = await fetch('/api/anfrage/challenge', { cache: 'no-store' });
+      const roh = await res.text();
+      let challenge: any;
+      try { challenge = JSON.parse(roh); } catch { throw new Error(`Antwort ${res.status} ist kein JSON: ${roh.slice(0, 120)}`); }
+      log(`#${n} rechne …`);
+      const tHolen = performance.now() - t0;
+      const t1 = performance.now();
+      const solution = await solveChallenge({ challenge, deriveKey: pbkdf2.deriveKey, timeout: 120000 });
+      const tLoesen = performance.now() - t1;
+      if (!solution) { log(`#${n} keine Lösung`); return; }
+      const altcha = { challenge, solution };
+      const pruefen = (p: unknown) => fetch('/api/anfrage/pruefen', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ altcha: p }) });
+      const r1 = await pruefen(altcha); const b1 = await r1.json();
+      const r2 = await pruefen(altcha); // Wiederverwendung
+      const falsch = structuredClone(altcha); falsch.solution.derivedKey = falsch.solution.derivedKey.replace(/^./, (c: string) => (c === 'a' ? 'b' : 'a'));
+      const r3 = await pruefen(falsch); // verfälschter Schlüssel (neue Aufgabe nicht nötig: Signatur greift zuerst)
+      const r4 = await pruefen(null); // ohne Lösung
+      log(`#${n} holen ${tHolen.toFixed(0)} ms (Server ${challenge._messung?.serverMs} ms, Testschlüssel: ${challenge._messung?.testSchluessel}) · lösen ${tLoesen.toFixed(0)} ms · prüfen ${r1.status} (Server ${b1._messung?.serverMs} ms) · nochmal ${r2.status} · verfälscht ${r3.status} · ohne ${r4.status}`);
+    }
+
+    document.getElementById('start')!.addEventListener('click', async () => {
+      aus.textContent = navigator.userAgent;
+      try {
+        for (let i = 1; i <= 3; i++) await durchlauf(i);
+        log('fertig');
+      } catch (e: any) {
+        log('FEHLER: ' + (e?.name ?? '') + ' ' + (e?.message ?? String(e)));
+      }
+    });
+  </script>
+</Basis>

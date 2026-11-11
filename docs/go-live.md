@@ -8,6 +8,10 @@ Bis zum Go-live läuft die Seite nur unter `selbst-gemacht.fabian-liesch.workers
 - [ ] Impressum, Datenschutz, Bildnachweis eingebaut und freigegeben
 - [ ] Formularversand getestet (ohne MX-Einträge zu verändern)
 - [ ] Fabian informiert, Termin für die Umstellung vereinbart
+- [ ] Messseite `src/pages/test/` gelöscht
+- [ ] Beispieltermine `src/content/termine/*beispiel*` gelöscht
+- [ ] Bild `src/assets/bilder/platzhalter.webp` gelöscht
+- [ ] Spamschutz: Secret `ALTCHA_SECRET` gesetzt, Test-Rückfall im Worker entfernt (docs/formular.md)
 
 ## Indexierung freigeben
 

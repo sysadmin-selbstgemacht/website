@@ -8,7 +8,7 @@ naechte: 6
 kursgebuehr: "Beispiel € zzgl. Übernachtung"
 eigener_termin: false
 kontakt_mail: "kursleitung@example.com"
-entwurf: true
+entwurf: false
 ---
 
 Platzhalter, um das Schema zu prüfen. Wird vor dem Go-live gelöscht.
