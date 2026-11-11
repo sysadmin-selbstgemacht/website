@@ -2,7 +2,7 @@
 
 Website von **SELBSTGEMACHT – Seminar- und Gästehaus**, Arnsgrün (Zeulenroda-Triebes).
 
-Statische Seite mit [Astro](https://astro.build), gehostet auf Cloudflare Pages. Kein Server, keine Datenbank, keine Sicherheitsupdates für die ausgelieferte Seite.
+Statische Seite mit [Astro](https://astro.build), ausgeliefert als Cloudflare Worker mit statischen Assets (`wrangler.jsonc`). Kein Server, keine Datenbank, keine Sicherheitsupdates für die ausgelieferte Seite.
 
 ## ⚠️ Drei Regeln, die nicht verhandelbar sind
 

@@ -1,6 +1,6 @@
 # Go-live-Checkliste
 
-Bis zum Go-live läuft die Seite nur unter `selbst-gemacht.pages.dev` und wird nicht indexiert.
+Bis zum Go-live läuft die Seite nur unter `selbst-gemacht.fabian-liesch.workers.dev` und wird nicht indexiert.
 
 ## Vorher
 
@@ -19,7 +19,7 @@ Bis zum Go-live läuft die Seite nur unter `selbst-gemacht.pages.dev` und wird n
 ## Umstellung
 
 - [ ] DNS-Einträge Apex und `www` vorher notieren (docs/betrieb.md)
-- [ ] Custom Domains im Pages-Projekt hinzufügen
+- [ ] Custom Domains im Worker `selbst-gemacht` hinzufügen (Domains & Routes)
 - [ ] Weiterleitungen von alten WordPress-Adressen einrichten
 - [ ] Mailversand und -empfang nach der Umstellung testen
 - [ ] Search Console: neue Sitemap einreichen
