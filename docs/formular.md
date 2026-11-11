@@ -1,6 +1,6 @@
 # Anfrageformular und Spamschutz
 
-Stand: 11.11.2026 · **Messstufe.** Das Formular in der Fußzeile ist sichtbar, sendet aber noch nicht.
+Stand: 11.11.2026 · **Messstufe, Messung erfolgreich.** Das Formular in der Fußzeile ist sichtbar, sendet aber noch nicht.
 
 ## Prinzip
 
@@ -30,7 +30,14 @@ Lokal in der Workers-Laufzeit (`wrangler dev`):
 - Gültige Lösung → 200 · dieselbe Lösung nochmal → 403 · verfälschter Schlüssel → 403 · Kosten manipuliert → 403 · ohne Lösung → 403.
 - Lösen in Node: ca. 3,9 s (Sandbox, langsam).
 
-Auf der Vorschau im Browser: siehe Pull Request zu dieser Datei.
+Auf der Vorschau im Browser (Desktop-Chrome 157, Windows, 3 Durchläufe):
+- Aufgabe holen: 28–93 ms
+- Lösen im Browser: **1,9–2,5 s** (k-a-d-o.com: 1,8–2,4 s)
+- Prüfen 200 · nochmal 403 · verfälscht 403 · ohne Lösung 403, in allen drei Durchläufen
+- „Server 0 ms“ ist kein Messwert: Workers lassen die Uhr während einer Berechnung absichtlich stillstehen (Schutz vor Timing-Angriffen).
+- „nochmal 403“ gelang, weil die Wiederholung im selben Isolate landete. Über viele Isolates hinweg ist das nicht garantiert (siehe unten).
+
+Offen: Handy, Safari, Firefox.
 
 ## Vor dem echten Formular
 
