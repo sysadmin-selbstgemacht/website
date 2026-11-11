@@ -1,0 +1,12 @@
+# VORLAGE – noch nicht scharf.
+# Die Code-Owner-Pflicht im Ruleset wird erst aktiviert, wenn der Pflegepartner feststeht
+# (Architekturentscheidungen, Abschnitt 4).
+#
+# Regel: Alles braucht die Freigabe des Pflegepartners, außer Termine.
+# Die letzte passende Zeile gewinnt.
+#
+# *                       @PFLEGEPARTNER
+# /src/content/termine/
+#
+# Diese Datei selbst schützen:
+# /.github/               @PFLEGEPARTNER

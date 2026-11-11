@@ -1,0 +1,3 @@
+# Bis zum Go-live: nichts indexieren. Beim Go-live ersetzen (siehe docs/go-live.md).
+User-agent: *
+Disallow: /

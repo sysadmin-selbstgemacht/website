@@ -1,0 +1,6 @@
+# Cloudflare Pages: zusätzliche Kopfzeilen.
+# Bis zum Go-live verhindert X-Robots-Tag die Indexierung aller Adressen.
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

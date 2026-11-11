@@ -1,0 +1,24 @@
+---
+interface Props {
+  titel: string;
+  beschreibung?: string;
+}
+const { titel, beschreibung = 'SELBSTGEMACHT – Seminar- und Gästehaus in Arnsgrün' } = Astro.props;
+
+// Bis zum Go-live wird keine Seite indexiert.
+// Beim Go-live auf false setzen (siehe docs/go-live.md).
+const NOINDEX = true;
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titel}</title>
+    <meta name="description" content={beschreibung} />
+    {NOINDEX && <meta name="robots" content="noindex, nofollow" />}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,14 @@
+---
+import { getCollection } from 'astro:content';
+import Basis from '../layouts/Basis.astro';
+
+const termine = (await getCollection('termine', (t) => !t.data.entwurf))
+  .sort((a, b) => a.data.beginn.valueOf() - b.data.beginn.valueOf());
+---
+<Basis titel="SELBSTGEMACHT · Testseite">
+  <main>
+    <h1>SELBSTGEMACHT</h1>
+    <p>Technische Testseite. Die neue Website entsteht hier.</p>
+    <p>Veröffentlichte Termine: {termine.length}</p>
+  </main>
+</Basis>
