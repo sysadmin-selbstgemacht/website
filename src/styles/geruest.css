@@ -41,3 +41,15 @@ img { max-width: 100%; height: auto; display: block; }
 .anfrage input, .anfrage select, .anfrage textarea { font: inherit; padding: .4rem; }
 .hp { display: none; }
 .rechtliches { display: flex; gap: 1rem; list-style: none; padding: 0; }
+
+/* Anfrageformular */
+.anfrageformular { display: grid; gap: .75rem; max-width: 36rem; }
+.anfrageformular label { display: grid; gap: .25rem; }
+.anfrageformular label[hidden] { display: none; }
+.anfrageformular .zeile { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); }
+.anfrageformular .haken { display: flex; gap: .5rem; align-items: center; }
+.anfrageformular label.pflicht > span:first-child::after { content: ' *'; }
+.anfrageformular .hinweis { font-size: .85rem; color: var(--grau-dunkel); }
+.anfrageformular .meldung:empty { display: none; }
+.anfrageformular .meldung { font-weight: 600; }
+.trockenlauf { background: var(--offen); padding: .75rem; white-space: pre-wrap; font-size: .85rem; }

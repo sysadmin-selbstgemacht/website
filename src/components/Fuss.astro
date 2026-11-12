@@ -1,34 +1,18 @@
 ---
 // Fußzeile mit dem gemeinsamen Anfrageformular (Brief 6d).
-// Das Anliegen ist je Seite vorausgewählt. Versand ist noch NICHT angebunden.
+// Das Anliegen ist je Seite vorausgewählt.
+import Anfrageformular from './Anfrageformular.astro';
+import type { Anliegen } from '../lib/anfrage';
 interface Props {
-  anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges';
+  anliegen?: Anliegen;
 }
-const { anliegen = 'sonstiges' } = Astro.props;
-const optionen = [
-  { wert: 'gruppe', text: 'Gruppe / Familie' },
-  { wert: 'firma', text: 'Firma' },
-  { wert: 'kursleitung', text: 'Kursleitung' },
-  { wert: 'sonstiges', text: 'Sonstiges' },
-];
+const { anliegen } = Astro.props;
 ---
 <footer class="fuss">
   <section id="anfrage" class="anfrage">
     <h2>Anfrage</h2>
-    <p class="offen">Offen: Felder je Anliegen, Empfängeradresse, Ansprache du/Sie. Formular sendet noch nicht.</p>
-    <form method="post" action="/api/anfrage" data-formular>
-      <label>Anliegen
-        <select name="anliegen">
-          {optionen.map((o) => <option value={o.wert} selected={o.wert === anliegen}>{o.text}</option>)}
-        </select>
-      </label>
-      <label>Name <input name="name" autocomplete="name" required /></label>
-      <label>E-Mail <input name="email" type="email" autocomplete="email" required /></label>
-      <label>Zeitraum <input name="zeitraum" /></label>
-      <label>Nachricht <textarea name="nachricht" rows="4" required></textarea></label>
-      <div class="hp" aria-hidden="true"><input type="text" name="sg_hp" tabindex="-1" autocomplete="off" /></div>
-      <button type="submit" disabled>Anfrage senden (noch inaktiv)</button>
-    </form>
+    <p class="offen">Offen: Ansprache du/Sie, Empfängeradresse. Versand läuft im Trockenlauf (zeigt die Mail an, verschickt nichts).</p>
+    <Anfrageformular anliegen={anliegen} />
   </section>
   <section class="kontakt">
     <p>SELBSTGEMACHT – Seminar- und Gästehaus · Arnsgrün</p>
