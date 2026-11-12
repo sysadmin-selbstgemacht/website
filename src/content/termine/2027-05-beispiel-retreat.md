@@ -7,6 +7,9 @@ ende: 2027-05-16
 naechte: 3
 kursgebuehr: "Beispiel € zzgl. Übernachtung"
 eigener_termin: true
+beschreibung: "Beispiel: drei Tage Handwerk und Ruhe im Seminar- und Gästehaus SELBSTGEMACHT."
+bild: "./2027-05-beispiel-retreat.webp"
+bild_alt: "Platzhalterbild"
 entwurf: false
 ---
 

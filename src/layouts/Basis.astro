@@ -2,24 +2,24 @@
 import Kopf from '../components/Kopf.astro';
 import Fuss from '../components/Fuss.astro';
 import '../styles/geruest.css';
+import { SEITEN, type SeitenSchluessel } from '../lib/seiten';
 
-interface Props {
-  titel: string;
-  beschreibung?: string;
-  anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges';
-  bild?: string; // absolute oder relative URL des Teilen-Bilds (Open Graph); ohne: keins
-}
-const {
-  titel,
-  beschreibung = 'SELBSTGEMACHT – Seminar- und Gästehaus in Arnsgrün: das ganze Haus für Gruppen, Familien, Tagungen und Kurse.',
-  anliegen,
-  bild,
-} = Astro.props;
+// Feste Seiten übergeben `seite` (Angaben aus src/lib/seiten.ts).
+// Termine übergeben Titel und Beschreibung direkt.
+type Props =
+  | { seite: SeitenSchluessel; anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges' }
+  | { titel: string; beschreibung: string; bild?: string; anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges' };
+
+const p = Astro.props;
+const angaben = 'seite' in p ? SEITEN[p.seite] : { titel: p.titel, beschreibung: p.beschreibung, bild: p.bild };
+const anliegen = p.anliegen;
+const beschreibung = angaben.beschreibung;
+const bild = 'bild' in angaben ? (angaben.bild as string | undefined) : undefined;
 
 // Bis zum Go-live wird keine Seite indexiert.
 // Beim Go-live auf false setzen (siehe docs/go-live.md).
 const NOINDEX = true;
-const seitentitel = titel === 'Start' ? 'SELBSTGEMACHT – Seminar- und Gästehaus' : `${titel} · SELBSTGEMACHT`;
+const seitentitel = angaben.titel;
 const kanonisch = new URL(Astro.url.pathname, Astro.site);
 const bildUrl = bild ? new URL(bild, Astro.site).href : undefined;
 ---

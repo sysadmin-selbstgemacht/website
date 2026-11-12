@@ -1,6 +1,8 @@
 ---
 // Detailseite je Termin: teilbarer Link und Veranstaltungsdaten für Suchmaschinen (Brief 6d).
 import { getCollection, render } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Bild from '../../components/Bild.astro';
 import Basis from '../../layouts/Basis.astro';
 import { kategorieText, datumText } from '../../lib/termine';
 
@@ -13,6 +15,12 @@ const { termin } = Astro.props;
 const d = termin.data;
 const { Content } = await render(termin);
 
+// Beschreibung für Google und Teilen: aus der Termin-Datei, sonst automatisch.
+const beschreibung =
+  d.beschreibung ?? `${d.titel} · ${datumText(d.beginn, d.ende)} · Leitung: ${d.leitung} · im Seminar- und Gästehaus SELBSTGEMACHT, Arnsgrün`;
+// Teilen-Bild: verkleinerte Fassung des Terminbilds
+const teilenBild = d.bild ? (await getImage({ src: d.bild, width: 1200, format: 'jpg' })).src : undefined;
+
 const mailLink = d.kontakt_mail
   ? `mailto:${d.kontakt_mail}?subject=${encodeURIComponent('Anfrage: ' + d.titel)}&body=${encodeURIComponent('Hallo,\n\nich interessiere mich für „' + d.titel + '“ (' + datumText(d.beginn, d.ende) + ').\n\n')}`
   : undefined;
@@ -22,6 +30,7 @@ const eventDaten = {
   '@context': 'https://schema.org',
   '@type': 'Event',
   name: d.titel,
+  description: beschreibung,
   startDate: d.beginn.toISOString().slice(0, 10),
   endDate: d.ende.toISOString().slice(0, 10),
   eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
@@ -34,7 +43,7 @@ const eventDaten = {
   organizer: { '@type': 'Person', name: d.leitung },
 };
 ---
-<Basis titel={d.titel} beschreibung={`${d.titel} · ${datumText(d.beginn, d.ende)} · SELBSTGEMACHT`} anliegen={d.eigener_termin ? 'sonstiges' : undefined}>
+<Basis titel={`${d.titel} · SELBSTGEMACHT`} beschreibung={beschreibung} bild={teilenBild} anliegen={d.eigener_termin ? 'sonstiges' : undefined}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(eventDaten)} />
   <p><a href="/termine/">← Alle Termine</a></p>
   <span class="etikett">{kategorieText[d.kategorie]}</span>
@@ -47,6 +56,7 @@ const eventDaten = {
   </script>
   <p>{datumText(d.beginn, d.ende)} · {d.naechte} {d.naechte === 1 ? 'Nacht' : 'Nächte'} · Leitung: {d.leitung}</p>
   {d.kursgebuehr && <p>Kursgebühr: {d.kursgebuehr}</p>}
+  {d.bild && <Bild src={d.bild} alt={d.bild_alt ?? ''} sizes="(min-width: 72rem) 70rem, 100vw" priorisiert />}
   <Content />
 
   <section class="abschnitt">

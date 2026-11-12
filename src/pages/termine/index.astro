@@ -21,7 +21,7 @@ for (const t of termine) {
   nachMonat.set(k, [...(nachMonat.get(k) ?? []), t]);
 }
 ---
-<Basis titel="Termine">
+<Basis seite="termine">
   <h1>Termine</h1>
   <p class="zweck">Kurse, Retreats und Veranstaltungen der nächsten 12 Monate.</p>
   <p class="keine-termine" hidden={termine.length > 0}>Zurzeit sind keine Termine veröffentlicht.</p>
