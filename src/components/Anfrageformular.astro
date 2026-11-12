@@ -1,0 +1,154 @@
+---
+// Anfrageformular: eine Seite, Felder je Anliegen (docs/formular.md).
+// Spamschutz nach Leitfaden: verstecktes Feld, Zeitprüfung, Rechenaufgabe (ALTCHA) im Hintergrund.
+import { ANLIEGEN, UEBERNACHTUNG, type Anliegen } from '../lib/anfrage';
+interface Props {
+  anliegen?: Anliegen;
+}
+const { anliegen = 'sonstiges' } = Astro.props;
+---
+<form class="anfrageformular" data-formular novalidate>
+  <label>Worum geht es?
+    <select name="anliegen">
+      {ANLIEGEN.map((o) => <option value={o.wert} selected={o.wert === anliegen}>{o.text}</option>)}
+    </select>
+  </label>
+
+  <label data-feld="thema"><span>Kurs oder Thema</span> <input name="thema" maxlength="200" /></label>
+  <label data-feld="unternehmen"><span>Unternehmen</span> <input name="unternehmen" autocomplete="organization" maxlength="200" /></label>
+
+  <div class="zeile">
+    <label data-feld="von"><span data-text="von">Anreise</span> <input name="von" type="date" /></label>
+    <label data-feld="bis"><span data-text="bis">Abreise</span> <input name="bis" type="date" /></label>
+  </div>
+  <label data-feld="offen" class="haken"><input name="offen" type="checkbox" /> Termin noch offen</label>
+  <label data-feld="zeitraum"><span data-text="zeitraum">Zeitraum</span> <input name="zeitraum" maxlength="200" placeholder="z. B. ein Wochenende im Mai" /></label>
+
+  <label data-feld="personen"><span data-text="personen">Personen</span> <input name="personen" type="number" min="1" max="200" inputmode="numeric" /></label>
+  <label data-feld="uebernachtung"><span>Übernachtung</span>
+    <select name="uebernachtung">
+      <option value="">bitte wählen</option>
+      {UEBERNACHTUNG.map((u) => <option value={u}>{u}</option>)}
+    </select>
+  </label>
+
+  <label data-feld="name"><span>Name</span> <input name="name" autocomplete="name" maxlength="200" /></label>
+  <label data-feld="email"><span>E-Mail</span> <input name="email" type="email" autocomplete="email" maxlength="200" /></label>
+  <label data-feld="telefon"><span>Telefon</span> <input name="telefon" type="tel" autocomplete="tel" maxlength="50" /></label>
+  <label data-feld="website"><span>Website</span> <input name="website" type="url" maxlength="200" placeholder="https://" /></label>
+  <label data-feld="nachricht"><span>Nachricht</span> <textarea name="nachricht" rows="5" maxlength="5000"></textarea></label>
+
+  <!-- verstecktes Feld: nur Bots füllen es (display:none, unverfänglicher Name) -->
+  <div class="hp" aria-hidden="true"><input type="text" name="sg_feld7" tabindex="-1" autocomplete="off" /></div>
+
+  <p class="hinweis">Mit * markierte Felder brauchen wir. Die Angaben nutzen wir nur, um die Anfrage zu beantworten (<a href="/datenschutz/">Datenschutz</a>).</p>
+  <button type="submit">Anfrage senden</button>
+  <p class="meldung" role="status" aria-live="polite"></p>
+  <pre class="trockenlauf" hidden></pre>
+</form>
+
+<script>
+  import { solveChallenge, pbkdf2 } from 'altcha/lib';
+  import { FELDER, BESCHRIFTUNG, pflichtfelder, type Anliegen, type Feld } from '../lib/anfrage';
+
+  const geladen = Date.now();
+
+  // --- Rechenaufgabe im Hintergrund (Leitfaden 3.4) ---
+  let ausstehend: Promise<object | null> | null = null;
+  const loesen = async () => {
+    try {
+      const r = await fetch('/api/anfrage/challenge', { cache: 'no-store' });
+      if (!r.ok) return null;
+      const challenge = await r.json();
+      const solution = await solveChallenge({ challenge, deriveKey: pbkdf2.deriveKey, timeout: 120000 });
+      return solution ? { challenge, solution } : null;
+    } catch {
+      return null;
+    }
+  };
+  const baldAb = (p: any) => {
+    const exp = p?.challenge?.parameters?.expiresAt;
+    return typeof exp === 'number' && exp * 1000 - Date.now() < 60000;
+  };
+  const altcha = {
+    async holen() {
+      if (!ausstehend) ausstehend = loesen();
+      let p = await ausstehend;
+      if (!p || baldAb(p)) { ausstehend = loesen(); p = await ausstehend; }
+      return p;
+    },
+    neu() { ausstehend = loesen(); },
+  };
+
+  document.querySelectorAll<HTMLFormElement>('[data-formular]').forEach((form) => {
+    ausstehend ??= loesen();
+    const el = (n: string) => form.elements.namedItem(n) as HTMLInputElement | null;
+    const meldung = form.querySelector<HTMLElement>('.meldung')!;
+    const trocken = form.querySelector<HTMLElement>('.trockenlauf')!;
+    const knopf = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+
+    function anzeigen() {
+      const a = el('anliegen')!.value as Anliegen;
+      const offen = !!el('offen')?.checked;
+      const sichtbar = new Set(FELDER[a].sichtbar);
+      if (sichtbar.has('offen') && !offen) sichtbar.delete('zeitraum');
+      if (offen) { sichtbar.delete('von'); sichtbar.delete('bis'); }
+      const pflicht = new Set(pflichtfelder(a, offen));
+      form.querySelectorAll<HTMLElement>('[data-feld]').forEach((l) => {
+        const f = l.dataset.feld as Feld;
+        l.hidden = !sichtbar.has(f);
+        l.classList.toggle('pflicht', pflicht.has(f));
+        const input = l.querySelector('input, select, textarea') as HTMLInputElement | null;
+        if (input) input.required = pflicht.has(f) && sichtbar.has(f);
+      });
+      const b = BESCHRIFTUNG[a] ?? {};
+      form.querySelectorAll<HTMLElement>('[data-text]').forEach((s) => {
+        const f = s.dataset.text as Feld;
+        s.textContent = b[f] ?? ({ von: 'Von', bis: 'Bis', zeitraum: 'Zeitraum', personen: 'Personen' } as any)[f];
+      });
+    }
+    form.addEventListener('change', anzeigen);
+    anzeigen();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      trocken.hidden = true;
+      // erst im Browser prüfen (Leitfaden 6), dann senden
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        meldung.textContent = 'Bitte die markierten Felder ausfüllen.';
+        return;
+      }
+      knopf.disabled = true;
+      meldung.textContent = 'Wird gesendet …';
+      const daten: Record<string, unknown> = {};
+      new FormData(form).forEach((v, k) => { daten[k] = v; });
+      daten.offen = !!el('offen')?.checked;
+      daten.elapsed = Date.now() - geladen;
+      daten.altcha = await altcha.holen();
+      altcha.neu(); // Lösung gilt nur einmal (Leitfaden 3.4)
+      try {
+        const r = await fetch('/api/anfrage', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(daten) });
+        const b = await r.json().catch(() => ({}));
+        if (r.ok && b.status === 'ok') {
+          meldung.textContent = 'Danke! Die Anfrage ist angekommen. Wir melden uns so bald wie möglich.';
+          if (b.trockenlauf) { trocken.textContent = 'TROCKENLAUF – diese Mail würde verschickt:\n\n' + b.trockenlauf; trocken.hidden = false; }
+          else form.reset();
+          anzeigen();
+        } else if (r.status === 400 && b.felder) {
+          meldung.textContent = 'Bitte prüfen: ' + Object.values(b.felder).join(' · ');
+        } else if (r.status === 429) {
+          meldung.textContent = 'Zu viele Anfragen in kurzer Zeit. Bitte in einer Minute noch einmal versuchen.';
+        } else if (r.status === 403) {
+          meldung.textContent = 'Die Sicherheitsprüfung ist fehlgeschlagen. Bitte die Seite neu laden und noch einmal senden, oder uns direkt anrufen.';
+        } else {
+          meldung.textContent = 'Das hat leider nicht geklappt. Bitte später noch einmal versuchen oder uns direkt anrufen.';
+        }
+      } catch {
+        meldung.textContent = 'Keine Verbindung. Die Eingaben bleiben erhalten, bitte noch einmal senden.';
+      } finally {
+        knopf.disabled = false;
+      }
+    });
+  });
+</script>
