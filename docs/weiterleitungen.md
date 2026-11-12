@@ -12,9 +12,12 @@ Wer über Google, Lesezeichen oder alte Links kommt, landet mit einer dauerhafte
 | `/faq/`, `/business-faq/` | Gruppen- bzw. Firmenseite | Gibt es auf der neuen Seite häufige Fragen? Dann dorthin. |
 | `/galerie/` | Start | Gibt es eine Bildergalerie? |
 | `/kunst/`, `/architektur/` | Über uns | Passt das (Alfred als Architekt, Kunst im Haus)? |
-| `/agb/`, `/agb-business/`, `/widerruf/` u. a. | Impressum | **Braucht die neue Seite AGB** (z. B. für Gruppenbuchungen, Stornobedingungen)? Dann eigene Seite, und die Weiterleitungen zeigen dorthin. |
 | Blogartikel (`/waldbaden/`, `/gastgeber/`, `/ostern/` …) | thematisch nächste Seite oder Start | Sollen einzelne Artikel als Text erhalten bleiben (z. B. Waldbaden)? |
 | `/produkt/…` (Kurse aus dem Shop) | Termine | passt, solange es eine Terminliste gibt |
+
+## Entschieden
+
+- **Keine AGB- oder Widerrufsseite** (Matthias, 12.11.): Auf der Seite wird nichts gebucht, nur angefragt. Die Bedingungen stehen im Vertrag, den Gäste für die Buchung bekommen. Die alten Adressen (`/agb/`, `/agb-business/`, `/geschaeftsbedingungen/`, `/widerruf/`, `/vertrag-widerrufen/`, `/echtheit-von-bewertungen/`) leiten aufs Impressum, dort steht der Kontakt.
 
 ## Nicht weitergeleitet
 
