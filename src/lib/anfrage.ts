@@ -12,7 +12,7 @@ export const ANLIEGEN: { wert: Anliegen; text: string }[] = [
 
 export type Feld =
   | 'von' | 'bis' | 'offen' | 'zeitraum' | 'personen' | 'unternehmen' | 'uebernachtung'
-  | 'thema' | 'website' | 'name' | 'email' | 'telefon' | 'nachricht';
+  | 'thema' | 'name' | 'email' | 'telefon' | 'nachricht';
 
 // Welche Felder je Anliegen sichtbar sind und welche Pflicht.
 // "von/bis" sind Pflicht, solange "offen" nicht angehakt ist; dann ist "zeitraum" Pflicht.
@@ -26,7 +26,7 @@ export const FELDER: Record<Anliegen, { sichtbar: Feld[]; pflicht: Feld[] }> = {
     pflicht: ['von', 'bis', 'personen', 'name', 'email'],
   },
   kursleitung: {
-    sichtbar: ['thema', 'zeitraum', 'personen', 'website', 'name', 'email', 'telefon', 'nachricht'],
+    sichtbar: ['thema', 'zeitraum', 'personen', 'name', 'email', 'telefon', 'nachricht'],
     pflicht: ['thema', 'zeitraum', 'name', 'email'],
   },
   sonstiges: {
@@ -36,9 +36,14 @@ export const FELDER: Record<Anliegen, { sichtbar: Feld[]; pflicht: Feld[] }> = {
 };
 
 export const BESCHRIFTUNG: Partial<Record<Anliegen, Partial<Record<Feld, string>>>> = {
-  gruppe: { von: 'Anreise', bis: 'Abreise', personen: 'Personen' },
-  firma: { von: 'Erster Tag', bis: 'Letzter Tag', personen: 'Teilnehmende' },
+  firma: { personen: 'Teilnehmende' },
   kursleitung: { zeitraum: 'Wunschzeitraum', personen: 'Erwartete Teilnehmende' },
+};
+
+// Standardbeschriftungen, wo BESCHRIFTUNG nichts anderes sagt.
+export const STANDARD: Partial<Record<Feld, string>> = {
+  von: 'Anreise', bis: 'Abreise', zeitraum: 'Zeitraum', personen: 'Personen', unternehmen: 'Unternehmen', uebernachtung: 'Übernachtung',
+  thema: 'Kurs oder Thema', name: 'Name', email: 'E-Mail', telefon: 'Telefon', nachricht: 'Nachricht',
 };
 
 export const UEBERNACHTUNG = ['ja', 'nein', 'teilweise', 'noch offen'];

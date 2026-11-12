@@ -35,7 +35,6 @@ const { anliegen = 'sonstiges' } = Astro.props;
   <label data-feld="name"><span>Name</span> <input name="name" autocomplete="name" maxlength="200" /></label>
   <label data-feld="email"><span>E-Mail</span> <input name="email" type="email" autocomplete="email" maxlength="200" /></label>
   <label data-feld="telefon"><span>Telefon</span> <input name="telefon" type="tel" autocomplete="tel" maxlength="50" /></label>
-  <label data-feld="website"><span>Website</span> <input name="website" type="url" maxlength="200" placeholder="https://" /></label>
   <label data-feld="nachricht"><span>Nachricht</span> <textarea name="nachricht" rows="5" maxlength="5000"></textarea></label>
 
   <!-- verstecktes Feld: nur Bots füllen es (display:none, unverfänglicher Name) -->
@@ -49,7 +48,7 @@ const { anliegen = 'sonstiges' } = Astro.props;
 
 <script>
   import { solveChallenge, pbkdf2 } from 'altcha/lib';
-  import { FELDER, BESCHRIFTUNG, pflichtfelder, type Anliegen, type Feld } from '../lib/anfrage';
+  import { FELDER, BESCHRIFTUNG, STANDARD, pflichtfelder, type Anliegen, type Feld } from '../lib/anfrage';
 
   const geladen = Date.now();
 
@@ -104,7 +103,7 @@ const { anliegen = 'sonstiges' } = Astro.props;
       const b = BESCHRIFTUNG[a] ?? {};
       form.querySelectorAll<HTMLElement>('[data-text]').forEach((s) => {
         const f = s.dataset.text as Feld;
-        s.textContent = b[f] ?? ({ von: 'Von', bis: 'Bis', zeitraum: 'Zeitraum', personen: 'Personen' } as any)[f];
+        s.textContent = b[f] ?? STANDARD[f] ?? f;
       });
     }
     form.addEventListener('change', anzeigen);

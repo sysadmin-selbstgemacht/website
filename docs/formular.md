@@ -6,7 +6,8 @@ Stand: 12.11.2026 · **Formular gebaut, Versand im Trockenlauf.** Die Vorschau z
 
 - **Eine Seite statt Schritte**, Felder richten sich nach dem Anliegen (Gruppe, Firma, Kursleitung, Sonstiges). Das Anliegen ist je Seite vorausgewählt.
 - Welche Felder sichtbar und Pflicht sind, steht an **einer** Stelle: `src/lib/anfrage.ts`. Browser und Worker nutzen dieselbe Liste.
-- Haken **„Termin noch offen“** ersetzt die Datumsfelder durch ein Freitextfeld.
+- Datumsfelder heißen überall **Anreise / Abreise**. Haken **„Termin noch offen“** ersetzt sie durch ein Freitextfeld.
+- Kein Website-Feld bei Kursleitung (ergibt sich aus Mail oder Nachricht).
 - Die Mail geht **an das Haus**. „Antwort an“ ist die Adresse der anfragenden Person, Anne kann also direkt antworten. **Keine Bestätigungsmail** an Anfragende: Spam würde sonst an fremde Adressen gehen.
 
 ## Spamschutz
