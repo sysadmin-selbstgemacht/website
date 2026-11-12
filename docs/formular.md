@@ -1,6 +1,6 @@
 # Anfrageformular und Spamschutz
 
-Stand: 12.11.2026 · **Formular gebaut, Versand im Trockenlauf.** Die Vorschau zeigt an, welche Mail verschickt würde, verschickt aber nichts.
+Stand: 12.11.2026 · **Formular gebaut, Versand gebaut, eingestellt auf Trockenlauf.** Die Vorschau zeigt an, welche Mail verschickt würde, verschickt aber nichts. Zum Einschalten fehlen nur Postfach und Passwort.
 
 ## Aufbau
 
@@ -32,6 +32,7 @@ Kein Captcha-Dienst, keine Cookies, keine Daten an Dritte. Prüfung im Worker (`
 | `POST /api/anfrage` | Anfrage prüfen und senden; derzeit Trockenlauf |
 | `POST /api/anfrage/pruefen` | nur Lösung prüfen, für die Messseite `/test/altcha/` |
 | `GET /api/test/smtp` | **vorübergehend:** erreicht der Worker den Mailserver von all-inkl? |
+| `GET /api/test/smtp-anmeldung` | **vorübergehend:** nimmt all-inkl die hinterlegten Zugangsdaten an? Meldet sich nur an, verschickt nichts. Ohne Secrets mit absichtlich falschen Daten (erwartet: abgelehnt) |
 
 ## Messwerte
 
@@ -49,13 +50,33 @@ Kein Captcha-Dienst, keine Cookies, keine Daten an Dritte. Prüfung im Worker (`
 
 Offen: Vorschau mit echtem Browser, Handy, Safari, Firefox.
 
-## Versand (offen)
+## Versand
 
-- **Weg:** SMTP über ein Postfach des Hauses bei all-inkl. Keine DNS-Änderung, SPF und DKIM sind dort eingerichtet.
+- **Weg:** SMTP über ein Postfach des Hauses bei all-inkl (`worker/smtp.ts`, eigener schlanker Client ohne Fremdbibliothek). Port 465 mit TLS. Keine DNS-Änderung, SPF und DKIM sind dort eingerichtet.
+- **Die Mail:** Absender „SELBSTGEMACHT Website“ mit der Postfach-Adresse, **Antworten** geht direkt an die anfragende Person (Reply-To). Betreff nennt Anliegen, Personen, Zeitraum und Name. Reiner Text, UTF-8, Umlaute geprüft.
+- **Fehler:** Fehlen Zugangsdaten, antwortet das Formular mit „Versand nicht eingerichtet“ (503). Lehnt der Mailserver ab, „Versand fehlgeschlagen“ (502). Das Log hält nur Schritt und Serverantwort fest, nie den Inhalt der Anfrage.
 - **Cloudflare scheidet aus:** Email Routing auf einer Subdomain hängt an der Hauptdomain, und die lässt sich nur mit Cloudflare-MX einschalten (würde die Mail des Hauses umleiten). Email Sending braucht Workers Paid (5 $/Monat). Geprüft am 12.11., nichts geändert.
 - **Postfach:** offen. Kontingent bei all-inkl ist erschöpft; Frage an Fabian und Vadim, wofür `noreply@` und `system@` genutzt werden (12.11.).
-- **Zugangsdaten** als Secrets am Worker, **Empfänger** `MAIL_AN` als Variable bei Cloudflare, beides nie im Repo. Testanfragen gehen an Matthias.
-- Einschalten: Variable `MAIL_MODUS` auf `senden`.
+
+**Getestet 12.11.2026** · lokal gegen einen Test-Mailserver: vollständiges Gespräch (Anmeldung, Absender, Empfänger, Nachricht), Kopfzeilen und Text korrekt dekodiert, auch Umlaute und eine Zeile, die mit Punkt beginnt.
+
+### Einschalten (Matthias, im Cloudflare-Dashboard)
+
+Worker `selbst-gemacht` → Settings → Variables and Secrets:
+
+| Name | Art | Wert |
+|---|---|---|
+| `SMTP_BENUTZER` | **Secret** | Postfach-Kennung bei all-inkl (z. B. `m0…`) |
+| `SMTP_PASSWORT` | **Secret** | Passwort des Postfachs |
+| `MAIL_VON` | Variable | Adresse des Postfachs, z. B. `noreply@selbst-gemacht.eu` |
+| `MAIL_AN` | Variable | Testphase: Adresse von Matthias. Go-live: Adresse des Hauses |
+| `MAIL_MODUS` | im Repo | `senden` (sonst Trockenlauf), siehe unten |
+
+`SMTP_HOST`, `SMTP_PORT` brauchen keinen Eintrag (Standard: Server von all-inkl, 465).
+
+Reihenfolge: erst die beiden Secrets, dann `/api/test/smtp-anmeldung` aufrufen (muss „Anmeldung erfolgreich“ melden), dann `MAIL_AN` und `MAIL_VON`, zuletzt der Pull Request mit `MAIL_MODUS: "senden"`. Eine Testanfrage über das Formular schicken.
+
+Wichtig: `MAIL_MODUS` steht in `wrangler.jsonc` und wird bei jedem Deploy von dort gesetzt. **Einschalten deshalb per Pull Request** (`"MAIL_MODUS": "senden"`), nicht im Dashboard. `MAIL_AN` und `MAIL_VON` stehen nur im Dashboard; `keep_vars` sorgt dafür, dass Deploys sie nicht löschen. Secrets bleiben ohnehin erhalten.
 
 ## Vor dem Go-live
 
