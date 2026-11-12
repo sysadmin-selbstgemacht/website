@@ -1,6 +1,7 @@
 ---
 // Terminliste: die nächsten 12 Monate, nach Monat gegliedert, Kategorie als Etikett (Brief 6d).
-// Statische Seite: "heute" ist der Zeitpunkt des Builds. Siehe docs/termine.md.
+// Statische Seite: "heute" ist der Zeitpunkt des Builds. Ein kleines Skript blendet im Browser
+// zusätzlich aus, was inzwischen vorbei ist. Siehe docs/termine.md.
 import { getCollection } from 'astro:content';
 import Basis from '../../layouts/Basis.astro';
 import { kategorieText, monatsName, datumText } from '../../lib/termine';
@@ -23,12 +24,12 @@ for (const t of termine) {
 <Basis titel="Termine">
   <h1>Termine</h1>
   <p class="zweck">Kurse, Retreats und Veranstaltungen der nächsten 12 Monate.</p>
-  {termine.length === 0 && <p>Zurzeit sind keine Termine veröffentlicht.</p>}
+  <p class="keine-termine" hidden={termine.length > 0}>Zurzeit sind keine Termine veröffentlicht.</p>
   {[...nachMonat].map(([monat, liste]) => (
-    <section>
+    <section class="termin-monat">
       <h2 class="monat">{monat}</h2>
       {liste.map((t) => (
-        <article class="termin">
+        <article class="termin" data-ende={t.data.ende.toISOString().slice(0, 10)}>
           <span class="etikett">{kategorieText[t.data.kategorie]}</span>
           <h3><a href={`/termine/${t.id}/`}>{t.data.titel}</a></h3>
           <p>{datumText(t.data.beginn, t.data.ende)} · Leitung: {t.data.leitung}</p>
@@ -37,4 +38,18 @@ for (const t of termine) {
     </section>
   ))}
   <p class="offen">Offen: Kennzeichen „ausgebucht“ ja oder nein.</p>
+
+  <script>
+    // Vergangene Termine ausblenden (Datum nach Ortszeit des Hauses), leere Monate mit.
+    const heute = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date()); // JJJJ-MM-TT
+    document.querySelectorAll<HTMLElement>('.termin[data-ende]').forEach((t) => { if ((t.dataset.ende ?? '') < heute) t.hidden = true; });
+    let sichtbar = 0;
+    document.querySelectorAll<HTMLElement>('.termin-monat').forEach((m) => {
+      const n = m.querySelectorAll('.termin:not([hidden])').length;
+      m.hidden = n === 0;
+      sichtbar += n;
+    });
+    const leer = document.querySelector<HTMLElement>('.keine-termine');
+    if (leer) leer.hidden = sichtbar > 0;
+  </script>
 </Basis>

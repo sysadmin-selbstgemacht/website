@@ -3,8 +3,21 @@ import Basis from '../layouts/Basis.astro';
 import Abschnitt from '../components/Abschnitt.astro';
 import Bild from '../components/Bild.astro';
 import platzhalter from '../assets/bilder/platzhalter.webp';
+
+// Angaben zum Haus für Suchmaschinen (schema.org). Quelle: Impressum. Prüfen beim Go-live.
+const haus = {
+  '@context': 'https://schema.org',
+  '@type': 'LodgingBusiness',
+  name: 'SELBSTGEMACHT – Seminar- und Gästehaus',
+  url: Astro.site?.href,
+  telephone: '+49 37431 86959',
+  email: 'info@selbst-gemacht.eu',
+  address: { '@type': 'PostalAddress', streetAddress: 'Arnsgrün 56', postalCode: '07937', addressLocality: 'Zeulenroda-Triebes', addressRegion: 'Thüringen', addressCountry: 'DE' },
+  description: 'Das ganze Haus für Gruppen, Familien, Tagungen und Kurse. Bis zu 30 Gäste, 10 Zimmer.',
+};
 ---
 <Basis titel="Start">
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(haus)} />
   <div class="held">
     <div>
       <p class="zweck">Imagevideo (aus R2) · noch nicht eingebunden</p>

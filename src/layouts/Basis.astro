@@ -7,17 +7,21 @@ interface Props {
   titel: string;
   beschreibung?: string;
   anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges';
+  bild?: string; // absolute oder relative URL des Teilen-Bilds (Open Graph); ohne: keins
 }
 const {
   titel,
-  beschreibung = 'SELBSTGEMACHT – Seminar- und Gästehaus in Arnsgrün',
+  beschreibung = 'SELBSTGEMACHT – Seminar- und Gästehaus in Arnsgrün: das ganze Haus für Gruppen, Familien, Tagungen und Kurse.',
   anliegen,
+  bild,
 } = Astro.props;
 
 // Bis zum Go-live wird keine Seite indexiert.
 // Beim Go-live auf false setzen (siehe docs/go-live.md).
 const NOINDEX = true;
-const seitentitel = titel === 'Start' ? 'SELBSTGEMACHT' : `${titel} · SELBSTGEMACHT`;
+const seitentitel = titel === 'Start' ? 'SELBSTGEMACHT – Seminar- und Gästehaus' : `${titel} · SELBSTGEMACHT`;
+const kanonisch = new URL(Astro.url.pathname, Astro.site);
+const bildUrl = bild ? new URL(bild, Astro.site).href : undefined;
 ---
 <!doctype html>
 <html lang="de">
@@ -27,6 +31,18 @@ const seitentitel = titel === 'Start' ? 'SELBSTGEMACHT' : `${titel} · SELBSTGEM
     <title>{seitentitel}</title>
     <meta name="description" content={beschreibung} />
     {NOINDEX && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={kanonisch.href} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    <!-- Vorschau beim Teilen (WhatsApp, Facebook, LinkedIn …) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:site_name" content="SELBSTGEMACHT" />
+    <meta property="og:title" content={seitentitel} />
+    <meta property="og:description" content={beschreibung} />
+    <meta property="og:url" content={kanonisch.href} />
+    {bildUrl && <meta property="og:image" content={bildUrl} />}
+    <meta name="twitter:card" content={bildUrl ? 'summary_large_image' : 'summary'} />
     <slot name="head" />
   </head>
   <body>
