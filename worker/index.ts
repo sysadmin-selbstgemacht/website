@@ -5,6 +5,7 @@
 //   POST /api/anfrage/pruefen    – nur Lösung prüfen (Messseite /test/altcha/)
 //   POST /api/anfrage            – Anfrage prüfen und verschicken (derzeit TROCKENLAUF)
 //   GET  /api/test/smtp          – VORÜBERGEHEND: Erreichbarkeit des all-inkl-Mailservers
+//   GET  /api/test/smtp-anmeldung – VORÜBERGEHEND: Anmeldung am Postfach prüfen, verschickt nichts
 //
 // Spamschutz nach Leitfaden (docs/formular.md), Reihenfolge:
 //   1 verstecktes Feld → 2 Zeitprüfung → 3 Rate Limit → 4 Rechenaufgabe → 5 Feldprüfung
@@ -15,6 +16,7 @@
 import { createChallenge, verifySolution, randomInt } from 'altcha-lib';
 import { deriveKey } from 'altcha-lib/algorithms/web/pbkdf2';
 import { connect } from 'cloudflare:sockets';
+import { sende, SmtpFehler, type SmtpZugang } from './smtp';
 import { ANLIEGEN, FELDER, BESCHRIFTUNG, STANDARD, GRENZEN, UEBERNACHTUNG, pflichtfelder, type Anliegen, type Feld } from '../src/lib/anfrage';
 
 interface Env {
@@ -23,7 +25,24 @@ interface Env {
   CF_VERSION_METADATA?: { id?: string };
   ANFRAGE_LIMIT?: { limit(o: { key: string }): Promise<{ success: boolean }> };
   MAIL_MODUS?: string; // 'senden' schaltet den Versand ein; sonst Trockenlauf
-  MAIL_AN?: string; // Empfänger (Variable bei Cloudflare, nicht im Repo)
+  MAIL_AN?: string; // Empfänger, mehrere mit Komma (Variable bei Cloudflare, nicht im Repo)
+  MAIL_VON?: string; // Absender = Postfach des Hauses, z. B. noreply@selbst-gemacht.eu
+  SMTP_HOST?: string; // Standard: w0129234.kasserver.com
+  SMTP_PORT?: string; // Standard: 465 (TLS)
+  SMTP_TLS?: string; // 'on' (Standard) oder 'off' (nur lokale Tests)
+  SMTP_BENUTZER?: string; // Secret: Postfach-Kennung bei all-inkl (z. B. m0…)
+  SMTP_PASSWORT?: string; // Secret
+}
+
+function zugang(env: Env): SmtpZugang | null {
+  if (!env.SMTP_BENUTZER || !env.SMTP_PASSWORT) return null;
+  return {
+    host: env.SMTP_HOST || 'w0129234.kasserver.com',
+    port: Number(env.SMTP_PORT || 465),
+    tls: env.SMTP_TLS === 'off' ? 'off' : 'on',
+    benutzer: env.SMTP_BENUTZER,
+    passwort: env.SMTP_PASSWORT,
+  };
 }
 
 const ALGORITHMUS = 'PBKDF2/SHA-256';
@@ -157,8 +176,20 @@ async function anfrage(request: Request, env: Env): Promise<Response> {
     const vorschau = `An: ${env.MAIL_AN ? '(hinterlegte Adresse)' : '(noch nicht hinterlegt)'}\nAntwort an: ${mail.antwortAn}\nBetreff: ${mail.betreff}\n\n${mail.text}`;
     return json({ status: 'ok', trockenlauf: vorschau });
   }
-  // Versand folgt, sobald das Postfach feststeht (docs/formular.md).
-  return json({ status: 'error', message: 'versand_nicht_eingerichtet' }, 503);
+  const z = zugang(env);
+  const an = (env.MAIL_AN ?? '').split(',').map((a) => a.trim()).filter(Boolean);
+  if (!z || !env.MAIL_VON || !an.length) {
+    console.error('Versand nicht eingerichtet: SMTP_BENUTZER, SMTP_PASSWORT, MAIL_VON oder MAIL_AN fehlt');
+    return json({ status: 'error', message: 'versand_nicht_eingerichtet' }, 503);
+  }
+  try {
+    await sende(z, { von: env.MAIL_VON, an, antwortAn: mail.antwortAn, betreff: mail.betreff, text: mail.text });
+    return json({ status: 'ok' });
+  } catch (e) {
+    // Inhalt der Anfrage NICHT protokollieren, nur Schritt und Serverantwort
+    console.error('Versand fehlgeschlagen', e instanceof SmtpFehler ? `${e.schritt}: ${e.antwort}` : String(e));
+    return json({ status: 'error', message: 'versand_fehlgeschlagen' }, 502);
+  }
 }
 
 // ---------- VORÜBERGEHEND: Erreichbarkeit all-inkl SMTP ----------
@@ -224,6 +255,19 @@ async function bearbeiten(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === '/api/test/smtp' && request.method === 'GET') return smtpTest();
+
+  // VORÜBERGEHEND: Anmeldung prüfen. Ohne hinterlegte Zugangsdaten mit absichtlich falschen
+  // (erwartet: Ablehnung 535). Verschickt nie etwas, gibt keine Zugangsdaten aus.
+  if (url.pathname === '/api/test/smtp-anmeldung' && request.method === 'GET') {
+    const echt = zugang(env);
+    const z = echt ?? { host: env.SMTP_HOST || 'w0129234.kasserver.com', port: Number(env.SMTP_PORT || 465), tls: 'on' as const, benutzer: 'test-ungueltig', passwort: 'test-ungueltig' };
+    try {
+      const p = await sende(z, null, { nurAnmelden: true });
+      return json({ zugangsdaten: echt ? 'hinterlegt' : 'Test (falsch)', ergebnis: 'Anmeldung erfolgreich', protokoll: p });
+    } catch (e) {
+      return json({ zugangsdaten: echt ? 'hinterlegt' : 'Test (falsch)', ergebnis: 'abgelehnt', schritt: e instanceof SmtpFehler ? e.schritt : 'unbekannt', antwort: e instanceof SmtpFehler ? e.antwort : String(e) });
+    }
+  }
 
   if (url.pathname.startsWith('/api/')) return json({ status: 'error', message: 'not_found' }, 404);
   return env.ASSETS.fetch(request);

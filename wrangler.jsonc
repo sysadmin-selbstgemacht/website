@@ -18,6 +18,8 @@
   ],
   // Versand: Trockenlauf, bis das Postfach feststeht. "senden" schaltet ein.
   // Empfänger (MAIL_AN) und Zugangsdaten stehen NICHT hier, sondern als Variable/Secret bei Cloudflare.
+  // Variablen aus dem Dashboard (MAIL_AN, MAIL_VON) bei jedem Deploy behalten; MAIL_MODUS steuert das Repo
+  "keep_vars": true,
   "vars": { "MAIL_MODUS": "trockenlauf" },
   "preview_urls": true,
   // Vorschau je Branch und Pull Request (Workers Builds, Befehl `npx wrangler preview`).
