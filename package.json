@@ -8,10 +8,11 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node scripts/bilder-pruefen.mjs && astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "bilder": "node scripts/bilder.mjs"
+    "bilder": "node scripts/bilder.mjs",
+    "bilder-pruefen": "node scripts/bilder-pruefen.mjs"
   },
   "dependencies": {
     "altcha": "3.5.0",
