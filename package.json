@@ -10,7 +10,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "bilder": "node scripts/bilder.mjs"
   },
   "dependencies": {
     "altcha": "3.5.0",

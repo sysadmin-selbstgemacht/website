@@ -39,6 +39,12 @@ const eventDaten = {
   <p><a href="/termine/">← Alle Termine</a></p>
   <span class="etikett">{kategorieText[d.kategorie]}</span>
   <h1>{d.titel}</h1>
+  <p class="offen vorbei" hidden data-ende={d.ende.toISOString().slice(0, 10)}>Dieser Termin ist bereits vorbei. <a href="/termine/">Zu den aktuellen Terminen</a></p>
+  <script>
+    const v = document.querySelector<HTMLElement>('.vorbei');
+    const heute = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+    if (v && (v.dataset.ende ?? '') < heute) v.hidden = false;
+  </script>
   <p>{datumText(d.beginn, d.ende)} · {d.naechte} {d.naechte === 1 ? 'Nacht' : 'Nächte'} · Leitung: {d.leitung}</p>
   {d.kursgebuehr && <p>Kursgebühr: {d.kursgebuehr}</p>}
   <Content />
