@@ -36,4 +36,4 @@ Stimmt ein Feld nicht, scheitert der Build. Der Termin geht dann nicht live, die
 
 - Die Terminliste zeigt die **nächsten 12 Monate**, nach Monat gegliedert, mit Kategorie als Etikett.
 - Jeder Termin bekommt eine eigene Seite unter `/termine/<dateiname>/` mit Veranstaltungsdaten für Suchmaschinen (schema.org/Event) und steht, solange er nicht vorbei ist, in der Sitemap.
-- **„Heute“ ist der Zeitpunkt des letzten Builds.** Vergangene Termine verschwinden erst beim nächsten Build. Offen: regelmäßiger Build (z. B. nachts) oder Ausblenden im Browser.
+- Vergangene Termine blendet die Seite im Browser aus (Datum nach deutscher Zeit). Aus der Sitemap fallen sie beim nächsten Build heraus.

@@ -51,7 +51,6 @@ Details, Zuständigkeiten und Übergabe: `docs/betrieb.md`.
 ## Weitere Doku
 
 - `docs/betrieb.md` – Konten, Zuständigkeiten, Regeln für DNS
-- `docs/go-live.md` – Checkliste für die Umstellung auf selbst-gemacht.eu
 - `docs/termine.md` – Aufbau eines Termin-Eintrags
 - `docs/formular.md` – Anfrageformular und Spamschutz
 - `docs/go-live.md` – Drehbuch für die Umstellung
