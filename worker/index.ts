@@ -15,7 +15,7 @@
 import { createChallenge, verifySolution, randomInt } from 'altcha-lib';
 import { deriveKey } from 'altcha-lib/algorithms/web/pbkdf2';
 import { connect } from 'cloudflare:sockets';
-import { ANLIEGEN, FELDER, BESCHRIFTUNG, GRENZEN, UEBERNACHTUNG, pflichtfelder, type Anliegen, type Feld } from '../src/lib/anfrage';
+import { ANLIEGEN, FELDER, BESCHRIFTUNG, STANDARD, GRENZEN, UEBERNACHTUNG, pflichtfelder, type Anliegen, type Feld } from '../src/lib/anfrage';
 
 interface Env {
   ASSETS: Fetcher;
@@ -98,16 +98,11 @@ function pruefeFelder(b: any) {
     if (!Number.isInteger(n) || n < 1 || n > GRENZEN.personenMax) fehler.personen = `${name(anliegen, 'personen')}: Zahl prüfen`;
   }
   if (werte.uebernachtung && !UEBERNACHTUNG.includes(werte.uebernachtung)) fehler.uebernachtung = 'Übernachtung prüfen';
-  if (werte.website && !/^https?:\/\/\S+$/.test(werte.website)) fehler.website = 'Website mit https:// angeben';
   return { anliegen, offen, werte, fehler };
 }
 
 function name(a: Anliegen, f: Feld): string {
-  const std: Partial<Record<Feld, string>> = {
-    von: 'Von', bis: 'Bis', zeitraum: 'Zeitraum', personen: 'Personen', unternehmen: 'Unternehmen', uebernachtung: 'Übernachtung',
-    thema: 'Kurs oder Thema', website: 'Website', name: 'Name', email: 'E-Mail', telefon: 'Telefon', nachricht: 'Nachricht',
-  };
-  return BESCHRIFTUNG[a]?.[f] ?? std[f] ?? f;
+  return BESCHRIFTUNG[a]?.[f] ?? STANDARD[f] ?? f;
 }
 
 function datumDE(iso?: string) {
