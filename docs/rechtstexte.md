@@ -16,5 +16,5 @@ Stand: 12.11.2026 · **Entwürfe, nicht rechtlich geprüft.** Prüfung und Freig
 4. **Karte und Video:** Abschnitt 7 nur aufnehmen, wenn tatsächlich eingebunden, dann je Anbieter ergänzen.
 5. **Bildnachweis:** vollständige Liste der Fotografinnen und Fotografen der verwendeten Bilder.
 6. **Fax** noch aktuell? **info@** die richtige Kontaktadresse?
-7. **AGB / Stornobedingungen:** Braucht es eine eigene Seite (siehe docs/weiterleitungen.md)?
+7. ~~AGB / Stornobedingungen~~ **Entschieden 12.11.:** keine eigene Seite, weil online nichts gebucht wird; Bedingungen stehen im Buchungsvertrag.
 8. **Ansprache:** Rechtstexte sind in „Sie“ formuliert, üblich auch auf Seiten mit „du“.
