@@ -53,3 +53,8 @@ img { max-width: 100%; height: auto; display: block; }
 .anfrageformular .meldung:empty { display: none; }
 .anfrageformular .meldung { font-weight: 600; }
 .trockenlauf { background: var(--offen); padding: .75rem; white-space: pre-wrap; font-size: .85rem; }
+
+/* Bildnachweis: dezent unter Kursbild und Foto der Kursleitung */
+.mit-nachweis { margin: 0 0 1rem; }
+.mit-nachweis img { display: block; width: 100%; height: auto; }
+.bildnachweis { font-size: .75rem; color: var(--grau-dunkel); margin-top: .25rem; }

@@ -16,7 +16,7 @@ Statische Seite mit [Astro](https://astro.build), ausgeliefert als Cloudflare Wo
 Änderung (Branch) → Pull Request → Cloudflare baut Vorschau → Merge in main → Cloudflare baut Live-Seite
 ```
 
-- Inhalte liegen als Dateien im Repo. Termine: `src/content/termine/*.md`
+- Inhalte liegen als Dateien im Repo. Termine: `src/content/termine/*.md`, Kursleitungen: `src/content/kursleitungen/*.json`. Bilder dazu liegen in Cloudflare R2, nicht im Repo.
 - Ein fehlerhafter Termin (falsches Feld, Ende vor Beginn) lässt den Build scheitern und geht nicht live. Das Schema steht in `src/content.config.ts`.
 
 ## Bilder und Videos
@@ -31,7 +31,7 @@ Statische Seite mit [Astro](https://astro.build), ausgeliefert als Cloudflare Wo
 ## Seitentitel und Beschreibungen
 
 - Feste Seiten: **eine** Datei, `src/lib/seiten.ts` (Titel, Beschreibung, Teilen-Bild). Die Sitemap liest dieselbe Liste. Neue Seite: dort eintragen.
-- Termine: Titel aus der Termin-Datei, Beschreibung aus dem Feld `beschreibung` oder automatisch aus Titel, Datum und Leitung. Kommende Termine stehen automatisch in der Sitemap.
+- Termine: Titel aus der Termin-Datei, Beschreibung aus dem Pflichtfeld `kurzbeschreibung`. Kommende Termine stehen automatisch in der Sitemap.
 
 ## Lokal bauen
 
@@ -51,7 +51,8 @@ Details, Zuständigkeiten und Übergabe: `docs/betrieb.md`.
 ## Weitere Doku
 
 - `docs/betrieb.md` – Konten, Zuständigkeiten, Regeln für DNS
-- `docs/termine.md` – Aufbau eines Termin-Eintrags
+- `docs/termine.md` – Aufbau eines Termin-Eintrags und einer Kursleitung
+- `docs/termin-formular.md` – Termin-Formular: Ablauf, Einrichtung (R2, Token, Access)
 - `docs/formular.md` – Anfrageformular und Spamschutz
 - `docs/go-live.md` – Drehbuch für die Umstellung
 - `docs/weiterleitungen.md` – alte Adressen der WordPress-Seite

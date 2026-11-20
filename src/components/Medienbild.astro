@@ -1,0 +1,35 @@
+---
+// Kursbild oder Foto einer Kursleitung, 16:9.
+// "medien/…": liegt in R2, der Worker liefert zwei Größen unter /medien/<schlüssel>/klein|gross aus.
+// "haus/…":   Hausbild aus src/assets/bilder/, Astro erzeugt die Größen beim Build.
+import Bild from './Bild.astro';
+import { hausbildDatei, medienUrl } from '../lib/medien';
+
+interface Props {
+  wert: string;
+  alt: string;
+  sizes?: string;
+  priorisiert?: boolean;
+  nachweis?: string; // Bildnachweis, dezent darunter
+}
+const { wert, alt, sizes = '100vw', priorisiert = false, nachweis } = Astro.props;
+const haus = wert.startsWith('haus/') ? await hausbildDatei(wert) : undefined;
+---
+<figure class="mit-nachweis">
+  {haus ? (
+    <Bild src={haus} alt={alt} sizes={sizes} priorisiert={priorisiert} />
+  ) : (
+    <img
+      src={medienUrl(wert, 'gross')}
+      srcset={`${medienUrl(wert, 'klein')} 800w, ${medienUrl(wert, 'gross')} 2400w`}
+      sizes={sizes}
+      width="1600"
+      height="900"
+      alt={alt}
+      loading={priorisiert ? 'eager' : 'lazy'}
+      fetchpriority={priorisiert ? 'high' : 'auto'}
+      decoding="async"
+    />
+  )}
+  {nachweis && <figcaption class="bildnachweis">Foto: {nachweis}</figcaption>}
+</figure>

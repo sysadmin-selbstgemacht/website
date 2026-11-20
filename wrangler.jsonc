@@ -1,5 +1,5 @@
 // Cloudflare Worker mit statischen Assets.
-// Die gebaute Seite (dist/) wird direkt ausgeliefert. Nur /api/* läuft durch worker/index.ts.
+// Die gebaute Seite (dist/) wird direkt ausgeliefert. Nur /api/*, /intern/* und /medien/* laufen durch worker/index.ts.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "selbst-gemacht",
@@ -9,8 +9,11 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/api/*"]
+    // /intern/*: Termin-Formular, nur nach Anmeldung (Cloudflare Access); /medien/*: Bilder aus R2
+    "run_worker_first": ["/api/*", "/intern/*", "/medien/*"]
   },
+  // Bilder zu Terminen und Kursleitungen (nicht im Repo). Bucket vor dem ersten Deploy anlegen!
+  "r2_buckets": [{ "binding": "MEDIEN", "bucket_name": "selbst-gemacht-medien" }],
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
   // Rate Limit für das Anfrageformular: höchstens 3 Anfragen je 60 s und IP, je Cloudflare-Standort, ungefähr.
   "ratelimits": [
@@ -20,7 +23,7 @@
   // Empfänger (MAIL_AN) und Zugangsdaten stehen NICHT hier, sondern als Variable/Secret bei Cloudflare.
   // Variablen aus dem Dashboard (MAIL_AN, MAIL_VON) bei jedem Deploy behalten; MAIL_MODUS steuert das Repo
   "keep_vars": true,
-  "vars": { "MAIL_MODUS": "trockenlauf" },
+  "vars": { "MAIL_MODUS": "trockenlauf", "GITHUB_REPO": "sysadmin-selbstgemacht/website" },
   "preview_urls": true,
   // Vorschau je Branch und Pull Request (Workers Builds, Befehl `npx wrangler preview`).
   // Leer lassen: Assets und Einstellungen oben gelten auch für die Vorschau.

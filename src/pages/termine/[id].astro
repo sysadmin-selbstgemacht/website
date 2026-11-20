@@ -1,29 +1,46 @@
 ---
 // Detailseite je Termin: teilbarer Link und Veranstaltungsdaten für Suchmaschinen (Brief 6d).
-import { getCollection, render } from 'astro:content';
-import { getImage } from 'astro:assets';
-import Bild from '../../components/Bild.astro';
+// Inhalte nach Briefing 20.11., Abschnitt 3. Gestaltung folgt dem Wireframe; hier nur der Aufbau.
+import { getCollection, getEntries, render } from 'astro:content';
+import Medienbild from '../../components/Medienbild.astro';
+import { bildUrl } from '../../lib/medien';
 import Basis from '../../layouts/Basis.astro';
-import { kategorieText, datumText } from '../../lib/termine';
+import { datumText, datumKurz, uhrzeitText, dauerText, namenText } from '../../lib/termine';
+import { VERPFLEGUNG, VERPFLEGUNG_ZUSATZ, euro, ustText } from '../../lib/termin-felder';
 
 export async function getStaticPaths() {
-  const termine = await getCollection('termine', (t) => !t.data.entwurf);
-  return termine.map((t) => ({ params: { id: t.id }, props: { termin: t } }));
+  const termine = await getCollection('termine');
+  return termine.map((t) => ({ params: { id: t.id }, props: { termin: t, alle: termine } }));
 }
 
-const { termin } = Astro.props;
+const { termin, alle } = Astro.props;
 const d = termin.data;
 const { Content } = await render(termin);
+const leitungen = await getEntries(d.leitung);
+const namen = leitungen.map((l) => l.data.name);
+const leitungsText = namenText(namen);
 
-// Beschreibung für Google und Teilen: aus der Termin-Datei, sonst automatisch.
-const beschreibung =
-  d.beschreibung ?? `${d.titel} · ${datumText(d.beginn, d.ende)} · Leitung: ${d.leitung} · im Seminar- und Gästehaus SELBSTGEMACHT, Arnsgrün`;
-// Teilen-Bild: verkleinerte Fassung des Terminbilds
-const teilenBild = d.bild ? (await getImage({ src: d.bild, width: 1200, format: 'jpg' })).src : undefined;
+// Externe Termine brauchen einen Weg zur Anmeldung: Mail einer Kursleitung oder Website.
+const mail = leitungen.find((l) => l.data.mail)?.data.mail;
+if (!d.eigener_termin && !mail && !d.anmeldung_web) {
+  throw new Error(`Termin ${termin.id}: externer Termin ohne Mail der Kursleitung und ohne anmeldung_web`);
+}
 
-const mailLink = d.kontakt_mail
-  ? `mailto:${d.kontakt_mail}?subject=${encodeURIComponent('Anfrage: ' + d.titel)}&body=${encodeURIComponent('Hallo,\n\nich interessiere mich für „' + d.titel + '“ (' + datumText(d.beginn, d.ende) + ').\n\n')}`
+const beschreibung = d.kurzbeschreibung;
+const teilenBild = await bildUrl(d.bild, 1200);
+
+const mailLink = mail
+  ? `mailto:${mail}?subject=${encodeURIComponent('Anfrage: ' + d.titel)}&body=${encodeURIComponent('Hallo,\n\nich interessiere mich für „' + d.titel + '“ (' + datumText(d.beginn, d.ende) + ').\n\n')}`
   : undefined;
+
+// Weitere Termine mit genau derselben Kursleitung (Briefing 20.11.), kommende zuerst
+const schluessel = (ids: { id: string }[]) => ids.map((l) => l.id).sort().join('|');
+const heute = new Date();
+heute.setHours(0, 0, 0, 0);
+const weitere = alle
+  .filter((t) => t.id !== termin.id && schluessel(t.data.leitung) === schluessel(d.leitung) && t.data.ende >= heute)
+  .sort((a, b) => a.data.beginn.valueOf() - b.data.beginn.valueOf())
+  .slice(0, 6);
 
 // schema.org/Event für Suchmaschinen
 const eventDaten = {
@@ -31,8 +48,8 @@ const eventDaten = {
   '@type': 'Event',
   name: d.titel,
   description: beschreibung,
-  startDate: d.beginn.toISOString().slice(0, 10),
-  endDate: d.ende.toISOString().slice(0, 10),
+  startDate: `${d.beginn.toISOString().slice(0, 10)}T${d.uhrzeit_beginn}`,
+  endDate: `${d.ende.toISOString().slice(0, 10)}T${d.uhrzeit_ende}`,
   eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
   eventStatus: 'https://schema.org/EventScheduled',
   location: {
@@ -40,13 +57,13 @@ const eventDaten = {
     name: 'SELBSTGEMACHT – Seminar- und Gästehaus',
     address: { '@type': 'PostalAddress', streetAddress: 'Arnsgrün 56', postalCode: '07937', addressLocality: 'Zeulenroda-Triebes', addressCountry: 'DE' },
   },
-  organizer: { '@type': 'Person', name: d.leitung },
+  organizer: namen.map((name) => ({ '@type': 'Person', name })),
+  image: new URL(teilenBild, Astro.site).href,
 };
 ---
 <Basis titel={`${d.titel} · SELBSTGEMACHT`} beschreibung={beschreibung} bild={teilenBild} anliegen={d.eigener_termin ? 'sonstiges' : undefined}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(eventDaten)} />
   <p><a href="/termine/">← Alle Termine</a></p>
-  <span class="etikett">{kategorieText[d.kategorie]}</span>
   <h1>{d.titel}</h1>
   <p class="offen vorbei" hidden data-ende={d.ende.toISOString().slice(0, 10)}>Dieser Termin ist bereits vorbei. <a href="/termine/">Zu den aktuellen Terminen</a></p>
   <script>
@@ -54,10 +71,46 @@ const eventDaten = {
     const heute = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
     if (v && (v.dataset.ende ?? '') < heute) v.hidden = false;
   </script>
-  <p>{datumText(d.beginn, d.ende)} · {d.naechte} {d.naechte === 1 ? 'Nacht' : 'Nächte'} · Leitung: {d.leitung}</p>
-  {d.kursgebuehr && <p>Kursgebühr: {d.kursgebuehr}</p>}
-  {d.bild && <Bild src={d.bild} alt={d.bild_alt ?? ''} sizes="(min-width: 72rem) 70rem, 100vw" priorisiert />}
+  <p><strong>{datumText(d.beginn, d.ende)}</strong> · {uhrzeitText(d)} · {dauerText(d)}</p>
+  <p>Leitung: {leitungsText}</p>
+
+  <Medienbild wert={d.bild} alt={d.bild_alt} nachweis={d.bild_nachweis} sizes="(min-width: 72rem) 70rem, 100vw" priorisiert />
+
   <Content />
+
+  <section class="raster">
+    {(d.preis_ab !== undefined) && (
+      <div class="kachel">
+        <h2>Übernachtung und Verpflegung</h2>
+        <p>ab {euro(d.preis_ab)} pro Person für den gesamten Aufenthalt. Gezahlt wird vor Ort.</p>
+      </div>
+    )}
+    {d.kursgebuehr !== undefined && d.ust !== undefined && (
+      <div class="kachel">
+        <h2>Kursgebühr</h2>
+        <p>{euro(d.kursgebuehr)} ({ustText(d.ust)}){!d.eigener_termin && <>, zu zahlen an die Kursleitung</>}.</p>
+      </div>
+    )}
+    {d.verpflegung !== 'keine' && (
+      <div class="kachel">
+        <h2>Verpflegung</h2>
+        <p>{VERPFLEGUNG[d.verpflegung]}. {VERPFLEGUNG_ZUSATZ}</p>
+      </div>
+    )}
+  </section>
+
+  {d.uebernachtung && <p class="offen">Zimmerbilder (nur bei Terminen mit Übernachtung, Gestaltung nach Wireframe)</p>}
+
+  <section class="abschnitt">
+    <h2>Kursleitung</h2>
+    {leitungen.map((l) => (
+      <div class="leitung">
+        <Medienbild wert={l.data.foto} alt={l.data.foto_alt} nachweis={l.data.foto_nachweis} sizes="(min-width: 40rem) 30rem, 100vw" />
+        <h3>{l.data.name}</h3>
+        {l.data.vorstellung && <p>{l.data.vorstellung}</p>}
+      </div>
+    ))}
+  </section>
 
   <section class="abschnitt">
     <h2>Anmeldung</h2>
@@ -65,10 +118,32 @@ const eventDaten = {
       <p>Anfrage über das Formular unten.</p>
     ) : (
       <p>
-        Die Anmeldung läuft direkt über die Kursleitung:
-        {mailLink && <> <a href={mailLink}>Mail an {d.leitung}</a></>}
-        {d.kontakt_web && <> · <a href={d.kontakt_web} rel="noopener">Website</a></>}
+        Die Anmeldung läuft direkt über die Kursleitung.
+        {mailLink && <> <a class="knopf" href={mailLink}>Unverbindlich anfragen</a></>}
+        {d.anmeldung_web && <> · <a href={d.anmeldung_web} rel="noopener">Website zum Kurs</a></>}
       </p>
     )}
+    <p><button type="button" class="teilen" data-titel={d.titel}>Termin teilen</button></p>
+    <script>
+      document.querySelector<HTMLButtonElement>('.teilen')?.addEventListener('click', async (e) => {
+        const b = e.currentTarget as HTMLButtonElement;
+        const daten = { title: b.dataset.titel, url: location.href };
+        try {
+          if (navigator.share) await navigator.share(daten);
+          else { await navigator.clipboard.writeText(location.href); b.textContent = 'Link kopiert'; }
+        } catch { /* abgebrochen */ }
+      });
+    </script>
   </section>
+
+  {weitere.length > 0 && (
+    <section class="abschnitt">
+      <h2>Weitere Termine mit {leitungsText}</h2>
+      <ul>
+        {weitere.map((t) => (
+          <li data-ende={t.data.ende.toISOString().slice(0, 10)}><strong>{datumKurz(t.data.beginn)}</strong> <a href={`/termine/${t.id}/`}>{t.data.titel}</a></li>
+        ))}
+      </ul>
+    </section>
+  )}
 </Basis>
