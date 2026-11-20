@@ -37,6 +37,7 @@ export interface InternEnv {
   ACCESS_AUD?: string; // Application Audience (AUD) Tag der Access-Anwendung
   INTERN_ERLAUBT?: string; // Mailadressen, mit Komma getrennt
   INTERN_LOKAL?: string; // "ja": ohne Access, NUR auf localhost (wrangler dev)
+  VORSCHAU_HOST?: string; // workers.dev-Adresse des Workers, Basis der Vorschau-Adressen
 }
 
 const TERMINE = 'src/content/termine';
@@ -243,6 +244,21 @@ function pruefeTermin(f: any, stand: Stand, neueNamen: Map<string, string>) {
   };
 }
 
+// Commit und Pull Request als ein Schritt. Scheitert etwas und der Branch ist neu,
+// wird er wieder entfernt, damit kein halber Entwurf (Branch ohne PR) zurückbleibt.
+class EntwurfFehler extends Error {}
+async function entwurfSchreiben(gh: Github, branch: string, nachricht: string, dateien: Datei[], titel: string, text: string): Promise<number> {
+  const neu = !(await gh.branchSha(branch));
+  try {
+    await gh.commit(branch, 'main', nachricht, dateien);
+    return await gh.prAnlegenOderAktualisieren(branch, titel, text);
+  } catch (e) {
+    if (neu) await gh.api('Branch entfernen', `/git/refs/heads/${branch}`, { method: 'DELETE' }).catch(() => {});
+    const schritt = e instanceof GithubFehler ? `${e.schritt} (${e.status})` : 'unbekannt';
+    throw new EntwurfFehler(`Nicht gespeichert, nichts wurde geändert. GitHub: ${schritt} fehlgeschlagen.${e instanceof GithubFehler && e.status === 403 ? ' Vermutlich fehlt dem Token eine Berechtigung.' : ''} Bitte Matthias Bescheid geben.`);
+  }
+}
+
 // ---------- Aktionen ----------
 async function terminSpeichern(request: Request, env: InternEnv, gh: Github): Promise<Response> {
   const b: any = await request.json().catch(() => null);
@@ -365,8 +381,7 @@ async function terminSpeichern(request: Request, env: InternEnv, gh: Github): Pr
     const branch = `termin/${id}`;
     const titel = `Termin: ${p.daten.titel} (${datumDE(String(p.daten.beginn))})`;
     const bildVorher = bisher && typeof bisher.bild === 'string' ? bisher.bild : null;
-    await gh.commit(branch, 'main', `${titel}\n\n${modus === 'bearbeiten' ? 'Geändert' : 'Angelegt'} über das Termin-Formular.`, dateien);
-    const pr = await gh.prAnlegenOderAktualisieren(branch, titel, 'Angelegt über das Termin-Formular (/intern/termin/). Vorschau: siehe Prüfung „Workers Builds“. Veröffentlichen über das Formular.');
+    const pr = await entwurfSchreiben(gh, branch, `${titel}\n\n${modus === 'bearbeiten' ? 'Geändert' : 'Angelegt'} über das Termin-Formular.`, dateien, titel, 'Angelegt über das Termin-Formular (/intern/termin/). Vorschau: siehe Prüfung „Workers Builds“. Veröffentlichen über das Formular.');
     // Bild eines früheren Entwurfsstands, das weder live noch neu ist, gleich entfernen
     if (bildVorher && bildVorher !== bildWert && bildVorher !== bildMain) await medienLoeschen(env, [bildVorher]);
     await medienLoeschen(env, verwaist);
@@ -386,8 +401,7 @@ async function terminLoeschen(request: Request, env: InternEnv, gh: Github): Pro
   const d = lesen(roh).daten;
   const branch = `termin/${id}`;
   const titel = `Termin löschen: ${d.titel} (${datumDE(String(d.beginn))})`;
-  await gh.commit(branch, 'main', `${titel}\n\nGelöscht über das Termin-Formular.`, [{ pfad: `${TERMINE}/${id}.md`, loeschen: true }]);
-  const pr = await gh.prAnlegenOderAktualisieren(branch, titel, 'Löschen über das Termin-Formular. Das Kursbild wird beim Veröffentlichen aus dem Bildspeicher entfernt.');
+  const pr = await entwurfSchreiben(gh, branch, `${titel}\n\nGelöscht über das Termin-Formular.`, [{ pfad: `${TERMINE}/${id}.md`, loeschen: true }], titel, 'Löschen über das Termin-Formular. Das Kursbild wird beim Veröffentlichen aus dem Bildspeicher entfernt.');
   return json({ status: 'ok', id, pr, branch });
 }
 
@@ -430,8 +444,7 @@ async function leitungSpeichern(request: Request, env: InternEnv, gh: Github): P
     for (const k of Object.keys(inhalt)) if ((inhalt as any)[k] === undefined) delete (inhalt as any)[k];
     const branch = `kursleitung/${id}`;
     const titel = `Kursleitung: ${j.name}`;
-    await gh.commit(branch, 'main', `${titel}\n\n${neu ? 'Angelegt' : 'Geändert'} über das Termin-Formular.`, [{ pfad: `${LEITUNGEN}/${id}.json`, text: JSON.stringify(inhalt, null, 2) + '\n' }]);
-    const pr = await gh.prAnlegenOderAktualisieren(branch, titel, 'Über das Termin-Formular (/intern/termin/).');
+    const pr = await entwurfSchreiben(gh, branch, `${titel}\n\n${neu ? 'Angelegt' : 'Geändert'} über das Termin-Formular.`, [{ pfad: `${LEITUNGEN}/${id}.json`, text: JSON.stringify(inhalt, null, 2) + '\n' }], titel, 'Über das Termin-Formular (/intern/termin/).');
     const vorher = bisher?.foto as string | undefined;
     if (angelegt && vorher && vorher !== fotoMain) await medienLoeschen(env, [vorher]);
     return json({ status: 'ok', id, pr, branch });
@@ -453,8 +466,7 @@ async function leitungLoeschen(request: Request, env: InternEnv, gh: Github): Pr
   const name = JSON.parse(roh).name;
   const branch = `kursleitung/${id}`;
   const titel = `Kursleitung löschen: ${name}`;
-  await gh.commit(branch, 'main', `${titel}\n\nGelöscht über das Termin-Formular.`, [{ pfad: `${LEITUNGEN}/${id}.json`, loeschen: true }]);
-  const pr = await gh.prAnlegenOderAktualisieren(branch, titel, 'Löschen über das Termin-Formular.');
+  const pr = await entwurfSchreiben(gh, branch, `${titel}\n\nGelöscht über das Termin-Formular.`, [{ pfad: `${LEITUNGEN}/${id}.json`, loeschen: true }], titel, 'Löschen über das Termin-Formular.');
   return json({ status: 'ok', id, pr, branch });
 }
 
@@ -465,7 +477,7 @@ function vorschauAus(text: string, produktiv: string): string | null {
   return passend[0] ? new URL(passend[0]).origin : null;
 }
 
-async function status(request: Request, gh: Github): Promise<Response> {
+async function status(request: Request, gh: Github, vorschauHost: string): Promise<Response> {
   const n = Number(new URL(request.url).searchParams.get('pr'));
   if (!Number.isInteger(n) || n < 1) return fehler(400, 'pr');
   const pr = await gh.api<any>('PR lesen', `/pulls/${n}`);
@@ -480,6 +492,9 @@ async function status(request: Request, gh: Github): Promise<Response> {
     const k = await gh.api<any[]>('Kommentare lesen', `/issues/${n}/comments?per_page=30`);
     vorschau = vorschauAus(k.map((c) => c.body).join('\n'), produktiv);
   }
+  // Ohne Kommentar (z. B. Build lief vor dem PR): Adresse nach dem Muster von Workers Builds
+  // <branch, Sonderzeichen als ->-<worker>.<konto>.workers.dev bilden
+  if (!vorschau && pruefung === 'gruen' && vorschauHost) vorschau = `https://${pr.head.ref.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${vorschauHost}`;
   return json({
     status: 'ok', pr: n, titel: pr.title, branch: pr.head.ref,
     zustand: pr.merged ? 'veroeffentlicht' : pr.state === 'closed' ? 'verworfen' : 'entwurf',
@@ -608,12 +623,13 @@ export async function intern(request: Request, env: InternEnv): Promise<Response
     if (r === 'POST /api/intern/termin/loeschen') return await terminLoeschen(request, env, gh);
     if (r === 'POST /api/intern/kursleitung') return await leitungSpeichern(request, env, gh);
     if (r === 'POST /api/intern/kursleitung/loeschen') return await leitungLoeschen(request, env, gh);
-    if (r === 'GET /api/intern/status') return await status(request, gh);
+    if (r === 'GET /api/intern/status') return await status(request, gh, env.VORSCHAU_HOST || (url.hostname.endsWith('.workers.dev') ? url.hostname : ''));
     if (r === 'POST /api/intern/veroeffentlichen') return await veroeffentlichen(request, env, gh);
     if (r === 'POST /api/intern/verwerfen') return await verwerfen(request, env, gh);
     return fehler(404, 'not_found');
   } catch (e) {
     console.error('intern', e instanceof GithubFehler ? `${e.schritt}: ${e.status}` : String(e));
+    if (e instanceof EntwurfFehler) return fehler(502, e.message);
     if (e instanceof GithubFehler) return fehler(502, `GitHub: ${e.schritt} fehlgeschlagen (${e.status})`);
     if (e instanceof FrontmatterFehler) return fehler(422, `Datei nicht lesbar: ${e.message}. Bitte Matthias Bescheid geben.`);
     return fehler(500, 'Interner Fehler');
