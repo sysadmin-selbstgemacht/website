@@ -25,14 +25,17 @@ const { anliegen, termin } = Astro.props;
   ) : anliegen ? (
     <input type="hidden" name="anliegen" value={anliegen} />
   ) : (
-    <label>Worum geht es?
-      <select name="anliegen">
-        {ANLIEGEN.map((o) => <option value={o.wert} selected={o.wert === 'sonstiges'}>{o.text}</option>)}
-      </select>
-    </label>
+    <>
+      <label>Ihr Anliegen
+        <select name="anliegen" required>
+          <option value="" selected>Bitte wählen</option>
+          {ANLIEGEN.map((o) => <option value={o.wert}>{o.text}</option>)}
+        </select>
+      </label>
+      <p class="hinweis" data-ohne-anliegen>Wählen Sie Ihr Anliegen, dann erscheinen die passenden Felder.</p>
+    </>
   )}
 
-  <label data-feld="thema"><span>{STANDARD.thema}</span> <input name="thema" maxlength="200" /></label>
   <label data-feld="unternehmen"><span>{STANDARD.unternehmen}</span> <input name="unternehmen" autocomplete="organization" maxlength="200" /></label>
 
   <!-- Verfügbarkeitskalender (nur Gruppen): schreibt in die Felder von/bis -->
@@ -55,6 +58,7 @@ const { anliegen, termin } = Astro.props;
   </div>
   <label data-feld="offen" class="haken"><input name="offen" type="checkbox" /> {STANDARD.offen}</label>
   <label data-feld="zeitraum"><span data-text="zeitraum">Zeitraum</span> <input name="zeitraum" maxlength="200" placeholder="z. B. ein Wochenende im Mai" /></label>
+  <label data-feld="thema"><span>{STANDARD.thema}</span> <input name="thema" maxlength="200" /></label>
 
   <div class="zeile">
     <label data-feld="erwachsene"><span>{STANDARD.erwachsene}</span> <input name="erwachsene" type="number" min="1" max="200" inputmode="numeric" /></label>
@@ -79,13 +83,13 @@ const { anliegen, termin } = Astro.props;
     <label data-feld="nachname"><span>{STANDARD.nachname}</span> <input name="nachname" autocomplete="family-name" maxlength="100" /></label>
   </div>
   <label data-feld="email"><span>{STANDARD.email}</span> <input name="email" type="email" autocomplete="email" maxlength="200" /></label>
-  <label data-feld="telefon"><span>{STANDARD.telefon}</span> <input name="telefon" type="tel" autocomplete="tel" maxlength="50" /></label>
-  <label data-feld="nachricht"><span data-text="nachricht">Nachricht</span> <textarea name="nachricht" rows="5" maxlength="5000"></textarea></label>
+  <label data-feld="telefon"><span data-text="telefon">{STANDARD.telefon}</span> <input name="telefon" type="tel" autocomplete="tel" maxlength="50" /></label>
+  <label data-feld="nachricht"><span data-text="nachricht">{STANDARD.nachricht}</span> <textarea name="nachricht" rows="5" maxlength="5000"></textarea></label>
 
   <!-- verstecktes Feld: nur Bots füllen es (display:none, unverfänglicher Name) -->
   <div class="hp" aria-hidden="true"><input type="text" name="sg_feld7" tabindex="-1" autocomplete="off" /></div>
 
-  <p class="hinweis">Mit * markierte Felder brauchen wir. Die Angaben nutzen wir nur, um die Anfrage zu beantworten (<a href="/datenschutz/">Datenschutz</a>).</p>
+  <p class="hinweis" data-nur-mit-anliegen>Mit * markierte Felder brauchen wir. Die Angaben nutzen wir nur, um die Anfrage zu beantworten (<a href="/datenschutz/">Datenschutz</a>).</p>
   <button type="submit">Anfrage senden</button>
   <p class="hinweis" data-sperrhinweis>Wird aktiv, sobald alle Pflichtfelder ausgefüllt sind.</p>
   <p class="meldung" role="status" aria-live="polite"></p>
@@ -254,8 +258,22 @@ const { anliegen, termin } = Astro.props;
     });
 
     // ---------- Anzeige ----------
+    const ohneAnliegen = form.querySelector<HTMLElement>('[data-ohne-anliegen]');
+    const nurMitAnliegen = form.querySelectorAll<HTMLElement>('[data-nur-mit-anliegen]');
     function anzeigen() {
       const a = anliegen();
+      const gewaehlt = a in FELDER;
+      if (ohneAnliegen) ohneAnliegen.hidden = gewaehlt;
+      nurMitAnliegen.forEach((n) => { n.hidden = !gewaehlt; });
+      if (!gewaehlt) {
+        form.querySelectorAll<HTMLElement>('[data-feld]').forEach((l) => {
+          l.hidden = true;
+          const input = l.querySelector('input, select, textarea') as HTMLInputElement | null;
+          if (input) input.required = false;
+        });
+        kal.hidden = true;
+        return;
+      }
       const z = zustand();
       const sichtbar = sichtbareFelder(a, z);
       const kalender = mitKalender();

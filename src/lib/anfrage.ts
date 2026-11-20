@@ -56,14 +56,14 @@ export const KALENDER_MONATE = 18;
 export const BESCHRIFTUNG: Partial<Record<Anliegen, Partial<Record<Feld, string>>>> = {
   firma: { personen: 'Teilnehmende' },
   kursleitung: { zeitraum: 'Wunschzeitraum' },
-  termin: { nachricht: 'Nachricht (freiwillig)' },
+  sonstiges: { telefon: 'Telefon (freiwillig)', nachricht: 'Ihre Nachricht' },
 };
 
 // Standardbeschriftungen, wo BESCHRIFTUNG nichts anderes sagt.
 export const STANDARD: Partial<Record<Feld, string>> = {
   von: 'Anreise', bis: 'Abreise', offen: 'Flexibel im Termin', zeitraum: 'Zeitraum', personen: 'Personen',
   erwachsene: 'Erwachsene', kinder: 'Kinder (4–12 Jahre)', unternehmen: 'Unternehmen', uebernachtung: 'Übernachtung',
-  thema: 'Kurs oder Thema', email: 'E-Mail', telefon: 'Telefon', nachricht: 'Nachricht',
+  thema: 'Kurs oder Thema', email: 'E-Mail', telefon: 'Telefon', nachricht: 'Nachricht (freiwillig)',
   termin: 'Termin', anrede: 'Anrede', vorname: 'Vorname', nachname: 'Nachname',
 };
 

@@ -3,6 +3,7 @@
 // Das Anliegen ist je Seite vorausgewählt.
 import Anfrageformular from './Anfrageformular.astro';
 import type { Anliegen } from '../lib/anfrage';
+import { MAIL_ANFRAGE, mailtoAnfrage } from '../lib/kontakt';
 interface Props {
   anliegen?: Anliegen;
   ohneAnfrage?: boolean; // Seite hat ein eigenes Formular (Terminseite)
@@ -19,7 +20,10 @@ const { anliegen, ohneAnfrage = false } = Astro.props;
   )}
   <section class="kontakt">
     <p>SELBSTGEMACHT – Seminar- und Gästehaus · Arnsgrün</p>
-    <p class="offen">Offen: Telefon, Mail, Anfahrt, Social-Media-Links (Katrins Profile oder Haus-Profile?)</p>
+    <ul class="kontaktwege">
+      <li><a href={mailtoAnfrage}>{MAIL_ANFRAGE}</a></li>
+    </ul>
+    <p class="offen">Offen: Telefon, WhatsApp, Anfahrt, Social-Media-Links (Katrins Profile oder Haus-Profile?)</p>
     <ul class="rechtliches">
       <li><a href="/impressum/">Impressum</a></li>
       <li><a href="/datenschutz/">Datenschutz</a></li>
