@@ -8,11 +8,13 @@ import { SEITEN, type SeitenSchluessel } from '../lib/seiten';
 // Termine übergeben Titel und Beschreibung direkt.
 type Props =
   | { seite: SeitenSchluessel; anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges' }
-  | { titel: string; beschreibung: string; bild?: string; anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges' };
+  | { titel: string; beschreibung: string; bild?: string; anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges'; ohneAnfrage?: boolean };
+// ohneAnfrage: Seite hat ein eigenes Anfrageformular (Terminseite). Dann kein „Anfragen“ im Kopf, kein Formular im Fuß.
 
 const p = Astro.props;
 const angaben = 'seite' in p ? SEITEN[p.seite] : { titel: p.titel, beschreibung: p.beschreibung, bild: p.bild };
 const anliegen = p.anliegen;
+const ohneAnfrage = 'ohneAnfrage' in p && !!p.ohneAnfrage;
 const beschreibung = angaben.beschreibung;
 const bild = 'bild' in angaben ? (angaben.bild as string | undefined) : undefined;
 
@@ -46,10 +48,10 @@ const bildUrl = bild ? new URL(bild, Astro.site).href : undefined;
     <slot name="head" />
   </head>
   <body>
-    <Kopf />
+    <Kopf ohneAnfrage={ohneAnfrage} />
     <main>
       <slot />
     </main>
-    <Fuss anliegen={anliegen} />
+    <Fuss anliegen={anliegen} ohneAnfrage={ohneAnfrage} />
   </body>
 </html>

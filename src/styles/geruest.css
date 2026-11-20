@@ -58,3 +58,13 @@ img { max-width: 100%; height: auto; display: block; }
 .mit-nachweis { margin: 0 0 1rem; }
 .mit-nachweis img { display: block; width: 100%; height: auto; }
 .bildnachweis { font-size: .75rem; color: var(--grau-dunkel); margin-top: .25rem; }
+.anfrageformular .fester-termin { background: var(--grau); padding: .75rem 1rem; margin: 0; }
+.anfrageformular button[type=submit]:disabled { opacity: .5; cursor: not-allowed; }
+/* Terminseite (Reihenfolge nach Wireframe; Gestaltung folgt) */
+.termin-kopf h1 { margin: .25rem 0; }
+.termin-kacheln { display: grid; gap: .75rem; margin: 1.5rem 0; }
+.termin-kacheln .kachel { min-height: 0; }
+.termin-kacheln .kachel h2 { font-size: 1rem; margin: 0 0 .25rem; }
+.termin-kacheln .kachel p { margin: 0; }
+.zeile-knoepfe { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+.anfrageformular .zeile.namen { grid-template-columns: 1fr 1fr; }

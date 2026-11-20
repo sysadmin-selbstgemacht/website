@@ -8,6 +8,7 @@ const menue = [
   { href: '/ueber-uns/', text: 'Über uns' },
 ];
 const aktuell = Astro.url.pathname;
+const { ohneAnfrage = false } = Astro.props as { ohneAnfrage?: boolean };
 ---
 <header class="kopf">
   <a class="marke" href="/">SELBSTGEMACHT</a>
@@ -18,5 +19,5 @@ const aktuell = Astro.url.pathname;
       ))}
     </ul>
   </nav>
-  <a class="knopf" href="#anfrage">Anfragen</a>
+  {!ohneAnfrage && <a class="knopf" href="#anfrage">Anfragen</a>}
 </header>

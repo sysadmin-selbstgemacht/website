@@ -43,9 +43,10 @@ export function ustText(u: Ust): string {
 // Grund: echtes Löschen, nichts in der öffentlichen Git-Historie (Entscheidung 20.11.).
 // Wert im Termin: "medien/termine/<kennung>" bzw. "medien/kursleitungen/<kennung>",
 // oder ein Hausbild: "haus/<name>" (liegt im Repo, Rechte beim Haus).
-export const MEDIEN_GROESSEN = { gross: 2400, klein: 800 } as const;
+// teilen: JPEG für die Vorschau in WhatsApp & Co. (klein, verbreitetes Format); fehlt es, liefert der Worker „klein“.
+export const MEDIEN_GROESSEN = { gross: 2400, klein: 800, teilen: 1200 } as const;
 export type MedienGroesse = keyof typeof MEDIEN_GROESSEN;
-export const MEDIEN_MAX_BYTES = { gross: 1_500_000, klein: 300_000 } as const;
+export const MEDIEN_MAX_BYTES = { gross: 1_500_000, klein: 300_000, teilen: 300_000 } as const;
 export const BILDWERT = /^(medien\/(termine|kursleitungen)\/[a-z0-9-]{3,90}|haus\/[a-z0-9-]{2,40})$/;
 
 // Hausbilder als Notlösung, wenn kein Kursbild vorliegt (offene Fragen 1.7).

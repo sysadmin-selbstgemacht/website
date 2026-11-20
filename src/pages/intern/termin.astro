@@ -239,7 +239,7 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
   <script>
     import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, MEDIEN_GROESSEN, MEDIEN_MAX_BYTES, beschreibungText, naechte } from '../../lib/termin-felder';
 
-    type Bildteile = { gross: string; klein: string; url: string };
+    type Bildteile = { gross: string; klein: string; teilen: string; url: string };
     type Stand = { termine: any[]; kursleitungen: any[]; hausbilder: any[]; entwuerfe: any[] };
     let stand: Stand;
     let zustand: { modus: 'neu' | 'bearbeiten' | 'kopie'; id?: string; von?: string; bildBisher?: string } = { modus: 'neu' };
@@ -331,7 +331,7 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
       if (sh > bmp.height) { sh = bmp.height; sw = Math.round((bmp.height * 16) / 9); }
       if (sw < 640) throw new Error(`Das Bild ist zu klein (${bmp.width}×${bmp.height} Pixel). Mindestens 640 Pixel breit.`);
       const sx = Math.round((bmp.width - sw) / 2), sy = Math.round((bmp.height - sh) / 2);
-      const teil = async (breite: number, max: number) => {
+      const teil = async (breite: number, max: number, nurJpeg = false) => {
         const w = Math.min(breite, sw), h = Math.round((w * 9) / 16);
         const c = document.createElement('canvas');
         c.width = w; c.height = h;
@@ -339,7 +339,7 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
         g.imageSmoothingQuality = 'high';
         g.drawImage(bmp, sx, sy, sw, sh, 0, 0, w, h);
         for (const q of [0.82, 0.72, 0.62, 0.5]) {
-          let b = await new Promise<Blob | null>((ok) => c.toBlob(ok, 'image/webp', q));
+          let b = nurJpeg ? null : await new Promise<Blob | null>((ok) => c.toBlob(ok, 'image/webp', q));
           if (!b || b.type !== 'image/webp') b = await new Promise<Blob | null>((ok) => c.toBlob(ok, 'image/jpeg', q)); // Safari ohne WebP
           if (b && b.size <= max) return b;
         }
@@ -347,8 +347,9 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
       };
       const gross = await teil(MEDIEN_GROESSEN.gross, MEDIEN_MAX_BYTES.gross);
       const klein = await teil(MEDIEN_GROESSEN.klein, MEDIEN_MAX_BYTES.klein);
+      const teilen = await teil(MEDIEN_GROESSEN.teilen, MEDIEN_MAX_BYTES.teilen, true);
       const b64 = (b: Blob) => new Promise<string>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.readAsDataURL(b); });
-      return { gross: await b64(gross), klein: await b64(klein), url: URL.createObjectURL(klein) };
+      return { gross: await b64(gross), klein: await b64(klein), teilen: await b64(teilen), url: URL.createObjectURL(klein) };
     }
 
     // ---------- Kursleitung (Felder für neu im Termin und eigenes Formular) ----------
@@ -524,10 +525,10 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
           uebernachtung: radio('uebernachtung') === 'ja', verpflegung: wert('verpflegung'),
           preis_ab: wert('preis_ab'), kursgebuehr: wert('kursgebuehr'), ust: wert('kursgebuehr').trim() ? wert('ust') : '',
         },
-        bild: art === 'neu' ? { art, gross: neuesBild!.gross, klein: neuesBild!.klein }
+        bild: art === 'neu' ? { art, gross: neuesBild!.gross, klein: neuesBild!.klein, teilen: neuesBild!.teilen }
           : art === 'hausbild' ? { art, wert: $$<HTMLInputElement>('input[name=hausbild]').find((r) => r.checked)?.value }
           : { art },
-        neueLeitungen: neue.map((f) => ({ ...leitungWerte(f), foto: (f as any).foto ? { gross: (f as any).foto.gross, klein: (f as any).foto.klein } : undefined })),
+        neueLeitungen: neue.map((f) => ({ ...leitungWerte(f), foto: (f as any).foto ? { gross: (f as any).foto.gross, klein: (f as any).foto.klein, teilen: (f as any).foto.teilen } : undefined })),
       };
       const knopf = $<HTMLButtonElement>('#speichern');
       knopf.disabled = true; melde('Wird gespeichert …');
@@ -568,7 +569,7 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
       fehlerLeeren(box);
       if (!leitungBearbeiten.id && !leitungFoto) { fehlerZeigen({ foto: 'Bitte ein Foto auswählen' }, box); return; }
       melde('Wird gespeichert …');
-      const r = await api('/api/intern/kursleitung', { id: leitungBearbeiten.id, felder: leitungWerte(box), foto: leitungFoto ? { gross: leitungFoto.gross, klein: leitungFoto.klein } : undefined });
+      const r = await api('/api/intern/kursleitung', { id: leitungBearbeiten.id, felder: leitungWerte(box), foto: leitungFoto ? { gross: leitungFoto.gross, klein: leitungFoto.klein, teilen: leitungFoto.teilen } : undefined });
       if (!r.ok) { r.felder ? fehlerZeigen(r.felder, box) : melde('Speichern fehlgeschlagen: ' + (r.message ?? r.status), 'rot'); return; }
       melde('');
       statusZeigen({ pr: r.pr, branch: r.branch, titel: String(leitungWerte(box).name) });

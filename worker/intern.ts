@@ -121,27 +121,29 @@ function istMedien(w: unknown): w is string {
 
 async function medienLoeschen(env: InternEnv, werte: (string | null | undefined)[]) {
   if (!env.MEDIEN) return;
-  const keys = werte.filter(istMedien).flatMap((w) => [`${w}/gross`, `${w}/klein`]);
+  const keys = werte.filter(istMedien).flatMap((w) => [`${w}/gross`, `${w}/klein`, `${w}/teilen`]);
   if (keys.length) await env.MEDIEN.delete(keys);
 }
 
 // Neues Bild prüfen und in R2 ablegen. Liefert den Bildwert ("medien/…").
 async function medienAblegen(env: InternEnv, bereich: 'termine' | 'kursleitungen', kennung: string, bild: any): Promise<{ wert?: string; fehler?: string }> {
   if (!env.MEDIEN) return { fehler: 'Bildspeicher nicht eingerichtet' };
-  const teile: Record<MedienGroesse, Uint8Array> = { gross: new Uint8Array(), klein: new Uint8Array() };
+  const teile: Partial<Record<MedienGroesse, Uint8Array>> = {};
   const typen: Record<string, string> = {};
-  for (const g of ['gross', 'klein'] as const) {
+  for (const g of ['gross', 'klein', 'teilen'] as const) {
+    if (g === 'teilen' && typeof bild?.[g] !== 'string') continue; // optional
     if (typeof bild?.[g] !== 'string') return { fehler: 'Bild fehlt' };
     let bytes: Uint8Array;
     try { bytes = base64ZuBytes(bild[g]); } catch { return { fehler: 'Bild nicht lesbar' }; }
     const p = pruefeBild(bytes, g);
     if (!p.ok) return { fehler: p.fehler };
+    if (g === 'teilen' && p.info.typ !== 'image/jpeg') return { fehler: 'Teilen-Bild muss JPEG sein' };
     teile[g] = bytes;
     typen[g] = p.info.typ;
   }
   const wert = `medien/${bereich}/${kennung.slice(0, 80)}-${zufall()}`;
-  for (const g of ['gross', 'klein'] as const) {
-    await env.MEDIEN.put(`${wert}/${g}`, teile[g], { httpMetadata: { contentType: typen[g], cacheControl: 'public, max-age=31536000, immutable' } });
+  for (const g of Object.keys(teile) as MedienGroesse[]) {
+    await env.MEDIEN.put(`${wert}/${g}`, teile[g]!, { httpMetadata: { contentType: typen[g], cacheControl: 'public, max-age=31536000, immutable' } });
   }
   return { wert };
 }
@@ -149,9 +151,9 @@ async function medienAblegen(env: InternEnv, bereich: 'termine' | 'kursleitungen
 async function medienKopieren(env: InternEnv, von: string, bereich: 'termine' | 'kursleitungen', kennung: string): Promise<string | null> {
   if (!env.MEDIEN) return null;
   const wert = `medien/${bereich}/${kennung.slice(0, 80)}-${zufall()}`;
-  for (const g of ['gross', 'klein'] as const) {
+  for (const g of ['gross', 'klein', 'teilen'] as const) {
     const o = await env.MEDIEN.get(`${von}/${g}`);
-    if (!o) return null;
+    if (!o) { if (g === 'teilen') continue; return null; }
     await env.MEDIEN.put(`${wert}/${g}`, o.body, { httpMetadata: o.httpMetadata });
   }
   return wert;
@@ -583,9 +585,10 @@ async function standLesen(request: Request, env: InternEnv, gh: Github): Promise
 
 // ---------- Einstieg ----------
 export async function medien(request: Request, env: InternEnv): Promise<Response> {
-  const m = /^\/(medien\/(?:termine|kursleitungen)\/[a-z0-9-]{3,90})\/(gross|klein)$/.exec(new URL(request.url).pathname);
+  const m = /^\/(medien\/(?:termine|kursleitungen)\/[a-z0-9-]{3,90})\/(gross|klein|teilen)$/.exec(new URL(request.url).pathname);
   if (!m || !env.MEDIEN || (request.method !== 'GET' && request.method !== 'HEAD')) return new Response('Nicht gefunden', { status: 404 });
-  const o = await env.MEDIEN.get(`${m[1]}/${m[2]}`);
+  // Teilen-Bild fehlt bei älteren Uploads: dann die kleine Fassung
+  const o = (await env.MEDIEN.get(`${m[1]}/${m[2]}`)) ?? (m[2] === 'teilen' ? await env.MEDIEN.get(`${m[1]}/klein`) : null);
   if (!o) return new Response('Nicht gefunden', { status: 404 });
   const h = new Headers();
   o.writeHttpMetadata(h);

@@ -6,6 +6,7 @@ Stand: 12.11.2026 · **Formular gebaut, Versand gebaut, eingestellt auf Trockenl
 
 - **Eine Seite statt Schritte**, Felder richten sich nach dem Anliegen (Gruppe, Firma, Kursleitung, Sonstiges). Das Anliegen ist je Seite vorausgewählt.
 - Welche Felder sichtbar und Pflicht sind, steht an **einer** Stelle: `src/lib/anfrage.ts`. Browser und Worker nutzen dieselbe Liste.
+- **Terminseite (eigene Termine des Hauses):** eigenes Formular nach Wireframe „Terminseite“. Anliegen fest („Ihre Anfrage zu: Titel · Datum“, nicht änderbar), Felder Anrede, Vorname, Nachname, E-Mail, Telefon (alle Pflicht), Nachricht (freiwillig). „Anfrage senden“ bleibt gesperrt, bis alle Pflichtfelder gültig sind. Auf der Terminseite gibt es kein „Anfragen“ im Kopf und kein Formular im Fuß. Externe Termine: Mail an die Kursleitung, das Haus bekommt nichts.
 - Datumsfelder heißen überall **Anreise / Abreise**. Haken **„Termin noch offen“** ersetzt sie durch ein Freitextfeld.
 - Kein Website-Feld bei Kursleitung (ergibt sich aus Mail oder Nachricht).
 - Die Mail geht **an das Haus**. „Antwort an“ ist die Adresse der anfragenden Person, Anne kann also direkt antworten. **Keine Bestätigungsmail** an Anfragende: Spam würde sonst an fremde Adressen gehen.
