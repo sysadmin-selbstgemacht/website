@@ -37,7 +37,7 @@ export const FELDER: Record<Anliegen, { sichtbar: Feld[]; pflicht: Feld[] }> = {
   },
   sonstiges: {
     sichtbar: [...PERSON, 'nachricht'],
-    pflicht: ['anrede', 'vorname', 'nachname', 'email', 'nachricht'], // Telefon: Formularfrage 3
+    pflicht: [...PERSON, 'nachricht'], // Telefon überall Pflicht (20.11.)
   },
   // Terminseite (Wireframe „Terminseite“, eigener Termin): alles Pflicht außer Nachricht
   termin: {
@@ -56,7 +56,7 @@ export const KALENDER_MONATE = 18;
 export const BESCHRIFTUNG: Partial<Record<Anliegen, Partial<Record<Feld, string>>>> = {
   firma: { personen: 'Teilnehmende' },
   kursleitung: { zeitraum: 'Wunschzeitraum' },
-  sonstiges: { telefon: 'Telefon (freiwillig)', nachricht: 'Ihre Nachricht' },
+  sonstiges: { nachricht: 'Ihre Nachricht' },
 };
 
 // Standardbeschriftungen, wo BESCHRIFTUNG nichts anderes sagt.
