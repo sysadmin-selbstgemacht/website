@@ -2,7 +2,10 @@
 // Termin-Formular für Katrin und Annekathrin (Option A). Nur nach Anmeldung (Cloudflare Access),
 // nicht in Sitemap, noindex. Ablauf und Einrichtung: docs/termin-formular.md.
 // Die Seite selbst enthält keine Daten; alles kommt nach der Anmeldung über /api/intern/*.
+import { getImage } from 'astro:assets';
 import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustText } from '../../lib/termin-felder';
+import logoDatei from '../../assets/bilder/logo.webp';
+const logo = await getImage({ src: logoDatei, height: 96, format: 'webp' });
 ---
 <!doctype html>
 <html lang="de">
@@ -13,90 +16,162 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
   <title>Termine pflegen · SELBSTGEMACHT</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <style is:global>
-    :root { --text: #222; --grau: #eee; --grau-dunkel: #777; --rot: #b00020; --gruen: #1b6e2d; --gelb: #fff4c2; font-family: system-ui, sans-serif; line-height: 1.45; color: var(--text); }
+    /* Gestaltung nach den Gestaltungsgrundlagen SELBSTGEMACHT (Canvas, ds/selbstgemacht/tokens.css) */
+    :root {
+      --green-100: #e3eaa1; --green-500: #b6bf00; --green-700: #6a6f04; --green-800: #4e5203;
+      --red-100: #ffdadc; --red-700: #7f0925;
+      --n0: #ffffff; --n50: #f4f3ef; --n200: #d8d6ce; --n500: #6c6b67; --n600: #555555; --n1000: #000000;
+      --taupe: #a5a390;
+      --radius-md: 8px; --radius-lg: 10px; --radius-xl: 24px;
+      --fuge: 12px;
+      --schatten: 0 1px 2px rgb(0 0 0 / .04), 0 4px 16px rgb(0 0 0 / .05);
+      font: 400 16px/1.5 Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      color: var(--n600);
+      background: var(--n50);
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; }
-    main { max-width: 40rem; margin: 0 auto; padding: 1rem 1rem 6rem; }
-    header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; border-bottom: 1px solid var(--grau); padding: .5rem 1rem; }
-    header a { color: inherit; font-size: .9rem; }
-    h1 { font-size: 1.4rem; margin: 1rem 0; }
-    h2 { font-size: 1.1rem; margin: 1.75rem 0 .5rem; }
-    button, .knopf { font: inherit; padding: .6rem 1rem; border: 1px solid var(--text); background: #fff; color: var(--text); border-radius: .3rem; cursor: pointer; text-decoration: none; display: inline-block; }
-    button.haupt, .knopf.haupt { background: var(--text); color: #fff; }
-    .knopf.gross { font-size: 1.1rem; padding: .8rem 1.2rem; text-align: center; border-width: 2px; }
-    .adresse { word-break: break-all; font-size: .75rem; }
-    button.gefahr { border-color: var(--rot); color: var(--rot); }
-    button:disabled { opacity: .45; cursor: not-allowed; }
-    .klein { padding: .35rem .7rem; font-size: .9rem; }
-    ul.liste { list-style: none; margin: 0; padding: 0; }
-    ul.liste li { border-bottom: 1px solid var(--grau); padding: .75rem 0; display: grid; gap: .4rem; }
+    body { margin: 0; min-height: 100vh; }
+    h1, h2, h3 { color: var(--n1000); }
+    h1 { font-weight: 300; font-size: 1.9rem; line-height: 1.2; margin: 1.5rem 0 1rem; }
+    h2 { font-weight: 400; font-size: 1.15rem; margin: 2rem 0 .75rem; display: flex; align-items: baseline; gap: .5rem; }
+    a { color: var(--green-800); }
+    a:hover { color: var(--n1000); }
+    :focus-visible { outline: 2px solid var(--green-800); outline-offset: 2px; }
+
+    .kopf { position: sticky; top: 0; z-index: 5; background: var(--n0); border-bottom: 1px solid var(--n200); }
+    .kopf-innen { max-width: 46rem; margin: 0 auto; padding: .5rem 1rem; display: flex; align-items: center; gap: .75rem; }
+    .kopf img { height: 48px; width: auto; display: block; }
+    .kopf .titel { font-weight: 500; color: var(--n1000); flex: 1; line-height: 1.2; }
+    .kopf .titel small { display: block; font-weight: 400; color: var(--n500); font-size: .8rem; }
+    .kopf a { font-size: .9rem; color: var(--n500); }
+
+    main { max-width: 46rem; margin: 0 auto; padding: 0 1rem 7rem; }
+
+    button, .knopf { font: 500 1rem/1.2 inherit; font-family: inherit; min-height: 44px; padding: .7rem 1.2rem; border-radius: var(--radius-md); border: 1.5px solid var(--green-700); background: var(--n0); color: var(--green-800); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; transition: background .15s, color .15s, border-color .15s; }
+    button:hover, .knopf:hover { background: var(--green-100); color: var(--green-800); }
+    button.haupt, .knopf.haupt { background: var(--green-700); color: var(--n0); }
+    button.haupt:hover, .knopf.haupt:hover { background: var(--green-800); border-color: var(--green-800); color: var(--n0); }
+    button.gefahr { border-color: transparent; background: transparent; color: var(--red-700); }
+    button.gefahr:hover { background: var(--red-100); color: var(--red-700); }
+    button.leise-knopf { border-color: transparent; background: transparent; color: var(--n600); }
+    button.leise-knopf:hover { background: var(--n50); }
+    button:disabled, button:disabled:hover { opacity: .45; cursor: not-allowed; background: var(--n200); border-color: var(--n200); color: var(--n500); }
+    .klein { min-height: 36px; padding: .4rem .8rem; font-size: .9rem; }
+    .gross { font-size: 1.1rem; padding: .9rem 1.4rem; width: 100%; }
+
+    .karte { background: var(--n0); border-radius: var(--radius-lg); box-shadow: var(--schatten); padding: 1rem; }
+    ul.liste { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--fuge); }
+    ul.liste > li { background: var(--n0); border-radius: var(--radius-lg); box-shadow: var(--schatten); padding: .75rem; display: grid; grid-template-columns: auto 1fr; gap: .75rem 1rem; align-items: center; }
+    ul.liste > li .aktionen { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .4rem; border-top: 1px solid var(--n50); padding-top: .6rem; }
+    ul.liste .daumen { width: 6.5rem; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-md); background: var(--n200); display: block; }
+    ul.liste .daumen.leer { display: flex; align-items: center; justify-content: center; font-size: .75rem; color: var(--n500); }
+    .eintrag-datum { font-size: .85rem; font-weight: 500; color: var(--green-800); }
+    .eintrag-titel { color: var(--n1000); font-size: 1.05rem; line-height: 1.3; }
+    .eintrag-meta { font-size: .85rem; color: var(--n500); }
+    .etikett { display: inline-block; font-size: .75rem; font-weight: 500; background: var(--green-100); color: var(--green-800); padding: .1rem .5rem; border-radius: 9999px; vertical-align: middle; }
+    .etikett.rot { background: var(--red-100); color: var(--red-700); }
+    .zahl { font-size: .8rem; font-weight: 500; color: var(--n500); background: var(--n200); border-radius: 9999px; padding: .05rem .5rem; }
+    .entwurf-liste > li { border-left: 4px solid var(--green-500); }
+    ul.liste .aktionen .gefahr { margin-left: auto; }
+
+    .start { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 1rem; margin-top: 1.5rem; }
+    .start h1 { margin: 0; }
+    .suche { width: 100%; margin: .25rem 0 .75rem; }
     .zeile { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
-    .leise { color: var(--grau-dunkel); font-size: .9rem; }
+    .leise { color: var(--n500); font-size: .9rem; }
+    .mehr { margin-top: .75rem; }
+
     form { display: grid; gap: 1rem; }
-    fieldset { border: 1px solid var(--grau); border-radius: .3rem; padding: .75rem; margin: 0; display: grid; gap: .75rem; }
-    legend { font-weight: 600; padding: 0 .25rem; }
-    label { display: grid; gap: .25rem; }
-    label > span:first-child { font-weight: 600; }
-    label.pflicht > span:first-child::after { content: ' *'; color: var(--rot); }
-    label.haken { display: flex; gap: .5rem; align-items: flex-start; font-weight: normal; }
-    label.haken > span:first-child { font-weight: normal; }
-    input, select, textarea { font: inherit; padding: .5rem; border: 1px solid #aaa; border-radius: .25rem; width: 100%; }
-    input[type=checkbox], input[type=radio] { width: auto; margin-top: .3rem; }
-    textarea { min-height: 7rem; }
+    fieldset { background: var(--n0); border: 0; border-radius: var(--radius-lg); box-shadow: var(--schatten); padding: 1rem; margin: 0; display: grid; gap: .9rem; min-width: 0; }
+    legend { float: left; width: 100%; padding: 0; margin-bottom: .25rem; font-weight: 500; color: var(--n1000); font-size: 1.05rem; }
+    legend + * { clear: both; }
+    form > label { background: var(--n0); border-radius: var(--radius-lg); box-shadow: var(--schatten); padding: 1rem; }
+    label { display: grid; gap: .35rem; }
+    label > span:first-child { font-weight: 500; color: var(--n1000); }
+    label.pflicht > span:first-child::after { content: ' *'; color: var(--red-700); }
+    label.haken { display: flex; gap: .6rem; align-items: flex-start; font-weight: 400; }
+    label.haken > span:first-child { font-weight: 400; color: var(--n600); }
+    input, select, textarea { font: inherit; color: var(--n1000); padding: .65rem .75rem; min-height: 48px; border: 1px solid var(--n500); border-radius: var(--radius-md); width: 100%; background: var(--n0); }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--green-800); outline-offset: 0; border-color: var(--green-800); }
+    input[type=checkbox], input[type=radio] { width: 1.2rem; height: 1.2rem; min-height: 0; margin-top: .15rem; accent-color: var(--green-700); flex: none; }
+    input[type=file] { padding: .5rem; }
+    textarea { min-height: 7rem; resize: vertical; }
     textarea.lang { min-height: 14rem; }
     .zwei { display: grid; gap: .75rem; grid-template-columns: 1fr 1fr; }
-    .hinweis { font-size: .85rem; color: var(--grau-dunkel); }
-    .zaehler { font-size: .8rem; color: var(--grau-dunkel); justify-self: end; }
-    .zaehler.zuviel { color: var(--rot); font-weight: 600; }
-    .fehler { color: var(--rot); font-size: .9rem; font-weight: 600; }
+    .hinweis { font-size: .85rem; color: var(--n500); font-weight: 400; }
+    .zaehler { font-size: .8rem; color: var(--n500); justify-self: end; font-weight: 400; }
+    .zaehler.zuviel { color: var(--red-700); font-weight: 500; }
+    .fehler { color: var(--red-700); font-size: .9rem; font-weight: 500; }
+    .fehler:not(:empty)::before { content: 'Fehler: '; }
     .fehler:empty { display: none; }
-    [aria-invalid=true] { border-color: var(--rot); outline: 1px solid var(--rot); }
-    .meldung { padding: .75rem; border-radius: .3rem; background: var(--gelb); }
-    .meldung.rot { background: #fde7ea; color: var(--rot); }
-    .meldung.gruen { background: #e5f4e8; color: var(--gruen); }
+    [aria-invalid=true] { border-color: var(--red-700); outline: 1px solid var(--red-700); }
+    .wahl { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .wahl label.haken { border: 1px solid var(--n200); border-radius: var(--radius-md); padding: .6rem .8rem; flex: 1 1 10rem; cursor: pointer; }
+    .wahl label.haken:has(input:checked) { border-color: var(--green-700); background: var(--green-100); }
+    .wahl label.haken:has(input:checked) > span:first-child, .wahl label.haken:has(input:checked) span { color: var(--n1000); }
+
+    .meldung { padding: .85rem 1rem; border-radius: var(--radius-md); background: var(--n200); color: var(--n1000); margin-top: 1rem; }
+    .meldung.rot { background: var(--red-100); color: var(--red-700); }
+    .meldung.gruen { background: var(--green-100); color: var(--green-800); }
     .meldung:empty { display: none; }
-    .vorschaubild { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--grau); border-radius: .25rem; }
-    .daumen { width: 6rem; aspect-ratio: 16 / 9; object-fit: cover; background: var(--grau); border-radius: .2rem; }
+
+    .vorschaubild { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--n200); border-radius: var(--radius-md); display: block; }
     .hausbilder { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: .5rem; }
     .hausbilder label { display: grid; gap: .25rem; font-size: .8rem; }
-    .etikett { font-size: .75rem; background: var(--gelb); padding: 0 .4rem; border-radius: .2rem; }
+
     .stand { display: grid; gap: .75rem; }
-    .schritt { display: flex; gap: .5rem; align-items: center; }
-    .punkt { width: .8rem; height: .8rem; border-radius: 50%; background: var(--grau-dunkel); flex: none; }
-    .punkt.laeuft { background: #d9a400; animation: puls 1.2s infinite; }
-    .punkt.gruen { background: var(--gruen); }
-    .punkt.rot { background: var(--rot); }
+    .schritt { display: flex; gap: .6rem; align-items: center; color: var(--n1000); }
+    .punkt { width: .85rem; height: .85rem; border-radius: 50%; background: var(--n200); flex: none; }
+    .punkt.laeuft { background: var(--green-500); animation: puls 1.2s infinite; }
+    .punkt.gruen { background: var(--green-700); }
+    .punkt.rot { background: var(--red-700); }
     @keyframes puls { 50% { opacity: .3; } }
-    .unten { position: sticky; bottom: 0; background: #fff; padding: .75rem 0; border-top: 1px solid var(--grau); display: flex; flex-wrap: wrap; gap: .5rem; }
-    details summary { cursor: pointer; margin: 1rem 0 .5rem; }
+    .adresse { word-break: break-all; font-size: .75rem; }
+
+    .unten { position: sticky; bottom: 0; background: rgb(255 255 255 / .95); backdrop-filter: blur(6px); padding: .75rem 1rem; margin: 0 -1rem; border-top: 1px solid var(--n200); display: flex; flex-wrap: wrap; gap: .5rem; }
+    details summary { cursor: pointer; margin: 1.5rem 0 .75rem; font-weight: 500; color: var(--n1000); }
+    #laden { margin-top: 2rem; }
     [hidden] { display: none !important; }
+    @media (max-width: 30rem) { .zwei { grid-template-columns: 1fr; } .kopf .titel small { display: none; } }
   </style>
 </head>
 <body>
-  <header><strong>SELBSTGEMACHT · Termine pflegen</strong><a href="/cdn-cgi/access/logout">Abmelden</a></header>
+  <header class="kopf"><div class="kopf-innen">
+    <img src={logo.src} alt="SELBSTGEMACHT" width={logo.attributes.width} height={logo.attributes.height} />
+    <span class="titel">Termine pflegen<small>Seminar- und Gästehaus SELBSTGEMACHT</small></span>
+    <a href="/cdn-cgi/access/logout">Abmelden</a>
+  </div></header>
   <main>
     <p id="laden" class="leise">Lädt …</p>
     <div id="meldung" class="meldung" role="status" aria-live="polite"></div>
 
     <!-- Übersicht -->
     <section id="v-uebersicht" hidden>
-      <h1>Termine</h1>
-      <div class="zeile"><button class="haupt" data-aktion="neu">Neuer Termin</button></div>
-
-      <div id="entwuerfe-block" hidden>
-        <h2>Entwürfe <span class="leise">(noch nicht veröffentlicht)</span></h2>
-        <ul class="liste" id="entwuerfe"></ul>
+      <div class="start">
+        <h1>Termine</h1>
+        <button class="haupt" data-aktion="neu">+ Neuer Termin</button>
       </div>
 
-      <h2>Veröffentlicht</h2>
+      <div id="entwuerfe-block" hidden>
+        <h2>Entwürfe <span class="zahl" id="entwuerfe-zahl"></span></h2>
+        <p class="hinweis">Noch nicht veröffentlicht. Erst nach „Veröffentlichen“ auf der Website sichtbar.</p>
+        <ul class="liste entwurf-liste" id="entwuerfe"></ul>
+      </div>
+
+      <h2>Veröffentlicht <span class="zahl" id="kommend-zahl"></span></h2>
+      <input type="search" id="suche" class="suche" placeholder="Termin suchen (Titel oder Kursleitung)" aria-label="Termine durchsuchen" />
       <ul class="liste" id="kommend"></ul>
       <p class="leise" id="kommend-leer" hidden>Keine kommenden Termine.</p>
-      <details><summary>Vergangene Termine</summary><ul class="liste" id="vergangen"></ul></details>
+      <details id="vergangen-block"><summary>Vergangene Termine <span class="zahl" id="vergangen-zahl"></span></summary>
+        <p class="hinweis">Bleiben gespeichert, damit du sie als Vorlage kopieren kannst. Auf der Website sind sie ausgeblendet.</p>
+        <ul class="liste" id="vergangen"></ul>
+        <button class="leise-knopf mehr" id="vergangen-mehr" hidden>Weitere anzeigen</button>
+      </details>
       <p class="hinweis">Gerade veröffentlichte Änderungen erscheinen hier nach etwa zwei Minuten.</p>
 
-      <h2>Kursleitungen</h2>
-      <div class="zeile"><button data-aktion="leitung-neu">Neue Kursleitung</button></div>
-      <ul class="liste" id="leitungen"></ul>
+      <h2>Kursleitungen <span class="zahl" id="leitungen-zahl"></span></h2>
+      <div class="zeile"><button data-aktion="leitung-neu">+ Neue Kursleitung</button></div>
+      <ul class="liste" id="leitungen" style="margin-top: .75rem"></ul>
     </section>
 
     <!-- Termin-Formular -->
@@ -124,7 +199,7 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
 
         <fieldset>
           <legend>Kursleitung *</legend>
-          <div id="leitung-auswahl" class="stand"></div>
+          <div id="leitung-auswahl" class="wahl"></div>
           <div id="neue-leitungen" class="stand"></div>
           <div><button type="button" class="klein" data-aktion="leitung-hinzu">+ Neue Kursleitung anlegen</button></div>
           <span class="fehler" data-fehler="leitung"></span>
@@ -132,8 +207,10 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
 
         <fieldset>
           <legend>Art des Termins *</legend>
-          <label class="haken"><input type="radio" name="art" value="eigen" /><span>Eigener Termin des Hauses <span class="hinweis">(Anfrage über das Formular des Hauses)</span></span></label>
-          <label class="haken"><input type="radio" name="art" value="extern" /><span>Termin einer externen Kursleitung <span class="hinweis">(Anfrage per Mail an die Kursleitung)</span></span></label>
+          <div class="wahl">
+            <label class="haken"><input type="radio" name="art" value="eigen" /><span>Eigener Termin des Hauses <span class="hinweis">Anfrage über das Formular des Hauses</span></span></label>
+            <label class="haken"><input type="radio" name="art" value="extern" /><span>Externe Kursleitung <span class="hinweis">Anfrage per Mail an die Kursleitung</span></span></label>
+          </div>
           <label id="l-web" hidden><span>Website zum Kurs <span class="hinweis">(optional)</span></span><input type="url" id="anmeldung_web" name="anmeldung_web" placeholder="https://" /><span class="fehler" data-fehler="anmeldung_web"></span></label>
         </fieldset>
 
@@ -172,7 +249,7 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
           <legend>Übernachtung, Verpflegung, Preise</legend>
           <div>
             <span><strong>Übernachtung *</strong></span>
-            <div class="zeile">
+            <div class="wahl">
               <label class="haken"><input type="radio" name="uebernachtung" value="ja" /><span>ja</span></label>
               <label class="haken"><input type="radio" name="uebernachtung" value="nein" /><span>nein</span></label>
             </div>
@@ -286,39 +363,67 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
     }
 
     // ---------- Übersicht ----------
-    async function laden() {
-      const r = await api('/api/intern/stand');
-      $('#laden').hidden = true;
-      if (!r.ok) { melde('Laden fehlgeschlagen: ' + (r.message ?? r.status), 'rot'); return; }
-      stand = r;
+    const SEITE_VERGANGEN = 10;
+    let vergangenAnzahl = SEITE_VERGANGEN;
+    const leitungName = (id: string) => stand.kursleitungen.find((l) => l.id === id)?.daten.name ?? id;
+    const daumen = (url?: string) => url ? `<img class="daumen" src="${esc(url)}" alt="" loading="lazy" />` : '<span class="daumen leer">kein Bild</span>';
+
+    function zeichnen() {
       const ent = stand.entwuerfe;
       $('#entwuerfe-block').hidden = !ent.length;
-      $('#entwuerfe').innerHTML = ent.map((e: any) => `
-        <li><strong>${esc(e.titel)}</strong>
-          <div class="zeile">
-            <button class="klein" data-aktion="status" data-pr="${e.pr}" data-branch="${esc(e.branch)}">Vorschau und Veröffentlichen</button>
-            ${e.titel.includes('löschen') ? '' : `<button class="klein" data-aktion="${e.art === 'termin' ? 'bearbeiten' : 'leitung-bearbeiten'}" data-id="${esc(e.id)}">Weiter bearbeiten</button>`}
-          </div></li>`).join('');
+      $('#entwuerfe-zahl').textContent = String(ent.length);
+      $('#entwuerfe').innerHTML = ent.map((e: any) => {
+        const loeschen = /löschen/i.test(e.titel);
+        const t = e.art === 'termin' ? stand.termine.find((x) => x.id === e.id) : null;
+        return `<li>${daumen(t?.vorschau)}
+          <div><div>${loeschen ? '<span class="etikett rot">Löschen</span>' : `<span class="etikett">${t ? 'Änderung' : e.art === 'termin' ? 'Neu' : 'Kursleitung'}</span>`}</div>
+          <div class="eintrag-titel">${esc(e.titel.replace(/^(Termin|Kursleitung)( löschen)?: /, ''))}</div></div>
+          <div class="aktionen">
+            <button class="klein haupt" data-aktion="status" data-pr="${e.pr}" data-branch="${esc(e.branch)}">Vorschau und Veröffentlichen</button>
+            ${loeschen ? '' : `<button class="klein" data-aktion="${e.art === 'termin' ? 'bearbeiten' : 'leitung-bearbeiten'}" data-id="${esc(e.id)}">Weiter bearbeiten</button>`}
+            <button class="klein gefahr" data-aktion="verwerfen-liste" data-pr="${e.pr}" data-titel="${esc(e.titel)}">Verwerfen</button>
+          </div></li>`;
+      }).join('');
       const offen = new Set(ent.map((e: any) => e.branch));
+      const q = ($<HTMLInputElement>('#suche').value || '').trim().toLowerCase();
+      const passt = (t: any) => !q || `${t.daten.titel} ${(t.daten.leitung ?? []).map(leitungName).join(' ')}`.toLowerCase().includes(q);
       const zeile = (t: any) => `
-        <li><div class="zeile">${t.vorschau ? `<img class="daumen" src="${esc(t.vorschau)}" alt="" loading="lazy" />` : ''}
-          <div><strong>${esc(datum(t.daten.beginn))}</strong> ${esc(t.daten.titel)}
-          ${offen.has('termin/' + t.id) ? '<span class="etikett">Entwurf offen</span>' : ''}</div></div>
-          <div class="zeile">
+        <li>${daumen(t.vorschau)}
+          <div><div class="eintrag-datum">${esc(datum(t.daten.beginn))}${t.daten.ende && t.daten.ende !== t.daten.beginn ? ' – ' + esc(datum(t.daten.ende)) : ''}</div>
+          <div class="eintrag-titel">${esc(t.daten.titel)}</div>
+          <div class="eintrag-meta">${esc((t.daten.leitung ?? []).map(leitungName).join(', '))} ${offen.has('termin/' + t.id) ? '<span class="etikett">Entwurf offen</span>' : ''}</div></div>
+          <div class="aktionen">
             <button class="klein" data-aktion="bearbeiten" data-id="${esc(t.id)}">Bearbeiten</button>
             <button class="klein" data-aktion="kopie" data-id="${esc(t.id)}">Als Vorlage kopieren</button>
             <button class="klein gefahr" data-aktion="loeschen" data-id="${esc(t.id)}">Löschen</button>
           </div></li>`;
       const sortiert = [...stand.termine].sort((a, b) => String(a.daten.beginn).localeCompare(String(b.daten.beginn)));
-      const kommend = sortiert.filter((t) => String(t.daten.ende ?? t.daten.beginn) >= heute);
+      const kommend = sortiert.filter((t) => String(t.daten.ende ?? t.daten.beginn) >= heute).filter(passt);
+      const vergangen = sortiert.filter((t) => String(t.daten.ende ?? t.daten.beginn) < heute).reverse().filter(passt);
       $('#kommend').innerHTML = kommend.map(zeile).join('');
+      $('#kommend-zahl').textContent = String(kommend.length);
       $('#kommend-leer').hidden = kommend.length > 0;
-      $('#vergangen').innerHTML = sortiert.filter((t) => String(t.daten.ende ?? t.daten.beginn) < heute).reverse().map(zeile).join('');
+      $('#kommend-leer').textContent = q ? 'Keine kommenden Termine zu dieser Suche.' : 'Keine kommenden Termine.';
+      $('#vergangen-zahl').textContent = String(vergangen.length);
+      $('#vergangen-block').hidden = vergangen.length === 0;
+      if (q && vergangen.length) ($('#vergangen-block') as HTMLDetailsElement).open = true;
+      $('#vergangen').innerHTML = vergangen.slice(0, vergangenAnzahl).map(zeile).join('');
+      $('#vergangen-mehr').hidden = vergangen.length <= vergangenAnzahl;
+      $('#leitungen-zahl').textContent = String(stand.kursleitungen.length);
       $('#leitungen').innerHTML = [...stand.kursleitungen].sort((a, b) => a.daten.name.localeCompare(b.daten.name, 'de')).map((l) => `
-        <li><div class="zeile">${l.vorschau ? `<img class="daumen" src="${esc(l.vorschau)}" alt="" loading="lazy" />` : ''}<strong>${esc(l.daten.name)}</strong>
-          ${l.daten.mail ? '' : '<span class="leise">(ohne Mail)</span>'}</div>
-          <div class="zeile"><button class="klein" data-aktion="leitung-bearbeiten" data-id="${esc(l.id)}">Bearbeiten</button>
+        <li>${daumen(l.vorschau)}
+          <div><div class="eintrag-titel">${esc(l.daten.name)}</div>
+          <div class="eintrag-meta">${l.daten.mail ? esc(l.daten.mail) : 'ohne Mail – nur für eigene Termine'}</div></div>
+          <div class="aktionen"><button class="klein" data-aktion="leitung-bearbeiten" data-id="${esc(l.id)}">Bearbeiten</button>
           <button class="klein gefahr" data-aktion="leitung-loeschen" data-id="${esc(l.id)}">Löschen</button></div></li>`).join('');
+    }
+
+    async function laden() {
+      const r = await api('/api/intern/stand');
+      $('#laden').hidden = true;
+      if (!r.ok) { melde('Laden fehlgeschlagen: ' + (r.message ?? r.status), 'rot'); return; }
+      stand = r;
+      zeichnen();
       zeige('uebersicht');
     }
 
@@ -662,6 +767,14 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
             if (!r.ok) return melde(r.message ?? 'Löschen fehlgeschlagen', 'rot');
             return statusZeigen({ pr: r.pr, branch: r.branch, titel: `Löschen: ${t.daten.titel}` });
           }
+          case 'verwerfen-liste': {
+            if (!confirm(`Entwurf „${b.dataset.titel}“ verwerfen? Die Änderungen gehen verloren; die veröffentlichte Fassung bleibt.`)) return;
+            b.setAttribute('disabled', '');
+            const r = await api('/api/intern/verwerfen', { pr: Number(b.dataset.pr) });
+            if (!r.ok) { b.removeAttribute('disabled'); return melde(r.message ?? 'Verwerfen fehlgeschlagen', 'rot'); }
+            await laden();
+            return melde('Entwurf verworfen.', 'gruen');
+          }
           case 'leitung-loeschen': {
             const l = stand.kursleitungen.find((x) => x.id === id)!;
             if (!confirm(`Kursleitung „${l.daten.name}“ löschen?`)) return;
@@ -694,6 +807,8 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
       } catch (err: any) { neuesBild = null; (e.target as HTMLInputElement).value = ''; melde(err.message, 'rot'); }
       terminAnpassen();
     });
+    $('#suche').addEventListener('input', () => { vergangenAnzahl = SEITE_VERGANGEN; zeichnen(); });
+    $('#vergangen-mehr').addEventListener('click', () => { vergangenAnzahl += SEITE_VERGANGEN; zeichnen(); });
     zaehlerEinrichten(document);
     laden().catch((e) => { if (e?.message !== 'anmeldung') melde('Laden fehlgeschlagen: ' + e?.message, 'rot'); });
   </script>
