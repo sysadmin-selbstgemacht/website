@@ -21,8 +21,8 @@ bild: "medien/termine/2027-03-01-fasten-a1b2c3"   # Kursbild 16:9 in R2, oder Ha
 bild_alt: "Gruppe beim Wandern"                   # Pflicht
 bild_nachweis: "Anna Muster"                      # optional; steht dann klein unter dem Bild: „Foto: …“
 uebernachtung: true
-verpflegung: "fasten"                             # vegetarisch-vegan | fasten | nach-absprache | keine
-preis_ab: 480                                     # Übernachtung und Verpflegung ab … € p. P.; nur ohne Übernachtung und ohne Verpflegung entbehrlich
+verpflegung: "fasten"                             # vegetarisch | vegan | fasten | nach-absprache | keine
+preis_ab: 480                                     # Übernachtung und Verpflegung ab … € p. P. (inkl. 7 % USt, steht fest dabei); nur ohne Übernachtung und ohne Verpflegung entbehrlich
 kursgebuehr: 390                                  # optional
 ust: 0                                            # 0 | 7 | 19, Pflicht wenn kursgebuehr
 ---

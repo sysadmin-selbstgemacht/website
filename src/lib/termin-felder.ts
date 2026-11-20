@@ -21,15 +21,20 @@ export const GRENZEN_LEITUNG = {
 
 // Verpflegung: feste Auswahl (Architekturentscheidungen Abschnitt 6, Briefing 20.11. Abschnitt 3).
 export const VERPFLEGUNG = {
-  'vegetarisch-vegan': 'Vegetarisch oder vegan',
+  vegetarisch: 'Vegetarisch',
+  vegan: 'Vegan',
   fasten: 'Fastenbegleitende Verpflegung',
   'nach-absprache': 'Nach Absprache mit der Kursleitung',
   keine: 'Keine Verpflegung',
 } as const;
 export type Verpflegung = keyof typeof VERPFLEGUNG;
 export const VERPFLEGUNG_WERTE = Object.keys(VERPFLEGUNG) as [Verpflegung, ...Verpflegung[]];
-// Fester Zusatz auf allen Seiten (geklärt 20.11.)
-export const VERPFLEGUNG_ZUSATZ = 'Glutenfrei und laktosefrei auf Wunsch.';
+// Fester Zusatz (geklärt 20.11.): vegan ist ohnehin laktosefrei, daher dort nur glutenfrei
+export function verpflegungZusatz(v: Verpflegung): string {
+  return v === 'vegan' ? 'Glutenfrei auf Wunsch.' : 'Glutenfrei und laktosefrei auf Wunsch.';
+}
+// Übernachtung und Verpflegung: fester Steuerhinweis (Entscheidung 20.11.)
+export const PREIS_AB_UST = 'inkl. 7 % USt';
 
 // Umsatzsteuer auf die Kursgebühr (offene Fragen 1.13)
 export const UST_WERTE = [0, 7, 19] as const;
@@ -43,6 +48,7 @@ export function ustText(u: Ust): string {
 // Grund: echtes Löschen, nichts in der öffentlichen Git-Historie (Entscheidung 20.11.).
 // Wert im Termin: "medien/termine/<kennung>" bzw. "medien/kursleitungen/<kennung>",
 // oder ein Hausbild: "haus/<name>" (liegt im Repo, Rechte beim Haus).
+// klein dient auch als Teilen-Bild (WhatsApp & Co. zeigen WebP, getestet 20.11.)
 export const MEDIEN_GROESSEN = { gross: 2400, klein: 800 } as const;
 export type MedienGroesse = keyof typeof MEDIEN_GROESSEN;
 export const MEDIEN_MAX_BYTES = { gross: 1_500_000, klein: 300_000 } as const;

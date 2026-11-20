@@ -1,18 +1,29 @@
 ---
 // Anfrageformular: eine Seite, Felder je Anliegen (docs/formular.md).
 // Spamschutz nach Leitfaden: verstecktes Feld, Zeitprüfung, Rechenaufgabe (ALTCHA) im Hintergrund.
-import { ANLIEGEN, UEBERNACHTUNG, type Anliegen } from '../lib/anfrage';
+import { ANLIEGEN, ANREDE, UEBERNACHTUNG, type Anliegen } from '../lib/anfrage';
 interface Props {
   anliegen?: Anliegen;
+  // Terminseite: Anfrage zu genau diesem Termin („Titel · Datum“). Das Anliegen ist dann fest,
+  // „Anfrage senden“ bleibt gesperrt, bis alle Pflichtfelder ausgefüllt sind (Wireframe Terminseite).
+  termin?: string;
 }
-const { anliegen = 'sonstiges' } = Astro.props;
+const { anliegen = 'sonstiges', termin } = Astro.props;
 ---
-<form class="anfrageformular" data-formular novalidate>
-  <label>Worum geht es?
-    <select name="anliegen">
-      {ANLIEGEN.map((o) => <option value={o.wert} selected={o.wert === anliegen}>{o.text}</option>)}
-    </select>
-  </label>
+<form class="anfrageformular" data-formular data-sperre={termin ? '' : undefined} novalidate>
+  {termin ? (
+    <>
+      <input type="hidden" name="anliegen" value="termin" />
+      <input type="hidden" name="termin" value={termin} />
+      <p class="fester-termin">Ihre Anfrage zu: <strong>{termin}</strong></p>
+    </>
+  ) : (
+    <label>Worum geht es?
+      <select name="anliegen">
+        {ANLIEGEN.map((o) => <option value={o.wert} selected={o.wert === anliegen}>{o.text}</option>)}
+      </select>
+    </label>
+  )}
 
   <label data-feld="thema"><span>Kurs oder Thema</span> <input name="thema" maxlength="200" /></label>
   <label data-feld="unternehmen"><span>Unternehmen</span> <input name="unternehmen" autocomplete="organization" maxlength="200" /></label>
@@ -32,16 +43,27 @@ const { anliegen = 'sonstiges' } = Astro.props;
     </select>
   </label>
 
+  <label data-feld="anrede"><span>Anrede</span>
+    <select name="anrede">
+      <option value="">Bitte wählen</option>
+      {ANREDE.map((a) => <option value={a}>{a}</option>)}
+    </select>
+  </label>
+  <div class="zeile namen">
+    <label data-feld="vorname"><span>Vorname</span> <input name="vorname" autocomplete="given-name" maxlength="100" /></label>
+    <label data-feld="nachname"><span>Nachname</span> <input name="nachname" autocomplete="family-name" maxlength="100" /></label>
+  </div>
   <label data-feld="name"><span>Name</span> <input name="name" autocomplete="name" maxlength="200" /></label>
   <label data-feld="email"><span>E-Mail</span> <input name="email" type="email" autocomplete="email" maxlength="200" /></label>
   <label data-feld="telefon"><span>Telefon</span> <input name="telefon" type="tel" autocomplete="tel" maxlength="50" /></label>
-  <label data-feld="nachricht"><span>Nachricht</span> <textarea name="nachricht" rows="5" maxlength="5000"></textarea></label>
+  <label data-feld="nachricht"><span data-text="nachricht">Nachricht</span> <textarea name="nachricht" rows="5" maxlength="5000"></textarea></label>
 
   <!-- verstecktes Feld: nur Bots füllen es (display:none, unverfänglicher Name) -->
   <div class="hp" aria-hidden="true"><input type="text" name="sg_feld7" tabindex="-1" autocomplete="off" /></div>
 
   <p class="hinweis">Mit * markierte Felder brauchen wir. Die Angaben nutzen wir nur, um die Anfrage zu beantworten (<a href="/datenschutz/">Datenschutz</a>).</p>
   <button type="submit">Anfrage senden</button>
+  {termin && <p class="hinweis" data-sperrhinweis>Wird aktiv, sobald alle Pflichtfelder ausgefüllt sind.</p>}
   <p class="meldung" role="status" aria-live="polite"></p>
   <pre class="trockenlauf" hidden></pre>
 </form>
@@ -109,6 +131,13 @@ const { anliegen = 'sonstiges' } = Astro.props;
     form.addEventListener('change', anzeigen);
     anzeigen();
 
+    // Terminseite: Knopf erst aktiv, wenn alle Pflichtfelder gültig sind
+    const gesperrt = form.hasAttribute('data-sperre');
+    const sperre = () => { if (gesperrt) knopf.disabled = !form.checkValidity(); };
+    form.addEventListener('input', sperre);
+    form.addEventListener('change', sperre);
+    sperre();
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       trocken.hidden = true;
@@ -147,6 +176,7 @@ const { anliegen = 'sonstiges' } = Astro.props;
         meldung.textContent = 'Keine Verbindung. Die Eingaben bleiben erhalten, bitte noch einmal senden.';
       } finally {
         knopf.disabled = false;
+        sperre();
       }
     });
   });

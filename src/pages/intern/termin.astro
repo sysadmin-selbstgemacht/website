@@ -182,10 +182,10 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
               <option value="">bitte wählen</option>
               {Object.entries(VERPFLEGUNG).map(([w, t]) => <option value={w}>{t}</option>)}
             </select>
-            <span class="hinweis">Auf der Seite steht dazu immer: Glutenfrei und laktosefrei auf Wunsch.</span>
+            <span class="hinweis">Auf der Seite steht dazu: „Glutenfrei und laktosefrei auf Wunsch.“ (bei vegan: „Glutenfrei auf Wunsch.“)</span>
             <span class="fehler" data-fehler="verpflegung"></span>
           </label>
-          <label id="l-preis"><span>Übernachtung und Verpflegung ab (€ pro Person, gesamter Aufenthalt)</span>
+          <label id="l-preis"><span>Übernachtung und Verpflegung ab (€ pro Person, gesamter Aufenthalt, inkl. 7 % USt)</span>
             <input id="preis_ab" name="preis_ab" inputmode="decimal" placeholder="z. B. 480" /><span class="fehler" data-fehler="preis_ab"></span></label>
           <div class="zwei">
             <label><span>Kursgebühr (€) <span class="hinweis">(optional)</span></span><input id="kursgebuehr" name="kursgebuehr" inputmode="decimal" placeholder="z. B. 390" /><span class="fehler" data-fehler="kursgebuehr"></span></label>

@@ -128,7 +128,7 @@ async function medienLoeschen(env: InternEnv, werte: (string | null | undefined)
 // Neues Bild prüfen und in R2 ablegen. Liefert den Bildwert ("medien/…").
 async function medienAblegen(env: InternEnv, bereich: 'termine' | 'kursleitungen', kennung: string, bild: any): Promise<{ wert?: string; fehler?: string }> {
   if (!env.MEDIEN) return { fehler: 'Bildspeicher nicht eingerichtet' };
-  const teile: Record<MedienGroesse, Uint8Array> = { gross: new Uint8Array(), klein: new Uint8Array() };
+  const teile: Partial<Record<MedienGroesse, Uint8Array>> = {};
   const typen: Record<string, string> = {};
   for (const g of ['gross', 'klein'] as const) {
     if (typeof bild?.[g] !== 'string') return { fehler: 'Bild fehlt' };
@@ -140,8 +140,8 @@ async function medienAblegen(env: InternEnv, bereich: 'termine' | 'kursleitungen
     typen[g] = p.info.typ;
   }
   const wert = `medien/${bereich}/${kennung.slice(0, 80)}-${zufall()}`;
-  for (const g of ['gross', 'klein'] as const) {
-    await env.MEDIEN.put(`${wert}/${g}`, teile[g], { httpMetadata: { contentType: typen[g], cacheControl: 'public, max-age=31536000, immutable' } });
+  for (const g of Object.keys(teile) as MedienGroesse[]) {
+    await env.MEDIEN.put(`${wert}/${g}`, teile[g]!, { httpMetadata: { contentType: typen[g], cacheControl: 'public, max-age=31536000, immutable' } });
   }
   return { wert };
 }

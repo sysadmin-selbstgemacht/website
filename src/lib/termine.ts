@@ -37,3 +37,22 @@ export function dauerText(t: { beginn: Date; ende: Date }): string {
 export function namenText(namen: string[]): string {
   return namen.length <= 1 ? (namen[0] ?? '') : `${namen.slice(0, -1).join(', ')} und ${namen.at(-1)}`;
 }
+
+// Kopfzeile der Terminseite (Wireframe): "01.–07. März 2027 Mo–So" bzw. "Fr 03.12.2026"
+export function datumKopf(beginn: Date, ende: Date): string {
+  const wt = (d: Date) => fmt({ weekday: 'short' }).format(d).replace('.', '');
+  const tag = (d: Date) => fmt({ day: '2-digit' }).format(d);
+  const monat = (d: Date) => fmt({ month: 'long' }).format(d);
+  const jahr = (d: Date) => fmt({ year: 'numeric' }).format(d);
+  if (beginn.toDateString() === ende.toDateString()) return `${wt(beginn)} ${fmt({ day: '2-digit', month: '2-digit', year: 'numeric' }).format(beginn)}`;
+  const vorne = monat(beginn) === monat(ende) ? `${tag(beginn)}.` : `${tag(beginn)}. ${monat(beginn)}${jahr(beginn) === jahr(ende) ? '' : ' ' + jahr(beginn)} `;
+  return `${vorne}–${tag(ende)}. ${monat(ende)} ${jahr(ende)} ${wt(beginn)}–${wt(ende)}`;
+}
+
+// Kachel „Termin“: "Montag, 01.03. bis Sonntag, 07.03.2027"
+export function datumLang(beginn: Date, ende: Date): string {
+  const lang = (d: Date, mitJahr: boolean) =>
+    `${fmt({ weekday: 'long' }).format(d)}, ${fmt({ day: '2-digit', month: '2-digit', ...(mitJahr ? { year: 'numeric' } : {}) }).format(d)}`;
+  if (beginn.toDateString() === ende.toDateString()) return lang(beginn, true);
+  return `${lang(beginn, false)} bis ${lang(ende, true)}`;
+}

@@ -1,12 +1,14 @@
 ---
 // Detailseite je Termin: teilbarer Link und Veranstaltungsdaten für Suchmaschinen (Brief 6d).
-// Inhalte nach Briefing 20.11., Abschnitt 3. Gestaltung folgt dem Wireframe; hier nur der Aufbau.
+// Aufbau und Inhalte nach Wireframe „Terminseite“ (Canvas) und Briefing 20.11., Abschnitt 3.
+// Gestaltung (Farben, Schrift, Kacheln mit Icons) folgt mit dem Design; hier Reihenfolge und Inhalt.
 import { getCollection, getEntries, render } from 'astro:content';
 import Medienbild from '../../components/Medienbild.astro';
-import { bildUrl } from '../../lib/medien';
+import Anfrageformular from '../../components/Anfrageformular.astro';
 import Basis from '../../layouts/Basis.astro';
-import { datumText, datumKurz, uhrzeitText, dauerText, namenText } from '../../lib/termine';
-import { VERPFLEGUNG, VERPFLEGUNG_ZUSATZ, euro, ustText } from '../../lib/termin-felder';
+import { bildUrl } from '../../lib/medien';
+import { datumText, datumKurz, datumKopf, datumLang, uhrzeitText, dauerText, namenText } from '../../lib/termine';
+import { VERPFLEGUNG, verpflegungZusatz, PREIS_AB_UST, euro, ustText, naechte } from '../../lib/termin-felder';
 
 export async function getStaticPaths() {
   const termine = await getCollection('termine');
@@ -19,6 +21,7 @@ const { Content } = await render(termin);
 const leitungen = await getEntries(d.leitung);
 const namen = leitungen.map((l) => l.data.name);
 const leitungsText = namenText(namen);
+const n = naechte(d.beginn, d.ende);
 
 // Externe Termine brauchen einen Weg zur Anmeldung: Mail einer Kursleitung oder Website.
 const mail = leitungen.find((l) => l.data.mail)?.data.mail;
@@ -42,6 +45,8 @@ const weitere = alle
   .sort((a, b) => a.data.beginn.valueOf() - b.data.beginn.valueOf())
   .slice(0, 6);
 
+const uebernachtungen = n === 0 ? '' : `${n} ${n === 1 ? 'Übernachtung' : 'Übernachtungen'} · `;
+
 // schema.org/Event für Suchmaschinen
 const eventDaten = {
   '@context': 'https://schema.org',
@@ -61,79 +66,99 @@ const eventDaten = {
   image: new URL(teilenBild, Astro.site).href,
 };
 ---
-<Basis titel={`${d.titel} · SELBSTGEMACHT`} beschreibung={beschreibung} bild={teilenBild} anliegen={d.eigener_termin ? 'sonstiges' : undefined}>
+<Basis titel={`${d.titel} · SELBSTGEMACHT`} beschreibung={beschreibung} bild={teilenBild} ohneAnfrage>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(eventDaten)} />
   <p><a href="/termine/">← Alle Termine</a></p>
-  <h1>{d.titel}</h1>
   <p class="offen vorbei" hidden data-ende={d.ende.toISOString().slice(0, 10)}>Dieser Termin ist bereits vorbei. <a href="/termine/">Zu den aktuellen Terminen</a></p>
   <script>
     const v = document.querySelector<HTMLElement>('.vorbei');
     const heute = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
     if (v && (v.dataset.ende ?? '') < heute) v.hidden = false;
   </script>
-  <p><strong>{datumText(d.beginn, d.ende)}</strong> · {uhrzeitText(d)} · {dauerText(d)}</p>
-  <p>Leitung: {leitungsText}</p>
 
   <Medienbild wert={d.bild} alt={d.bild_alt} nachweis={d.bild_nachweis} sizes="(min-width: 72rem) 70rem, 100vw" priorisiert />
 
-  <Content />
+  <section class="termin-kopf">
+    <p><strong>{datumKopf(d.beginn, d.ende)}</strong></p>
+    <h1>{d.titel}</h1>
+    <p>{d.kurzbeschreibung}</p>
+  </section>
 
-  <section class="raster">
-    {(d.preis_ab !== undefined) && (
-      <div class="kachel">
-        <h2>Übernachtung und Verpflegung</h2>
-        <p>ab {euro(d.preis_ab)} pro Person für den gesamten Aufenthalt. Gezahlt wird vor Ort.</p>
-      </div>
-    )}
+  <section class="termin-kacheln">
+    <div class="kachel">
+      <h2>Termin</h2>
+      <p>{datumLang(d.beginn, d.ende)}<br />{uebernachtungen}{uhrzeitText(d)}</p>
+    </div>
     {d.kursgebuehr !== undefined && d.ust !== undefined && (
       <div class="kachel">
         <h2>Kursgebühr</h2>
-        <p>{euro(d.kursgebuehr)} ({ustText(d.ust)}){!d.eigener_termin && <>, zu zahlen an die Kursleitung</>}.</p>
+        <p>{euro(d.kursgebuehr)} ({ustText(d.ust)}){!d.eigener_termin && <>, zu zahlen an die Kursleitung</>}</p>
+      </div>
+    )}
+    {d.preis_ab !== undefined && (
+      <div class="kachel">
+        <h2>{d.uebernachtung ? 'Übernachtung und Verpflegung' : 'Verpflegung'}</h2>
+        <p>ab {euro(d.preis_ab)} ({PREIS_AB_UST}) pro Person für den gesamten Aufenthalt{d.uebernachtung && ', je nach Zimmerkategorie'}. Gezahlt wird vor Ort.</p>
       </div>
     )}
     {d.verpflegung !== 'keine' && (
       <div class="kachel">
         <h2>Verpflegung</h2>
-        <p>{VERPFLEGUNG[d.verpflegung]}. {VERPFLEGUNG_ZUSATZ}</p>
+        <p>{VERPFLEGUNG[d.verpflegung]}. {verpflegungZusatz(d.verpflegung)}</p>
       </div>
     )}
-  </section>
-
-  {d.uebernachtung && <p class="offen">Zimmerbilder (nur bei Terminen mit Übernachtung, Gestaltung nach Wireframe)</p>}
-
-  <section class="abschnitt">
-    <h2>Kursleitung</h2>
     {leitungen.map((l) => (
-      <div class="leitung">
+      <div class="kachel leitung">
         <Medienbild wert={l.data.foto} alt={l.data.foto_alt} nachweis={l.data.foto_nachweis} sizes="(min-width: 40rem) 30rem, 100vw" />
-        <h3>{l.data.name}</h3>
+        <h2>Kursleitung: {l.data.name}</h2>
         {l.data.vorstellung && <p>{l.data.vorstellung}</p>}
       </div>
     ))}
   </section>
+  {d.anmeldung_web && <p><a href={d.anmeldung_web} target="_blank" rel="noopener">Website zum Kurs ↗</a></p>}
+
+  <p class="zeile-knoepfe">
+    <a class="knopf" href="#anmeldung">Unverbindlich anfragen</a>
+    <button type="button" class="teilen" data-titel={d.titel} aria-label="Termin teilen">Teilen</button>
+  </p>
+  <script>
+    document.querySelector<HTMLButtonElement>('.teilen')?.addEventListener('click', async (e) => {
+      const b = e.currentTarget as HTMLButtonElement;
+      const daten = { title: b.dataset.titel, url: location.href };
+      try {
+        if (navigator.share) await navigator.share(daten);
+        else { await navigator.clipboard.writeText(location.href); b.textContent = 'Link kopiert'; }
+      } catch { /* abgebrochen */ }
+    });
+  </script>
 
   <section class="abschnitt">
-    <h2>Anmeldung</h2>
+    <h2>Über den Kurs</h2>
+    <Content />
+  </section>
+
+  {d.uebernachtung && (
+    <section class="abschnitt">
+      <h2>Zimmer</h2>
+      <p>Alle wohnen unter einem Dach, in 10 Zimmern mit eigenem Bad.</p>
+      <p class="offen">Zimmerbilder (Slider nach Wireframe), nur bei Terminen mit Übernachtung</p>
+    </section>
+  )}
+
+  <section id="anmeldung" class="abschnitt anfrage">
+    <h2>Interesse?</h2>
     {d.eigener_termin ? (
-      <p>Anfrage über das Formular unten.</p>
+      <>
+        <p>Schreiben Sie uns, wir melden uns innerhalb eines Werktags bei Ihnen.</p>
+        <Anfrageformular termin={`${d.titel} · ${datumText(d.beginn, d.ende)}`} />
+      </>
     ) : (
-      <p>
-        Die Anmeldung läuft direkt über die Kursleitung.
-        {mailLink && <> <a class="knopf" href={mailLink}>Unverbindlich anfragen</a></>}
-        {d.anmeldung_web && <> · <a href={d.anmeldung_web} rel="noopener">Website zum Kurs</a></>}
-      </p>
+      <>
+        <p>{leitungsText} {leitungen.length > 1 ? 'beantworten' : 'beantwortet'} Ihre Fragen zum Kurs und {leitungen.length > 1 ? 'nehmen' : 'nimmt'} Ihre Anmeldung entgegen.</p>
+        {mailLink && <p><a class="knopf" href={mailLink}>Unverbindlich anfragen</a></p>}
+        {!mailLink && d.anmeldung_web && <p><a class="knopf" href={d.anmeldung_web} target="_blank" rel="noopener">Zur Anmeldung ↗</a></p>}
+      </>
     )}
-    <p><button type="button" class="teilen" data-titel={d.titel}>Termin teilen</button></p>
-    <script>
-      document.querySelector<HTMLButtonElement>('.teilen')?.addEventListener('click', async (e) => {
-        const b = e.currentTarget as HTMLButtonElement;
-        const daten = { title: b.dataset.titel, url: location.href };
-        try {
-          if (navigator.share) await navigator.share(daten);
-          else { await navigator.clipboard.writeText(location.href); b.textContent = 'Link kopiert'; }
-        } catch { /* abgebrochen */ }
-      });
-    </script>
   </section>
 
   {weitere.length > 0 && (
@@ -141,7 +166,7 @@ const eventDaten = {
       <h2>Weitere Termine mit {leitungsText}</h2>
       <ul>
         {weitere.map((t) => (
-          <li data-ende={t.data.ende.toISOString().slice(0, 10)}><strong>{datumKurz(t.data.beginn)}</strong> <a href={`/termine/${t.id}/`}>{t.data.titel}</a></li>
+          <li data-ende={t.data.ende.toISOString().slice(0, 10)}><strong>{datumKurz(t.data.beginn)}</strong> <a href={`/termine/${t.id}/`}>{t.data.titel}</a> · {dauerText(t.data)}</li>
         ))}
       </ul>
     </section>

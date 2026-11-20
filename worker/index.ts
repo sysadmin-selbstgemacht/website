@@ -20,7 +20,7 @@ import { deriveKey } from 'altcha-lib/algorithms/web/pbkdf2';
 import { connect } from 'cloudflare:sockets';
 import { sende, SmtpFehler, type SmtpZugang } from './smtp';
 import { intern, medien, type InternEnv } from './intern';
-import { ANLIEGEN, FELDER, BESCHRIFTUNG, STANDARD, GRENZEN, UEBERNACHTUNG, pflichtfelder, type Anliegen, type Feld } from '../src/lib/anfrage';
+import { ANLIEGEN, ALLE_ANLIEGEN, ANREDE, FELDER, BESCHRIFTUNG, STANDARD, GRENZEN, UEBERNACHTUNG, pflichtfelder, type Anliegen, type Feld } from '../src/lib/anfrage';
 
 interface Env extends InternEnv {
   ASSETS: Fetcher;
@@ -100,7 +100,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DATUM = /^\d{4}-\d{2}-\d{2}$/;
 
 function pruefeFelder(b: any) {
-  const anliegen: Anliegen = ANLIEGEN.some((a) => a.wert === b.anliegen) ? b.anliegen : 'sonstiges';
+  const anliegen: Anliegen = ALLE_ANLIEGEN.includes(b.anliegen) ? b.anliegen : 'sonstiges';
   const offen = b.offen === true;
   const sichtbar = new Set<Feld>(FELDER[anliegen].sichtbar);
   const werte: Partial<Record<Feld, string>> = {};
@@ -120,6 +120,7 @@ function pruefeFelder(b: any) {
     if (!Number.isInteger(n) || n < 1 || n > GRENZEN.personenMax) fehler.personen = `${name(anliegen, 'personen')}: Zahl prüfen`;
   }
   if (werte.uebernachtung && !UEBERNACHTUNG.includes(werte.uebernachtung)) fehler.uebernachtung = 'Übernachtung prüfen';
+  if (werte.anrede && !ANREDE.includes(werte.anrede)) fehler.anrede = 'Anrede prüfen';
   return { anliegen, offen, werte, fehler };
 }
 
@@ -135,12 +136,15 @@ function datumDE(iso?: string) {
 
 function baueMail(p: ReturnType<typeof pruefeFelder>) {
   const { anliegen, werte: w } = p;
-  const titel = ANLIEGEN.find((a) => a.wert === anliegen)!.text;
+  const titel = anliegen === 'termin' ? `Termin: ${w.termin ?? ''}` : ANLIEGEN.find((a) => a.wert === anliegen)!.text;
   const zeit = w.von ? `${datumDE(w.von)}–${datumDE(w.bis)}` : w.zeitraum ?? '';
-  const betreff = ['Anfrage', titel.split(':')[0], w.personen ? `${w.personen} Pers.` : '', zeit, w.name].filter(Boolean).join(' · ');
+  const absender = w.name || [w.vorname, w.nachname].filter(Boolean).join(' ');
+  const betreff = anliegen === 'termin'
+    ? ['Anfrage', w.termin, absender].filter(Boolean).join(' · ')
+    : ['Anfrage', titel.split(':')[0], w.personen ? `${w.personen} Pers.` : '', zeit, absender].filter(Boolean).join(' · ');
   const zeilen = [`Anliegen: ${titel}`];
   for (const f of FELDER[anliegen].sichtbar) {
-    if (f === 'offen' || f === 'nachricht') continue;
+    if (f === 'offen' || f === 'nachricht' || f === 'termin') continue; // Termin steht schon unter „Anliegen“
     const v = f === 'von' || f === 'bis' ? datumDE(w[f]) : w[f];
     if (v) zeilen.push(`${name(anliegen, f)}: ${v}`);
   }

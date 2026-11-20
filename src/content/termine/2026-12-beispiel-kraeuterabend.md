@@ -10,7 +10,7 @@ kurzbeschreibung: "Beispiel: ein Abend mit Kräutern aus dem Garten, Tee und Bro
 bild: "haus/platzhalter"
 bild_alt: "Seminar- und Gästehaus SELBSTGEMACHT"
 uebernachtung: false
-verpflegung: "vegetarisch-vegan"
+verpflegung: "vegan"
 preis_ab: 25
 ---
 Platzhalter für einen eigenen Termin des Hauses. Wird vor dem Go-live gelöscht.
