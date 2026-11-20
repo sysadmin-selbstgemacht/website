@@ -7,7 +7,7 @@ uhrzeit_beginn: "18:30"
 uhrzeit_ende: "20:00"
 eigener_termin: true
 kurzbeschreibung: "die ist die Kurzbeschreibug in 160 Zeichen max."
-bild: "medien/termine/2026-12-12-tets-matthias-417148"
+bild: "medien/termine/2026-12-12-tets-matthias-2f5503"
 bild_alt: "legotisch wahnsinn"
 bild_nachweis: "Matthias Nitsche"
 uebernachtung: true
@@ -16,3 +16,12 @@ preis_ab: 500
 kursgebuehr: 400
 ust: 19
 ---
+s,m hfajdshcda+
+fda
+f
+das f
+dsa
+f
+dsa
+fdsa
+**fett**
