@@ -12,9 +12,10 @@ Stand: 12.11.2026 · Umstellung von selbst-gemacht.eu von der WordPress-Seite (a
 
 - [ ] Freigabe der Seite durch Katrin und Anne
 - [ ] Impressum, Datenschutz, Bildnachweis freigegeben (`docs/rechtstexte.md`)
+- [ ] Termin-Formular eingerichtet (`docs/termin-formular.md`): R2-Bucket, `GITHUB_TOKEN`, Access auf der echten Adresse, Probe
 - [ ] Formular scharf: Postfach, Secrets, `MAIL_MODUS=senden`, `ALTCHA_SECRET`; echte Testanfrage kommt an
 - [ ] Weiterleitungen geklärt (`docs/weiterleitungen.md`)
-- [ ] Aufräumen im Repo: Messseite `src/pages/test/`, Beispieltermine `*beispiel*`, `platzhalter.webp`, Endpunkte `/api/test/*` und `/api/anfrage/pruefen`, ausführliche Fehlermeldungen im Worker
+- [ ] Aufräumen im Repo: Messseite `src/pages/test/`, Beispieltermine und -kursleitungen `src/content/**/*beispiel*`, `platzhalter.webp` (vorher echte Hausbilder in `HAUSBILDER` eintragen, `src/lib/termin-felder.ts`), Endpunkte `/api/test/*` und `/api/anfrage/pruefen`, ausführliche Fehlermeldungen im Worker
 - [ ] Fabian informiert, für die Umstellung telefonisch erreichbar
 - [ ] Zugang geprüft: Matthias kann im Cloudflare-Konto **DNS-Einträge bearbeiten**, **Custom Domains am Worker** anlegen und **Redirect Rules** anlegen (Rechte des Mitgliedskontos)
 

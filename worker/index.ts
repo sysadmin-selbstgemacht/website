@@ -6,6 +6,8 @@
 //   POST /api/anfrage            – Anfrage prüfen und verschicken (derzeit TROCKENLAUF)
 //   GET  /api/test/smtp          – VORÜBERGEHEND: Erreichbarkeit des all-inkl-Mailservers
 //   GET  /api/test/smtp-anmeldung – VORÜBERGEHEND: Anmeldung am Postfach prüfen, verschickt nichts
+//   /intern/*, /api/intern/*       – Termin-Formular, nur nach Anmeldung (worker/intern.ts)
+//   GET  /medien/*                 – Bilder zu Terminen und Kursleitungen aus R2 (worker/intern.ts)
 //
 // Spamschutz nach Leitfaden (docs/formular.md), Reihenfolge:
 //   1 verstecktes Feld → 2 Zeitprüfung → 3 Rate Limit → 4 Rechenaufgabe → 5 Feldprüfung
@@ -17,9 +19,10 @@ import { createChallenge, verifySolution, randomInt } from 'altcha-lib';
 import { deriveKey } from 'altcha-lib/algorithms/web/pbkdf2';
 import { connect } from 'cloudflare:sockets';
 import { sende, SmtpFehler, type SmtpZugang } from './smtp';
+import { intern, medien, type InternEnv } from './intern';
 import { ANLIEGEN, FELDER, BESCHRIFTUNG, STANDARD, GRENZEN, UEBERNACHTUNG, pflichtfelder, type Anliegen, type Feld } from '../src/lib/anfrage';
 
-interface Env {
+interface Env extends InternEnv {
   ASSETS: Fetcher;
   ALTCHA_SECRET?: string;
   CF_VERSION_METADATA?: { id?: string };
@@ -229,6 +232,9 @@ export default {
 
 async function bearbeiten(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
+
+  if (url.pathname.startsWith('/medien/')) return medien(request, env);
+  if (url.pathname === '/intern' || url.pathname.startsWith('/intern/') || url.pathname.startsWith('/api/intern/')) return intern(request, env);
 
   if (url.pathname === '/api/anfrage/challenge' && request.method === 'GET') {
     const s = await schluessel(env);

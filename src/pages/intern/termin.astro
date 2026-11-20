@@ -1,0 +1,692 @@
+---
+// Termin-Formular für Katrin und Annekathrin (Option A). Nur nach Anmeldung (Cloudflare Access),
+// nicht in Sitemap, noindex. Ablauf und Einrichtung: docs/termin-formular.md.
+// Die Seite selbst enthält keine Daten; alles kommt nach der Anmeldung über /api/intern/*.
+import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustText } from '../../lib/termin-felder';
+---
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Termine pflegen · SELBSTGEMACHT</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <style is:global>
+    :root { --text: #222; --grau: #eee; --grau-dunkel: #777; --rot: #b00020; --gruen: #1b6e2d; --gelb: #fff4c2; font-family: system-ui, sans-serif; line-height: 1.45; color: var(--text); }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 40rem; margin: 0 auto; padding: 1rem 1rem 6rem; }
+    header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; border-bottom: 1px solid var(--grau); padding: .5rem 1rem; }
+    header a { color: inherit; font-size: .9rem; }
+    h1 { font-size: 1.4rem; margin: 1rem 0; }
+    h2 { font-size: 1.1rem; margin: 1.75rem 0 .5rem; }
+    button, .knopf { font: inherit; padding: .6rem 1rem; border: 1px solid var(--text); background: #fff; color: var(--text); border-radius: .3rem; cursor: pointer; text-decoration: none; display: inline-block; }
+    button.haupt, .knopf.haupt { background: var(--text); color: #fff; }
+    button.gefahr { border-color: var(--rot); color: var(--rot); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .klein { padding: .35rem .7rem; font-size: .9rem; }
+    ul.liste { list-style: none; margin: 0; padding: 0; }
+    ul.liste li { border-bottom: 1px solid var(--grau); padding: .75rem 0; display: grid; gap: .4rem; }
+    .zeile { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+    .leise { color: var(--grau-dunkel); font-size: .9rem; }
+    form { display: grid; gap: 1rem; }
+    fieldset { border: 1px solid var(--grau); border-radius: .3rem; padding: .75rem; margin: 0; display: grid; gap: .75rem; }
+    legend { font-weight: 600; padding: 0 .25rem; }
+    label { display: grid; gap: .25rem; }
+    label > span:first-child { font-weight: 600; }
+    label.pflicht > span:first-child::after { content: ' *'; color: var(--rot); }
+    label.haken { display: flex; gap: .5rem; align-items: flex-start; font-weight: normal; }
+    label.haken > span:first-child { font-weight: normal; }
+    input, select, textarea { font: inherit; padding: .5rem; border: 1px solid #aaa; border-radius: .25rem; width: 100%; }
+    input[type=checkbox], input[type=radio] { width: auto; margin-top: .3rem; }
+    textarea { min-height: 7rem; }
+    textarea.lang { min-height: 14rem; }
+    .zwei { display: grid; gap: .75rem; grid-template-columns: 1fr 1fr; }
+    .hinweis { font-size: .85rem; color: var(--grau-dunkel); }
+    .zaehler { font-size: .8rem; color: var(--grau-dunkel); justify-self: end; }
+    .zaehler.zuviel { color: var(--rot); font-weight: 600; }
+    .fehler { color: var(--rot); font-size: .9rem; font-weight: 600; }
+    .fehler:empty { display: none; }
+    [aria-invalid=true] { border-color: var(--rot); outline: 1px solid var(--rot); }
+    .meldung { padding: .75rem; border-radius: .3rem; background: var(--gelb); }
+    .meldung.rot { background: #fde7ea; color: var(--rot); }
+    .meldung.gruen { background: #e5f4e8; color: var(--gruen); }
+    .meldung:empty { display: none; }
+    .vorschaubild { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--grau); border-radius: .25rem; }
+    .daumen { width: 6rem; aspect-ratio: 16 / 9; object-fit: cover; background: var(--grau); border-radius: .2rem; }
+    .hausbilder { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: .5rem; }
+    .hausbilder label { display: grid; gap: .25rem; font-size: .8rem; }
+    .etikett { font-size: .75rem; background: var(--gelb); padding: 0 .4rem; border-radius: .2rem; }
+    .stand { display: grid; gap: .75rem; }
+    .schritt { display: flex; gap: .5rem; align-items: center; }
+    .punkt { width: .8rem; height: .8rem; border-radius: 50%; background: var(--grau-dunkel); flex: none; }
+    .punkt.laeuft { background: #d9a400; animation: puls 1.2s infinite; }
+    .punkt.gruen { background: var(--gruen); }
+    .punkt.rot { background: var(--rot); }
+    @keyframes puls { 50% { opacity: .3; } }
+    .unten { position: sticky; bottom: 0; background: #fff; padding: .75rem 0; border-top: 1px solid var(--grau); display: flex; flex-wrap: wrap; gap: .5rem; }
+    details summary { cursor: pointer; margin: 1rem 0 .5rem; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header><strong>SELBSTGEMACHT · Termine pflegen</strong><a href="/cdn-cgi/access/logout">Abmelden</a></header>
+  <main>
+    <p id="laden" class="leise">Lädt …</p>
+    <div id="meldung" class="meldung" role="status" aria-live="polite"></div>
+
+    <!-- Übersicht -->
+    <section id="v-uebersicht" hidden>
+      <h1>Termine</h1>
+      <div class="zeile"><button class="haupt" data-aktion="neu">Neuer Termin</button></div>
+
+      <div id="entwuerfe-block" hidden>
+        <h2>Entwürfe <span class="leise">(noch nicht veröffentlicht)</span></h2>
+        <ul class="liste" id="entwuerfe"></ul>
+      </div>
+
+      <h2>Veröffentlicht</h2>
+      <ul class="liste" id="kommend"></ul>
+      <p class="leise" id="kommend-leer" hidden>Keine kommenden Termine.</p>
+      <details><summary>Vergangene Termine</summary><ul class="liste" id="vergangen"></ul></details>
+      <p class="hinweis">Gerade veröffentlichte Änderungen erscheinen hier nach etwa zwei Minuten.</p>
+
+      <h2>Kursleitungen</h2>
+      <div class="zeile"><button data-aktion="leitung-neu">Neue Kursleitung</button></div>
+      <ul class="liste" id="leitungen"></ul>
+    </section>
+
+    <!-- Termin-Formular -->
+    <section id="v-termin" hidden>
+      <h1 id="termin-ueberschrift">Neuer Termin</h1>
+      <p id="termin-quelle" class="hinweis"></p>
+      <form id="termin" novalidate>
+        <label class="pflicht"><span>Titel</span>
+          <input id="titel" name="titel" maxlength={T.titelMax} required autocomplete="off" />
+          <span class="fehler" data-fehler="titel"></span>
+        </label>
+
+        <fieldset>
+          <legend>Datum und Uhrzeit</legend>
+          <div class="zwei">
+            <label class="pflicht"><span>von</span><input type="date" id="beginn" name="beginn" required /><span class="fehler" data-fehler="beginn"></span></label>
+            <label><span>bis</span><input type="date" id="ende" name="ende" /><span class="fehler" data-fehler="ende"></span></label>
+          </div>
+          <p class="hinweis" id="dauer">Eintägig. Bei mehrtägigen Terminen das Enddatum eintragen.</p>
+          <div class="zwei">
+            <label class="pflicht"><span id="l-ub">Beginn</span><input type="time" id="uhrzeit_beginn" name="uhrzeit_beginn" required step="300" /><span class="fehler" data-fehler="uhrzeit_beginn"></span></label>
+            <label class="pflicht"><span id="l-ue">Ende</span><input type="time" id="uhrzeit_ende" name="uhrzeit_ende" required step="300" /><span class="fehler" data-fehler="uhrzeit_ende"></span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Kursleitung *</legend>
+          <div id="leitung-auswahl" class="stand"></div>
+          <div id="neue-leitungen" class="stand"></div>
+          <div><button type="button" class="klein" data-aktion="leitung-hinzu">+ Neue Kursleitung anlegen</button></div>
+          <span class="fehler" data-fehler="leitung"></span>
+        </fieldset>
+
+        <fieldset>
+          <legend>Art des Termins *</legend>
+          <label class="haken"><input type="radio" name="art" value="eigen" /><span>Eigener Termin des Hauses <span class="hinweis">(Anfrage über das Formular des Hauses)</span></span></label>
+          <label class="haken"><input type="radio" name="art" value="extern" /><span>Termin einer externen Kursleitung <span class="hinweis">(Anfrage per Mail an die Kursleitung)</span></span></label>
+          <label id="l-web" hidden><span>Website zum Kurs <span class="hinweis">(optional)</span></span><input type="url" id="anmeldung_web" name="anmeldung_web" placeholder="https://" /><span class="fehler" data-fehler="anmeldung_web"></span></label>
+        </fieldset>
+
+        <label class="pflicht"><span>Kurzbeschreibung</span>
+          <textarea id="kurzbeschreibung" name="kurzbeschreibung" rows="3" data-max={T.kurzbeschreibungMax}></textarea>
+          <span class="zaehler" data-zaehler="kurzbeschreibung"></span>
+          <span class="hinweis">Erscheint in der Terminliste, bei Google und beim Teilen.</span>
+          <span class="fehler" data-fehler="kurzbeschreibung"></span>
+        </label>
+
+        <label><span>Ausführliche Beschreibung</span>
+          <textarea id="beschreibung" name="beschreibung" class="lang" data-max={T.beschreibungMax}></textarea>
+          <span class="zaehler" data-zaehler="beschreibung"></span>
+          <span class="hinweis">Leerzeile = neuer Absatz · Zeile mit „- “ am Anfang = Aufzählung · **Wort** = fett. Sonst keine Formatierung.</span>
+          <span class="fehler" data-fehler="beschreibung"></span>
+        </label>
+
+        <fieldset>
+          <legend>Kursbild *</legend>
+          <img id="bild-vorschau" class="vorschaubild" alt="" hidden />
+          <label class="haken" id="l-bild-behalten" hidden><input type="radio" name="bildart" value="behalten" /><span>Bisheriges Bild behalten</span></label>
+          <label class="haken" id="l-bild-kopie" hidden><input type="radio" name="bildart" value="kopie" /><span>Bild der Vorlage übernehmen</span></label>
+          <label class="haken"><input type="radio" name="bildart" value="neu" /><span>Neues Bild hochladen</span></label>
+          <label id="l-bilddatei" hidden><span>Bilddatei</span><input type="file" id="bilddatei" accept="image/*" />
+            <span class="hinweis">Wird automatisch auf 16:9 zugeschnitten (Mitte) und verkleinert.</span></label>
+          <label class="haken"><input type="radio" name="bildart" value="hausbild" /><span>Bild aus dem Haus verwenden (wenn kein Kursbild vorliegt)</span></label>
+          <div id="hausbilder" class="hausbilder" hidden></div>
+          <span class="fehler" data-fehler="bild"></span>
+          <label class="pflicht"><span>Bildbeschreibung</span><input id="bild_alt" name="bild_alt" maxlength={T.bildAltMax} placeholder="z. B. Gruppe beim Wandern im Wald" />
+            <span class="hinweis">Für Menschen, die das Bild nicht sehen können.</span><span class="fehler" data-fehler="bild_alt"></span></label>
+          <label><span>Bildrechte <span class="hinweis">(optional)</span></span><input id="bild_nachweis" name="bild_nachweis" maxlength={T.nachweisMax} placeholder="z. B. Anna Muster" />
+            <span class="hinweis">Wenn ausgefüllt, steht klein unter dem Bild: „Foto: …“</span><span class="fehler" data-fehler="bild_nachweis"></span></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Übernachtung, Verpflegung, Preise</legend>
+          <div>
+            <span><strong>Übernachtung *</strong></span>
+            <div class="zeile">
+              <label class="haken"><input type="radio" name="uebernachtung" value="ja" /><span>ja</span></label>
+              <label class="haken"><input type="radio" name="uebernachtung" value="nein" /><span>nein</span></label>
+            </div>
+          </div>
+          <label class="pflicht"><span>Verpflegung</span>
+            <select id="verpflegung" name="verpflegung">
+              <option value="">bitte wählen</option>
+              {Object.entries(VERPFLEGUNG).map(([w, t]) => <option value={w}>{t}</option>)}
+            </select>
+            <span class="hinweis">Auf der Seite steht dazu immer: Glutenfrei und laktosefrei auf Wunsch.</span>
+            <span class="fehler" data-fehler="verpflegung"></span>
+          </label>
+          <label id="l-preis"><span>Übernachtung und Verpflegung ab (€ pro Person, gesamter Aufenthalt)</span>
+            <input id="preis_ab" name="preis_ab" inputmode="decimal" placeholder="z. B. 480" /><span class="fehler" data-fehler="preis_ab"></span></label>
+          <div class="zwei">
+            <label><span>Kursgebühr (€) <span class="hinweis">(optional)</span></span><input id="kursgebuehr" name="kursgebuehr" inputmode="decimal" placeholder="z. B. 390" /><span class="fehler" data-fehler="kursgebuehr"></span></label>
+            <label id="l-ust"><span>Umsatzsteuer</span>
+              <select id="ust" name="ust"><option value="">bitte wählen</option>{UST_WERTE.map((u) => <option value={String(u)}>{u} % – {ustText(u)}</option>)}</select>
+              <span class="fehler" data-fehler="ust"></span></label>
+          </div>
+        </fieldset>
+
+        <div class="unten">
+          <button type="submit" class="haupt" id="speichern">Speichern und Vorschau</button>
+          <button type="button" data-aktion="zurueck">Abbrechen</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Kursleitung -->
+    <section id="v-leitung" hidden>
+      <h1 id="leitung-ueberschrift">Kursleitung</h1>
+      <form id="leitung" novalidate>
+        <div data-leitung-felder=""></div>
+        <div class="unten">
+          <button type="submit" class="haupt">Speichern und Vorschau</button>
+          <button type="button" data-aktion="zurueck">Abbrechen</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Status eines Entwurfs -->
+    <section id="v-status" hidden>
+      <h1 id="status-titel">Entwurf</h1>
+      <div class="stand">
+        <div class="schritt"><span class="punkt gruen"></span><span>Gespeichert als Entwurf</span></div>
+        <div class="schritt"><span class="punkt" id="punkt-pruefung"></span><span id="text-pruefung">Vorschau wird gebaut …</span></div>
+        <p class="hinweis" id="hinweis-pruefung">Das dauert meist ein bis drei Minuten. Diese Seite aktualisiert sich selbst.</p>
+        <p><a id="vorschau-link" class="knopf" target="_blank" rel="noopener" hidden>Vorschau ansehen</a></p>
+        <div class="zeile">
+          <button class="haupt" id="veroeffentlichen" disabled>Veröffentlichen</button>
+          <button id="weiter" hidden>Weiter bearbeiten</button>
+          <button class="gefahr" id="verwerfen">Entwurf verwerfen</button>
+        </div>
+        <p><button data-aktion="zurueck" class="klein">Zur Übersicht</button></p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, MEDIEN_GROESSEN, MEDIEN_MAX_BYTES, beschreibungText, naechte } from '../../lib/termin-felder';
+
+    type Bildteile = { gross: string; klein: string; url: string };
+    type Stand = { termine: any[]; kursleitungen: any[]; hausbilder: any[]; entwuerfe: any[] };
+    let stand: Stand;
+    let zustand: { modus: 'neu' | 'bearbeiten' | 'kopie'; id?: string; von?: string; bildBisher?: string } = { modus: 'neu' };
+    let neuesBild: Bildteile | null = null;
+    let leitungFoto: Bildteile | null = null;
+    let leitungBearbeiten: { id?: string; fotoBisher?: string } = {};
+    let entwurfsLeitungen: any[] = [];
+    let statusPr: { pr: number; branch: string; titel?: string } | null = null;
+    let poll: number | undefined;
+
+    const $ = <E extends HTMLElement = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector(s) as E;
+    const $$ = <E extends HTMLElement = HTMLElement>(s: string, r: ParentNode = document) => [...r.querySelectorAll(s)] as E[];
+    const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+    const datum = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' });
+    const heute = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+    const bildUrl = (wert?: string) => !wert ? '' : wert.startsWith('medien/') ? `/${wert}/klein` : (stand.hausbilder.find((h) => h.wert === wert)?.vorschau ?? '');
+
+    function melde(text: string, art: '' | 'rot' | 'gruen' = '') {
+      const m = $('#meldung');
+      m.textContent = text;
+      m.className = 'meldung ' + art;
+      if (text) m.scrollIntoView({ block: 'nearest' });
+    }
+
+    async function api(pfad: string, daten?: unknown) {
+      let r: Response;
+      try {
+        r = await fetch(pfad, daten === undefined ? { cache: 'no-store' } : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(daten) });
+      } catch {
+        // Abgelaufene Anmeldung leitet auf Cloudflare Access um, das scheitert hier als Netzfehler
+        melde('Keine Verbindung oder die Anmeldung ist abgelaufen. Bitte die Seite neu laden. Eingaben vorher sichern (z. B. Text kopieren).', 'rot');
+        throw new Error('anmeldung');
+      }
+      let j: any = {};
+      try { j = await r.json(); } catch { /* keine JSON-Antwort, z. B. abgelaufene Anmeldung */ }
+      if (r.status === 401 || r.status === 403 && j.message === 'Kein Zugang') { melde('Die Anmeldung ist abgelaufen. Bitte Seite neu laden.', 'rot'); throw new Error('anmeldung'); }
+      return { ok: r.ok, status: r.status, ...j };
+    }
+
+    function zeige(v: 'uebersicht' | 'termin' | 'leitung' | 'status') {
+      for (const s of $$('main > section')) s.hidden = s.id !== 'v-' + v;
+      if (v !== 'status' && poll) { clearTimeout(poll); poll = undefined; }
+      window.scrollTo(0, 0);
+    }
+
+    // ---------- Übersicht ----------
+    async function laden() {
+      const r = await api('/api/intern/stand');
+      $('#laden').hidden = true;
+      if (!r.ok) { melde('Laden fehlgeschlagen: ' + (r.message ?? r.status), 'rot'); return; }
+      stand = r;
+      const ent = stand.entwuerfe;
+      $('#entwuerfe-block').hidden = !ent.length;
+      $('#entwuerfe').innerHTML = ent.map((e: any) => `
+        <li><strong>${esc(e.titel)}</strong>
+          <div class="zeile">
+            <button class="klein" data-aktion="status" data-pr="${e.pr}" data-branch="${esc(e.branch)}">Vorschau und Veröffentlichen</button>
+            ${e.titel.includes('löschen') ? '' : `<button class="klein" data-aktion="${e.art === 'termin' ? 'bearbeiten' : 'leitung-bearbeiten'}" data-id="${esc(e.id)}">Weiter bearbeiten</button>`}
+          </div></li>`).join('');
+      const offen = new Set(ent.map((e: any) => e.branch));
+      const zeile = (t: any) => `
+        <li><div class="zeile">${t.vorschau ? `<img class="daumen" src="${esc(t.vorschau)}" alt="" loading="lazy" />` : ''}
+          <div><strong>${esc(datum(t.daten.beginn))}</strong> ${esc(t.daten.titel)}
+          ${offen.has('termin/' + t.id) ? '<span class="etikett">Entwurf offen</span>' : ''}</div></div>
+          <div class="zeile">
+            <button class="klein" data-aktion="bearbeiten" data-id="${esc(t.id)}">Bearbeiten</button>
+            <button class="klein" data-aktion="kopie" data-id="${esc(t.id)}">Als Vorlage kopieren</button>
+            <button class="klein gefahr" data-aktion="loeschen" data-id="${esc(t.id)}">Löschen</button>
+          </div></li>`;
+      const sortiert = [...stand.termine].sort((a, b) => String(a.daten.beginn).localeCompare(String(b.daten.beginn)));
+      const kommend = sortiert.filter((t) => String(t.daten.ende ?? t.daten.beginn) >= heute);
+      $('#kommend').innerHTML = kommend.map(zeile).join('');
+      $('#kommend-leer').hidden = kommend.length > 0;
+      $('#vergangen').innerHTML = sortiert.filter((t) => String(t.daten.ende ?? t.daten.beginn) < heute).reverse().map(zeile).join('');
+      $('#leitungen').innerHTML = [...stand.kursleitungen].sort((a, b) => a.daten.name.localeCompare(b.daten.name, 'de')).map((l) => `
+        <li><div class="zeile">${l.vorschau ? `<img class="daumen" src="${esc(l.vorschau)}" alt="" loading="lazy" />` : ''}<strong>${esc(l.daten.name)}</strong>
+          ${l.daten.mail ? '' : '<span class="leise">(ohne Mail)</span>'}</div>
+          <div class="zeile"><button class="klein" data-aktion="leitung-bearbeiten" data-id="${esc(l.id)}">Bearbeiten</button>
+          <button class="klein gefahr" data-aktion="leitung-loeschen" data-id="${esc(l.id)}">Löschen</button></div></li>`).join('');
+      zeige('uebersicht');
+    }
+
+    // ---------- Bilder ----------
+    async function verkleinern(datei: File): Promise<Bildteile> {
+      const bmp = await createImageBitmap(datei, { imageOrientation: 'from-image' } as ImageBitmapOptions).catch(() => null);
+      if (!bmp) throw new Error('Das Bild lässt sich nicht öffnen. Bitte ein JPG, PNG oder WebP wählen.');
+      // Mitte auf 16:9 zuschneiden
+      let sw = bmp.width, sh = Math.round((bmp.width * 9) / 16);
+      if (sh > bmp.height) { sh = bmp.height; sw = Math.round((bmp.height * 16) / 9); }
+      if (sw < 640) throw new Error(`Das Bild ist zu klein (${bmp.width}×${bmp.height} Pixel). Mindestens 640 Pixel breit.`);
+      const sx = Math.round((bmp.width - sw) / 2), sy = Math.round((bmp.height - sh) / 2);
+      const teil = async (breite: number, max: number) => {
+        const w = Math.min(breite, sw), h = Math.round((w * 9) / 16);
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const g = c.getContext('2d')!;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(bmp, sx, sy, sw, sh, 0, 0, w, h);
+        for (const q of [0.82, 0.72, 0.62, 0.5]) {
+          let b = await new Promise<Blob | null>((ok) => c.toBlob(ok, 'image/webp', q));
+          if (!b || b.type !== 'image/webp') b = await new Promise<Blob | null>((ok) => c.toBlob(ok, 'image/jpeg', q)); // Safari ohne WebP
+          if (b && b.size <= max) return b;
+        }
+        throw new Error('Das Bild ist zu groß. Bitte ein anderes wählen.');
+      };
+      const gross = await teil(MEDIEN_GROESSEN.gross, MEDIEN_MAX_BYTES.gross);
+      const klein = await teil(MEDIEN_GROESSEN.klein, MEDIEN_MAX_BYTES.klein);
+      const b64 = (b: Blob) => new Promise<string>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.readAsDataURL(b); });
+      return { gross: await b64(gross), klein: await b64(klein), url: URL.createObjectURL(klein) };
+    }
+
+    // ---------- Kursleitung (Felder für neu im Termin und eigenes Formular) ----------
+    let neuZaehler = 0;
+    function leitungFelderHtml(p: string, neu: boolean) {
+      return `
+        <label class="pflicht"><span>Name (genaue Schreibweise)</span><input data-feld="name" maxlength="${L.nameMax}" /><span class="fehler" data-fehler="${p}name"></span></label>
+        <label><span>Kurzvorstellung</span><textarea data-feld="vorstellung" rows="4" data-max="${L.vorstellungMax}"></textarea><span class="zaehler"></span><span class="fehler" data-fehler="${p}vorstellung"></span></label>
+        <label><span>Mail für Anfragen <span class="hinweis">(Pflicht für externe Termine)</span></span><input type="email" data-feld="mail" /><span class="fehler" data-fehler="${p}mail"></span></label>
+        <img class="vorschaubild" data-foto-vorschau alt="" hidden />
+        <label class="pflicht"><span>Foto (wird auf 16:9 zugeschnitten)</span><input type="file" accept="image/*" data-foto /><span class="fehler" data-fehler="${p}foto"></span></label>
+        <label><span>Bildrechte <span class="hinweis">(optional)</span></span><input data-feld="foto_nachweis" maxlength="${T.nachweisMax}" placeholder="z. B. Anna Muster" />
+          <span class="hinweis">Wenn ausgefüllt, steht klein unter dem Foto: „Foto: …“</span><span class="fehler" data-fehler="${p}foto_nachweis"></span></label>
+        ${neu ? `<label class="haken"><input type="checkbox" data-feld="einwilligung" /><span>Die Einwilligung der Kursleitung liegt vor: Foto, Kurzvorstellung und Mail dürfen auf der Website erscheinen. *</span></label><span class="fehler" data-fehler="${p}einwilligung"></span>` : ''}`;
+    }
+    function leitungWerte(box: HTMLElement) {
+      const w: Record<string, unknown> = {};
+      for (const el of $$<HTMLInputElement>('[data-feld]', box)) w[el.dataset.feld!] = el.type === 'checkbox' ? el.checked : el.value;
+      return w;
+    }
+
+    function leitungAuswahl(gewaehlt: string[]) {
+      const alle = [...stand.kursleitungen, ...entwurfsLeitungen.filter((e) => !stand.kursleitungen.some((l) => l.id === e.id))];
+      $('#leitung-auswahl').innerHTML = alle.sort((a, b) => a.daten.name.localeCompare(b.daten.name, 'de')).map((l) => `
+        <label class="haken"><input type="checkbox" name="leitung" value="${esc(l.id)}" ${gewaehlt.includes(l.id) ? 'checked' : ''} />
+        <span>${esc(l.daten.name)} ${l.daten.mail ? '' : '<span class="hinweis">(ohne Mail)</span>'}</span></label>`).join('') || '<p class="leise">Noch keine Kursleitungen angelegt.</p>';
+    }
+
+    function neueLeitungHinzu() {
+      if ($$('#neue-leitungen > fieldset').length >= T.leitungMax) return;
+      const i = neuZaehler++;
+      const f = document.createElement('fieldset');
+      f.dataset.neu = String(i);
+      f.innerHTML = `<legend>Neue Kursleitung</legend>${leitungFelderHtml(`neu${$$('#neue-leitungen > fieldset').length}_`, true)}<div><button type="button" class="klein" data-aktion="leitung-entfernen">Entfernen</button></div>`;
+      $('#neue-leitungen').append(f);
+      zaehlerEinrichten(f);
+      fotoEinrichten(f, (b) => { (f as any).foto = b; });
+    }
+
+    function fotoEinrichten(box: HTMLElement, setzen: (b: Bildteile | null) => void) {
+      const inp = $<HTMLInputElement>('[data-foto]', box);
+      const img = $<HTMLImageElement>('[data-foto-vorschau]', box);
+      inp.addEventListener('change', async () => {
+        const d = inp.files?.[0];
+        if (!d) return;
+        try {
+          melde('Foto wird vorbereitet …');
+          const b = await verkleinern(d);
+          setzen(b); img.src = b.url; img.hidden = false; melde('');
+        } catch (e: any) { setzen(null); inp.value = ''; melde(e.message, 'rot'); }
+      });
+    }
+
+    function zaehlerEinrichten(box: ParentNode) {
+      for (const t of $$<HTMLTextAreaElement>('textarea[data-max]', box)) {
+        const z = (t.id && $(`[data-zaehler="${t.id}"]`)) || t.parentElement!.querySelector('.zaehler') as HTMLElement;
+        const max = Number(t.dataset.max);
+        const neu = () => { if (!z) return; z.textContent = `${t.value.length} / ${max}`; z.classList.toggle('zuviel', t.value.length > max); };
+        t.addEventListener('input', neu); neu();
+      }
+    }
+
+    // ---------- Termin-Formular ----------
+    const F = () => $<HTMLFormElement>('#termin');
+    const wert = (id: string) => $<HTMLInputElement>('#' + id).value;
+    const setze = (id: string, v: unknown) => { $<HTMLInputElement>('#' + id).value = v === undefined || v === null ? '' : String(v); };
+    const radio = (name: string, v?: string) => {
+      if (v === undefined) return $$<HTMLInputElement>(`input[name="${name}"]`).find((r) => r.checked)?.value;
+      for (const r of $$<HTMLInputElement>(`input[name="${name}"]`)) r.checked = r.value === v;
+    };
+
+    function terminAnpassen() {
+      const b = wert('beginn'), e = wert('ende') || b;
+      const n = b && e && e >= b ? naechte(b, e) : 0;
+      $('#dauer').textContent = !b ? 'Eintägig. Bei mehrtägigen Terminen das Enddatum eintragen.' : n === 0 ? 'Eintägig.' : `Mehrtägig · ${n} ${n === 1 ? 'Nacht' : 'Nächte'}`;
+      $('#l-ub').textContent = n > 0 ? 'Anreise ab' : 'Beginn';
+      $('#l-ue').textContent = n > 0 ? 'Abreise bis' : 'Ende';
+      $('#l-web').hidden = radio('art') !== 'extern';
+      $('#l-ust').hidden = !wert('kursgebuehr').trim();
+      const ohnePreis = radio('uebernachtung') === 'nein' && wert('verpflegung') === 'keine';
+      $('#l-preis').classList.toggle('pflicht', !ohnePreis);
+      const art = radio('bildart');
+      $('#l-bilddatei').hidden = art !== 'neu';
+      $('#hausbilder').hidden = art !== 'hausbild';
+      const img = $<HTMLImageElement>('#bild-vorschau');
+      const url = art === 'neu' ? neuesBild?.url : art === 'hausbild' ? bildUrl($$<HTMLInputElement>('input[name=hausbild]').find((r) => r.checked)?.value) : bildUrl(zustand.bildBisher);
+      img.hidden = !url; if (url) img.src = url;
+    }
+
+    function fehlerLeeren(box: ParentNode = document) {
+      for (const f of $$('[data-fehler]', box)) f.textContent = '';
+      for (const f of $$('[aria-invalid]', box)) f.removeAttribute('aria-invalid');
+    }
+    function fehlerZeigen(felder: Record<string, string>, box: ParentNode = document) {
+      let erstes: HTMLElement | null = null;
+      for (const [k, t] of Object.entries(felder)) {
+        const f = $(`[data-fehler="${k}"]`, box);
+        if (f) { f.textContent = t; erstes ??= f; f.closest('label, fieldset')?.querySelector('input, select, textarea')?.setAttribute('aria-invalid', 'true'); }
+      }
+      melde(`Bitte prüfen: ${Object.values(felder).join(' · ')}`, 'rot');
+      erstes?.scrollIntoView({ block: 'center' });
+    }
+
+    function terminFuellen(d: Record<string, any>, beschreibung: string) {
+      setze('titel', d.titel); setze('beginn', d.beginn); setze('ende', d.ende && d.ende !== d.beginn ? d.ende : '');
+      setze('uhrzeit_beginn', d.uhrzeit_beginn); setze('uhrzeit_ende', d.uhrzeit_ende);
+      leitungAuswahl(Array.isArray(d.leitung) ? d.leitung : []);
+      radio('art', d.eigener_termin === undefined ? undefined : d.eigener_termin ? 'eigen' : 'extern');
+      setze('anmeldung_web', d.anmeldung_web); setze('kurzbeschreibung', d.kurzbeschreibung); setze('beschreibung', beschreibung);
+      setze('bild_alt', d.bild_alt); setze('bild_nachweis', d.bild_nachweis);
+      radio('uebernachtung', d.uebernachtung === undefined ? undefined : d.uebernachtung ? 'ja' : 'nein');
+      setze('verpflegung', d.verpflegung); setze('preis_ab', d.preis_ab); setze('kursgebuehr', d.kursgebuehr); setze('ust', d.ust);
+      $$<HTMLInputElement>('input[name=hausbild]').forEach((r) => (r.checked = r.value === d.bild));
+    }
+
+    async function terminOeffnen(modus: 'neu' | 'bearbeiten' | 'kopie', id?: string) {
+      melde('');
+      F().reset(); fehlerLeeren(F());
+      $('#neue-leitungen').innerHTML = ''; neuZaehler = 0; neuesBild = null; entwurfsLeitungen = [];
+      $('#hausbilder').innerHTML = stand.hausbilder.map((h, i) => `<label><input type="radio" name="hausbild" value="${esc(h.wert)}" ${i === 0 ? 'checked' : ''} /><img class="vorschaubild" src="${esc(h.vorschau)}" alt="" />${esc(h.titel)}</label>`).join('');
+      zustand = { modus, id: modus === 'bearbeiten' ? id : undefined, von: modus === 'kopie' ? id : undefined };
+      $('#l-bild-behalten').hidden = modus !== 'bearbeiten';
+      $('#l-bild-kopie').hidden = modus !== 'kopie';
+      $('#termin-quelle').textContent = '';
+      if (modus === 'neu') {
+        $('#termin-ueberschrift').textContent = 'Neuer Termin';
+        leitungAuswahl([]);
+        radio('bildart', 'neu');
+      } else if (modus === 'kopie') {
+        const t = stand.termine.find((x) => x.id === id)!;
+        $('#termin-ueberschrift').textContent = 'Neuer Termin (Kopie)';
+        $('#termin-quelle').textContent = `Vorlage: ${t.daten.titel}. Datum und Uhrzeiten bitte neu eintragen.`;
+        terminFuellen({ ...t.daten, beginn: '', ende: '', uhrzeit_beginn: '', uhrzeit_ende: '' }, beschreibungText(t.text));
+        zustand.bildBisher = t.daten.bild;
+        radio('bildart', 'kopie');
+      } else {
+        $('#laden').hidden = false;
+        const r = await api('/api/intern/termin?id=' + encodeURIComponent(id!));
+        $('#laden').hidden = true;
+        if (!r.ok) { melde('Termin konnte nicht geladen werden: ' + (r.message ?? r.status), 'rot'); return; }
+        entwurfsLeitungen = r.leitungenEntwurf ?? [];
+        $('#termin-ueberschrift').textContent = 'Termin bearbeiten';
+        $('#termin-quelle').textContent = r.quelle === 'entwurf' ? 'Du bearbeitest den Entwurf. Die veröffentlichte Fassung bleibt online, bis du veröffentlichst.' : 'Änderungen gehen erst online, wenn du sie veröffentlichst.';
+        terminFuellen(r.daten, r.beschreibung);
+        zustand.bildBisher = r.daten.bild;
+        radio('bildart', 'behalten');
+      }
+      zeige('termin');
+      terminAnpassen();
+      $<HTMLInputElement>('#titel').focus();
+    }
+
+    async function terminSpeichern(ev: Event) {
+      ev.preventDefault();
+      fehlerLeeren(F());
+      const art = radio('bildart');
+      if (art === 'neu' && !neuesBild) { fehlerZeigen({ bild: 'Bitte ein Bild auswählen' }); return; }
+      const neue = $$<HTMLFieldSetElement>('#neue-leitungen > fieldset');
+      // Fehler-Zuordnung nach aktueller Reihenfolge (nach Entfernen verschiebt sie sich)
+      neue.forEach((f, i) => $$('[data-fehler]', f).forEach((el) => (el.dataset.fehler = el.dataset.fehler!.replace(/^neu\d+_/, `neu${i}_`))));
+      const leitung = $$<HTMLInputElement>('input[name=leitung]').filter((c) => c.checked).map((c) => c.value);
+      neue.forEach((_, i) => leitung.push(`neu:${i}`));
+      if (radio('art') === undefined) { fehlerZeigen({ leitung: 'Bitte die Art des Termins wählen' }); return; }
+      if (radio('uebernachtung') === undefined) { fehlerZeigen({ preis_ab: 'Bitte angeben, ob es eine Übernachtung gibt' }); return; }
+      const body = {
+        modus: zustand.modus, id: zustand.id, von: zustand.von,
+        felder: {
+          titel: wert('titel'), beginn: wert('beginn'), ende: wert('ende') || wert('beginn'),
+          uhrzeit_beginn: wert('uhrzeit_beginn'), uhrzeit_ende: wert('uhrzeit_ende'), leitung,
+          eigener_termin: radio('art') === 'eigen', anmeldung_web: radio('art') === 'extern' ? wert('anmeldung_web') : '',
+          kurzbeschreibung: wert('kurzbeschreibung'), beschreibung: wert('beschreibung'),
+          bild_alt: wert('bild_alt'), bild_nachweis: wert('bild_nachweis'),
+          uebernachtung: radio('uebernachtung') === 'ja', verpflegung: wert('verpflegung'),
+          preis_ab: wert('preis_ab'), kursgebuehr: wert('kursgebuehr'), ust: wert('kursgebuehr').trim() ? wert('ust') : '',
+        },
+        bild: art === 'neu' ? { art, gross: neuesBild!.gross, klein: neuesBild!.klein }
+          : art === 'hausbild' ? { art, wert: $$<HTMLInputElement>('input[name=hausbild]').find((r) => r.checked)?.value }
+          : { art },
+        neueLeitungen: neue.map((f) => ({ ...leitungWerte(f), foto: (f as any).foto ? { gross: (f as any).foto.gross, klein: (f as any).foto.klein } : undefined })),
+      };
+      const knopf = $<HTMLButtonElement>('#speichern');
+      knopf.disabled = true; melde('Wird gespeichert …');
+      try {
+        const r = await api('/api/intern/termin', body);
+        if (!r.ok) { r.felder ? fehlerZeigen(r.felder) : melde('Speichern fehlgeschlagen: ' + (r.message ?? r.status), 'rot'); return; }
+        melde('');
+        statusZeigen({ pr: r.pr, branch: r.branch, titel: body.felder.titel });
+      } finally { knopf.disabled = false; }
+    }
+
+    // ---------- Kursleitung bearbeiten ----------
+    async function leitungOeffnen(id?: string) {
+      melde('');
+      const box = $('[data-leitung-felder]');
+      box.innerHTML = leitungFelderHtml('', !id);
+      zaehlerEinrichten(box);
+      leitungFoto = null;
+      fotoEinrichten(box, (b) => (leitungFoto = b));
+      leitungBearbeiten = { id };
+      $('#leitung-ueberschrift').textContent = id ? 'Kursleitung bearbeiten' : 'Neue Kursleitung';
+      if (id) {
+        const r = await api('/api/intern/kursleitung?id=' + encodeURIComponent(id));
+        if (!r.ok) { melde('Kursleitung konnte nicht geladen werden: ' + (r.message ?? r.status), 'rot'); return; }
+        for (const el of $$<HTMLInputElement>('[data-feld]', box)) el.value = r.daten[el.dataset.feld!] ?? '';
+        box.querySelectorAll('textarea').forEach((t) => t.dispatchEvent(new Event('input')));
+        leitungBearbeiten.fotoBisher = r.daten.foto;
+        const img = $<HTMLImageElement>('[data-foto-vorschau]', box);
+        img.src = bildUrl(r.daten.foto); img.hidden = !img.src;
+        $('[data-foto]', box).closest('label')?.classList.remove('pflicht');
+      }
+      zeige('leitung');
+    }
+
+    async function leitungSpeichern(ev: Event) {
+      ev.preventDefault();
+      const box = $('[data-leitung-felder]');
+      fehlerLeeren(box);
+      if (!leitungBearbeiten.id && !leitungFoto) { fehlerZeigen({ foto: 'Bitte ein Foto auswählen' }, box); return; }
+      melde('Wird gespeichert …');
+      const r = await api('/api/intern/kursleitung', { id: leitungBearbeiten.id, felder: leitungWerte(box), foto: leitungFoto ? { gross: leitungFoto.gross, klein: leitungFoto.klein } : undefined });
+      if (!r.ok) { r.felder ? fehlerZeigen(r.felder, box) : melde('Speichern fehlgeschlagen: ' + (r.message ?? r.status), 'rot'); return; }
+      melde('');
+      statusZeigen({ pr: r.pr, branch: r.branch, titel: String(leitungWerte(box).name) });
+    }
+
+    // ---------- Status, Veröffentlichen ----------
+    function statusZeigen(p: { pr: number; branch: string; titel?: string }) {
+      statusPr = p;
+      $('#status-titel').textContent = p.titel ? `Entwurf: ${p.titel}` : 'Entwurf';
+      $('#vorschau-link').hidden = true;
+      $<HTMLButtonElement>('#veroeffentlichen').disabled = true;
+      $('#weiter').hidden = !!p.titel?.startsWith('Löschen');
+      $('#punkt-pruefung').className = 'punkt laeuft';
+      $('#text-pruefung').textContent = 'Vorschau wird gebaut …';
+      $('#hinweis-pruefung').textContent = 'Das dauert meist ein bis drei Minuten. Diese Seite aktualisiert sich selbst.';
+      zeige('status');
+      statusAbfragen();
+    }
+
+    async function statusAbfragen() {
+      if (!statusPr) return;
+      const r = await api(`/api/intern/status?pr=${statusPr.pr}`).catch(() => null);
+      if ($('#v-status').hidden || !r) return;
+      if (!r.ok) { melde('Stand konnte nicht abgefragt werden: ' + (r.message ?? r.status), 'rot'); return; }
+      $('#status-titel').textContent = r.titel;
+      $('#weiter').hidden = /löschen/i.test(r.titel);
+      if (r.zustand !== 'entwurf') { melde(r.zustand === 'veroeffentlicht' ? 'Ist bereits veröffentlicht.' : 'Entwurf wurde verworfen.'); return; }
+      const punkt = $('#punkt-pruefung'), t = $('#text-pruefung'), h = $('#hinweis-pruefung');
+      const vorbei = r.pruefung === 'gruen' || r.pruefung === 'rot';
+      punkt.className = 'punkt ' + (r.pruefung === 'gruen' ? 'gruen' : r.pruefung === 'rot' ? 'rot' : 'laeuft');
+      t.textContent = r.pruefung === 'gruen' ? 'Vorschau ist fertig, die Prüfung ist grün.' : r.pruefung === 'rot' ? 'Die Prüfung ist rot. So geht der Entwurf nicht online.' : 'Vorschau wird gebaut …';
+      h.textContent = r.pruefung === 'gruen' ? 'Bitte die Vorschau ansehen, vor allem auf dem Handy. Passt alles, veröffentlichen.'
+        : r.pruefung === 'rot' ? 'Meist ist ein Feld nicht in Ordnung. Bitte weiter bearbeiten und erneut speichern, sonst Matthias Bescheid geben.'
+        : 'Das dauert meist ein bis drei Minuten. Diese Seite aktualisiert sich selbst.';
+      const link = $<HTMLAnchorElement>('#vorschau-link');
+      if (r.vorschau) {
+        const id = statusPr.branch.split('/').slice(1).join('/');
+        const ziel = statusPr.branch.startsWith('termin/') && !r.titel.startsWith('Termin löschen') ? `/termine/${id}/` : '/termine/';
+        link.href = r.vorschau + ziel; link.hidden = false;
+      } else link.hidden = true;
+      $<HTMLButtonElement>('#veroeffentlichen').disabled = r.pruefung !== 'gruen';
+      if (!vorbei) poll = window.setTimeout(statusAbfragen, 8000);
+    }
+
+    async function veroeffentlichen() {
+      if (!statusPr) return;
+      if (!confirm(`„${$('#status-titel').textContent}“ jetzt veröffentlichen? Die Änderung ist danach auf der Website sichtbar.`)) return;
+      const b = $<HTMLButtonElement>('#veroeffentlichen');
+      b.disabled = true; melde('Wird veröffentlicht …');
+      const r = await api('/api/intern/veroeffentlichen', { pr: statusPr.pr });
+      if (!r.ok) { melde(r.message ?? 'Veröffentlichen fehlgeschlagen', 'rot'); b.disabled = false; return; }
+      melde('Veröffentlicht. In etwa zwei Minuten ist es auf der Website zu sehen.', 'gruen');
+      statusPr = null;
+      await laden();
+      melde('Veröffentlicht. In etwa zwei Minuten ist es auf der Website zu sehen.', 'gruen');
+    }
+
+    async function verwerfen() {
+      if (!statusPr) return;
+      if (!confirm(`Entwurf „${$('#status-titel').textContent}“ verwerfen? Die Änderungen gehen verloren; die veröffentlichte Fassung bleibt.`)) return;
+      const r = await api('/api/intern/verwerfen', { pr: statusPr.pr });
+      if (!r.ok) { melde(r.message ?? 'Verwerfen fehlgeschlagen', 'rot'); return; }
+      statusPr = null;
+      await laden();
+      melde('Entwurf verworfen.');
+    }
+
+    // ---------- Ereignisse ----------
+    document.addEventListener('click', async (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-aktion]');
+      if (!b) return;
+      const id = b.dataset.id;
+      try {
+        switch (b.dataset.aktion) {
+          case 'neu': return void (await terminOeffnen('neu'));
+          case 'bearbeiten': return void (await terminOeffnen('bearbeiten', id));
+          case 'kopie': return void (await terminOeffnen('kopie', id));
+          case 'zurueck': melde(''); return void (await laden());
+          case 'status': return statusZeigen({ pr: Number(b.dataset.pr), branch: b.dataset.branch! });
+          case 'leitung-neu': return void (await leitungOeffnen());
+          case 'leitung-bearbeiten': return void (await leitungOeffnen(id));
+          case 'leitung-hinzu': return neueLeitungHinzu();
+          case 'leitung-entfernen': b.closest('fieldset')?.remove(); return;
+          case 'loeschen': {
+            const t = stand.termine.find((x) => x.id === id)!;
+            if (!confirm(`Termin „${t.daten.titel}“ am ${datum(t.daten.beginn)} löschen? Er verschwindet von der Website, sobald du das Löschen veröffentlichst. Das Kursbild wird dann ebenfalls gelöscht.`)) return;
+            const r = await api('/api/intern/termin/loeschen', { id });
+            if (!r.ok) return melde(r.message ?? 'Löschen fehlgeschlagen', 'rot');
+            return statusZeigen({ pr: r.pr, branch: r.branch, titel: `Löschen: ${t.daten.titel}` });
+          }
+          case 'leitung-loeschen': {
+            const l = stand.kursleitungen.find((x) => x.id === id)!;
+            if (!confirm(`Kursleitung „${l.daten.name}“ löschen?`)) return;
+            const r = await api('/api/intern/kursleitung/loeschen', { id });
+            if (!r.ok) return melde(r.termine ? `„${l.daten.name}“ leitet noch: ${r.termine.join(', ')}. Erst diese Termine ändern oder löschen.` : r.message ?? 'Löschen fehlgeschlagen', 'rot');
+            return statusZeigen({ pr: r.pr, branch: r.branch, titel: `Löschen: ${l.daten.name}` });
+          }
+        }
+      } catch (err: any) { if (err?.message !== 'anmeldung') melde('Fehler: ' + err?.message, 'rot'); }
+    });
+
+    $('#weiter').addEventListener('click', () => {
+      if (!statusPr) return;
+      const id = statusPr.branch.split('/').slice(1).join('/');
+      statusPr.branch.startsWith('termin/') ? terminOeffnen('bearbeiten', id) : leitungOeffnen(id);
+    });
+    $('#veroeffentlichen').addEventListener('click', veroeffentlichen);
+    $('#verwerfen').addEventListener('click', verwerfen);
+    F().addEventListener('submit', terminSpeichern);
+    F().addEventListener('input', terminAnpassen);
+    F().addEventListener('change', terminAnpassen);
+    $('#leitung').addEventListener('submit', leitungSpeichern);
+    $<HTMLInputElement>('#bilddatei').addEventListener('change', async (e) => {
+      const d = (e.target as HTMLInputElement).files?.[0];
+      if (!d) return;
+      try {
+        melde('Bild wird vorbereitet …');
+        neuesBild = await verkleinern(d);
+        melde('');
+      } catch (err: any) { neuesBild = null; (e.target as HTMLInputElement).value = ''; melde(err.message, 'rot'); }
+      terminAnpassen();
+    });
+    zaehlerEinrichten(document);
+    laden().catch((e) => { if (e?.message !== 'anmeldung') melde('Laden fehlgeschlagen: ' + e?.message, 'rot'); });
+  </script>
+</body>
+</html>

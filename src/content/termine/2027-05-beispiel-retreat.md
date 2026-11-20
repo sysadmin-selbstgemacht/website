@@ -1,16 +1,19 @@
 ---
 titel: "Beispieltermin: Handwerks-Retreat"
-kategorie: retreat
-leitung: "Katrin Liesch"
+leitung: ["beispiel-katrin-liesch", "beispiel-kursleitung"]
 beginn: 2027-05-13
 ende: 2027-05-16
-naechte: 3
-kursgebuehr: "Beispiel € zzgl. Übernachtung"
+uhrzeit_beginn: "17:00"
+uhrzeit_ende: "14:00"
 eigener_termin: true
-beschreibung: "Beispiel: drei Tage Handwerk und Ruhe im Seminar- und Gästehaus SELBSTGEMACHT."
-bild: "./2027-05-beispiel-retreat.webp"
+kurzbeschreibung: "Beispiel: drei Tage Handwerk und Ruhe im Seminar- und Gästehaus SELBSTGEMACHT."
+bild: "haus/platzhalter"
 bild_alt: "Platzhalterbild"
-entwurf: false
+bild_nachweis: "Beispiel Fotograf"
+uebernachtung: true
+verpflegung: "vegetarisch-vegan"
+preis_ab: 360
+kursgebuehr: 290
+ust: 19
 ---
-
 Platzhalter für ein eigenes Retreat. Wird vor dem Go-live gelöscht.

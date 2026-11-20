@@ -15,6 +15,9 @@ const MAX_BYTES = 1_500_000; // 1,5 MB
 const ERLAUBT = new Set(['.webp', '.jpg', '.jpeg', '.png', '.avif']);
 const BILD = new Set([...ERLAUBT, '.heic', '.heif', '.tif', '.tiff', '.bmp', '.gif', '.raw', '.cr2', '.nef', '.dng']);
 const AUSNAHMEN = new Set(['public/favicon.svg']); // SVG ist kein Foto
+// Kursbilder und Fotos der Kursleitungen gehören nach Cloudflare R2, nie ins öffentliche Repo
+// (echtes Löschen, nichts in der Git-Historie; docs/termin-formular.md).
+const NUR_R2 = ['src/content/termine', 'src/content/kursleitungen'];
 
 async function* dateien(dir) {
   let eintraege;
@@ -33,6 +36,7 @@ for (const o of ORDNER) {
     const endung = path.extname(datei).toLowerCase();
     if (!BILD.has(endung) || AUSNAHMEN.has(datei)) continue;
     geprueft++;
+    if (NUR_R2.some((o) => datei.startsWith(o + path.sep))) { fehler.push(`${datei}: Bilder zu Terminen und Kursleitungen gehören nicht ins Repo, sondern über das Termin-Formular nach R2`); continue; }
     if (!ERLAUBT.has(endung)) { fehler.push(`${datei}: Format ${endung} nicht erlaubt (WebP oder JPG verwenden)`); continue; }
     const groesse = statSync(datei).size;
     if (groesse > MAX_BYTES) fehler.push(`${datei}: ${(groesse / 1e6).toFixed(1)} MB, erlaubt sind 1,5 MB`);
