@@ -604,7 +604,8 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
         link.href = r.vorschau + ziel; link.hidden = false;
       } else link.hidden = true;
       $<HTMLButtonElement>('#veroeffentlichen').disabled = r.pruefung !== 'gruen';
-      if (!vorbei) poll = window.setTimeout(statusAbfragen, 8000);
+      // Den Vorschau-Link schreibt Cloudflare als Kommentar an den PR, manchmal kurz nach dem Grün
+      if (!vorbei || (r.pruefung === 'gruen' && !r.vorschau)) poll = window.setTimeout(statusAbfragen, 8000);
     }
 
     async function veroeffentlichen() {
