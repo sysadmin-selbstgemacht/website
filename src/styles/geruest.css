@@ -88,3 +88,5 @@ img { max-width: 100%; height: auto; display: block; }
 .kalender-legende .probe { display: inline-block; width: 1rem; height: 1rem; border: 1px solid var(--grau); background: #fff; }
 .kalender-auswahl { margin: 0; font-weight: 600; }
 .anfrageformular [data-sperrhinweis][hidden] { display: none; }
+.kontaktwege { list-style: none; padding: 0; margin: .5rem 0; }
+.anfrageformular [data-ohne-anliegen][hidden], .anfrageformular [data-nur-mit-anliegen][hidden] { display: none; }
