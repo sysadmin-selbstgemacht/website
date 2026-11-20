@@ -68,3 +68,23 @@ img { max-width: 100%; height: auto; display: block; }
 .termin-kacheln .kachel p { margin: 0; }
 .zeile-knoepfe { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
 .anfrageformular .zeile.namen { grid-template-columns: 1fr 1fr; }
+
+/* Verfügbarkeitskalender (Gruppen). Gerüst; Gestaltung folgt dem Designsystem. */
+.kalender { display: grid; gap: .5rem; max-width: 24rem; }
+.kalender[hidden] { display: none; }
+.kalender-titel { margin: 0; }
+.kalender.pflicht .kalender-titel > span::after { content: ' *'; }
+.kalender-kopf { display: flex; justify-content: space-between; align-items: center; }
+.kalender-kopf button { font: inherit; padding: .25rem .75rem; }
+.kalender-tage { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.kalender-tage .wochentag { font-size: .8rem; text-align: center; color: var(--grau-dunkel); }
+.kalender-tage button { font: inherit; padding: .5rem 0; border: 1px solid var(--grau); background: #fff; min-height: 2.5rem; }
+.kalender-tage button:disabled { color: var(--grau-dunkel); cursor: default; }
+.kalender-tage button.vergangen { opacity: .4; }
+.kalender-tage button.belegt, .kalender-legende .probe.belegt { background: repeating-linear-gradient(45deg, var(--grau), var(--grau) 4px, #fff 4px, #fff 8px); }
+.kalender-tage button.zwischen { background: var(--grau); }
+.kalender-tage button.gewaehlt { background: var(--text); color: #fff; }
+.kalender-legende { font-size: .85rem; margin: 0; display: flex; gap: .5rem; align-items: center; }
+.kalender-legende .probe { display: inline-block; width: 1rem; height: 1rem; border: 1px solid var(--grau); background: #fff; }
+.kalender-auswahl { margin: 0; font-weight: 600; }
+.anfrageformular [data-sperrhinweis][hidden] { display: none; }

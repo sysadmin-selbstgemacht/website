@@ -1,13 +1,17 @@
 # Anfrageformular und Spamschutz
 
-Stand: 12.11.2026 · **Formular gebaut, Versand gebaut, eingestellt auf Trockenlauf.** Die Vorschau zeigt an, welche Mail verschickt würde, verschickt aber nichts. Zum Einschalten fehlen nur Postfach und Passwort.
+Stand: 20.11.2026 · **Formular gebaut, Versand gebaut, eingestellt auf Trockenlauf.** Die Vorschau zeigt an, welche Mail verschickt würde, verschickt aber nichts. Zum Einschalten fehlen nur Postfach und Passwort.
 
 ## Aufbau
 
 - **Eine Seite statt Schritte**, Felder richten sich nach dem Anliegen (Gruppe, Firma, Kursleitung, Sonstiges). Das Anliegen ist je Seite vorausgewählt.
 - Welche Felder sichtbar und Pflicht sind, steht an **einer** Stelle: `src/lib/anfrage.ts`. Browser und Worker nutzen dieselbe Liste.
 - **Terminseite (eigene Termine des Hauses):** eigenes Formular nach Wireframe „Terminseite“. Anliegen fest („Ihre Anfrage zu: Titel · Datum“, nicht änderbar), Felder Anrede, Vorname, Nachname, E-Mail, Telefon (alle Pflicht), Nachricht (freiwillig). „Anfrage senden“ bleibt gesperrt, bis alle Pflichtfelder gültig sind. Auf der Terminseite gibt es kein „Anfragen“ im Kopf und kein Formular im Fuß. Externe Termine: Mail an die Kursleitung, das Haus bekommt nichts.
-- Datumsfelder heißen überall **Anreise / Abreise**. Haken **„Termin noch offen“** ersetzt sie durch ein Freitextfeld.
+- **Anliegen-Auswahl** nur, wo kein Anliegen übergeben wird (Startseite, Terminübersicht, übrige Seiten). Auf den Zielgruppenseiten ist es fest und unsichtbar.
+- **Felder je Anliegen** (Stand 19./20.11.): Anrede, Vorname, Nachname, E-Mail überall Pflicht; Telefon Pflicht bei Gruppen, Tagungen, Kurs und Termin, freiwillig bei Sonstiges. Gruppen: Erwachsene (Pflicht) und Kinder (4–12 Jahre). Tagungen: Unternehmen und Teilnehmende Pflicht, Übernachtung (ja/nein/teilweise) erscheint nur bei mindestens einer Nacht oder „Flexibel im Termin“ und ist dann Pflicht. Kurs: ohne Teilnehmendenzahl.
+- Datumsfelder heißen überall **Anreise / Abreise**. Haken **„Flexibel im Termin“** ersetzt sie durch ein Freitextfeld. Anreise frühestens heute; Tagungen: Abreise nicht vor der Anreise, nach Wahl der Anreise auf denselben Tag vorbelegt.
+- **Gruppen: Verfügbarkeitskalender** statt der Datumsfelder. Belegte Nächte kommen aus 3RPMS (`GET /api/verfuegbarkeit`, siehe unten), mindestens eine Nacht, bis 18 Monate im Voraus. Abreise ist höchstens bis zur nächsten belegten Nacht wählbar (Anreise am Abreisetag einer Gruppe geht).
+- **„Anfrage senden“** ist überall gesperrt, bis alle Pflichtfelder gültig sind; darunter der Hinweis dazu. Nach dem Senden: „Besten Dank, wir haben Ihre Anfrage erhalten. Wir melden uns innerhalb eines Werktages bei Ihnen.“
 - Kein Website-Feld bei Kursleitung (ergibt sich aus Mail oder Nachricht).
 - Die Mail geht **an das Haus**. „Antwort an“ ist die Adresse der anfragenden Person, Anne kann also direkt antworten. **Keine Bestätigungsmail** an Anfragende: Spam würde sonst an fremde Adressen gehen.
 
@@ -31,6 +35,7 @@ Kein Captcha-Dienst, keine Cookies, keine Daten an Dritte. Prüfung im Worker (`
 |---|---|
 | `GET /api/anfrage/challenge` | Aufgabe ausstellen (PBKDF2/SHA-256, Kosten 2000, gültig 20 Minuten) |
 | `POST /api/anfrage` | Anfrage prüfen und senden; derzeit Trockenlauf |
+| `GET /api/verfuegbarkeit` | belegte Nächte des Hauses (Zimmer 01–10) aus 3RPMS, 15 Minuten zwischengespeichert (`worker/verfuegbarkeit.ts`) |
 | `POST /api/anfrage/pruefen` | nur Lösung prüfen, für die Messseite `/test/altcha/` |
 | `GET /api/test/smtp` | **vorübergehend:** erreicht der Worker den Mailserver von all-inkl? |
 | `GET /api/test/smtp-anmeldung` | **vorübergehend:** nimmt all-inkl die hinterlegten Zugangsdaten an? Meldet sich nur an, verschickt nichts. Ohne Secrets mit absichtlich falschen Daten (erwartet: abgelehnt) |
@@ -85,3 +90,12 @@ Wichtig: `MAIL_MODUS` steht in `wrangler.jsonc` und wird bei jedem Deploy von do
 - `/api/test/*`, `/api/anfrage/pruefen` und die Messseite `/test/` entfernen, ausführliche Fehlermeldungen im Worker kürzen.
 - **Wiederverwendung:** Benutzte Aufgaben merkt sich nur das jeweilige Isolate. Die kurze Gültigkeit begrenzt den Schaden; strenger ginge es mit Workers KV (dann Speicherung, Datenschutzerklärung).
 - `MAIL_AN` auf die Adresse des Hauses umstellen.
+
+## Verfügbarkeit (3RPMS)
+
+- **Quelle:** 3RPMS GraphQL-API, nur lesend (`room_stays`). Secret **`RPMS_TOKEN`** am Worker, nur Production; nie im Repo.
+- **Regel** (Architekturentscheidungen 4, 20.11.2026): Es zählen nur die Zimmer 01–10. Eine Nacht ist belegt, sobald eines davon gebucht ist. Der Abreisetag ist frei. Aufenthalte ohne zugewiesenes Zimmer zählen nicht.
+- **Antwort:** nur Daten belegter Nächte, keine Gäste- oder Zimmerangaben.
+- **Zwischenspeicher:** 15 Minuten im Isolate und, wo möglich, im Cloudflare-Cache (hinter Cloudflare Access wirkt nur der Isolate-Speicher).
+- **Ohne Secret oder bei Fehlern** (z. B. in Vorschauen): `{ "status": "nicht_verfuegbar" }`. Der Kalender lässt dann alle Tage wählbar und sagt, dass die Belegung nicht geladen werden konnte. Die Anfrage bleibt möglich.
+- **Geprüft 20.11.2026** gegen Production (Skript außerhalb des Repos): Teilbelegung und Gruppe korrekt, Abreisetag frei. Lokal mit nachgebauter 3RPMS-Antwort: Zimmerfilter, Seitenweise Abfrage, Zwischenspeicher.

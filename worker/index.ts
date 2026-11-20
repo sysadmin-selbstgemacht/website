@@ -4,6 +4,7 @@
 //   GET  /api/anfrage/challenge  – ALTCHA-Aufgabe ausstellen
 //   POST /api/anfrage/pruefen    – nur Lösung prüfen (Messseite /test/altcha/)
 //   POST /api/anfrage            – Anfrage prüfen und verschicken (derzeit TROCKENLAUF)
+//   GET  /api/verfuegbarkeit     – belegte Nächte des Hauses aus 3RPMS (worker/verfuegbarkeit.ts)
 //   GET  /api/test/smtp          – VORÜBERGEHEND: Erreichbarkeit des all-inkl-Mailservers
 //   GET  /api/test/smtp-anmeldung – VORÜBERGEHEND: Anmeldung am Postfach prüfen, verschickt nichts
 //   /intern/*, /api/intern/*       – Termin-Formular, nur nach Anmeldung (worker/intern.ts)
@@ -20,9 +21,10 @@ import { deriveKey } from 'altcha-lib/algorithms/web/pbkdf2';
 import { connect } from 'cloudflare:sockets';
 import { sende, SmtpFehler, type SmtpZugang } from './smtp';
 import { intern, medien, type InternEnv } from './intern';
-import { ANLIEGEN, ALLE_ANLIEGEN, ANREDE, FELDER, BESCHRIFTUNG, STANDARD, GRENZEN, UEBERNACHTUNG, pflichtfelder, type Anliegen, type Feld } from '../src/lib/anfrage';
+import { verfuegbarkeit, type VerfuegbarkeitEnv } from './verfuegbarkeit';
+import { ANLIEGEN, ALLE_ANLIEGEN, ANREDE, FELDER, BESCHRIFTUNG, STANDARD, GRENZEN, UEBERNACHTUNG, MIN_NAECHTE, naechte, sichtbareFelder, pflichtfelder, type Anliegen, type Feld } from '../src/lib/anfrage';
 
-interface Env extends InternEnv {
+interface Env extends InternEnv, VerfuegbarkeitEnv {
   ASSETS: Fetcher;
   ALTCHA_SECRET?: string;
   CF_VERSION_METADATA?: { id?: string };
@@ -99,25 +101,39 @@ const text = (v: unknown, max = GRENZEN.kurz) => (typeof v === 'string' ? v.trim
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DATUM = /^\d{4}-\d{2}-\d{2}$/;
 
+function heuteBerlin() {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+}
+function gestern() {
+  const d = new Date(heuteBerlin() + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
 function pruefeFelder(b: any) {
   const anliegen: Anliegen = ALLE_ANLIEGEN.includes(b.anliegen) ? b.anliegen : 'sonstiges';
-  const offen = b.offen === true;
-  const sichtbar = new Set<Feld>(FELDER[anliegen].sichtbar);
+  const offen = b.offen === true && FELDER[anliegen].sichtbar.includes('offen');
+  const roh = { offen, von: text(b.von), bis: text(b.bis) };
+  const sichtbar = sichtbareFelder(anliegen, roh);
   const werte: Partial<Record<Feld, string>> = {};
   for (const f of sichtbar) {
     if (f === 'offen') continue;
     werte[f] = text(b[f], f === 'nachricht' ? GRENZEN.nachricht : GRENZEN.kurz);
   }
-  if (offen) { delete werte.von; delete werte.bis; } else if (sichtbar.has('offen')) delete werte.zeitraum;
 
   const fehler: Record<string, string> = {};
-  for (const f of pflichtfelder(anliegen, offen)) if (!werte[f]) fehler[f] = `${name(anliegen, f)} fehlt`;
+  for (const f of pflichtfelder(anliegen, roh)) if (!werte[f]) fehler[f] = `${name(anliegen, f)} fehlt`;
   if (werte.email && !EMAIL.test(werte.email)) fehler.email = 'E-Mail-Adresse prüfen';
   for (const f of ['von', 'bis'] as const) if (werte[f] && !DATUM.test(werte[f]!)) fehler[f] = `${name(anliegen, f)}: Datum prüfen`;
-  if (werte.von && werte.bis && werte.bis < werte.von) fehler.bis = `${name(anliegen, 'bis')} liegt vor ${name(anliegen, 'von')}`;
-  if (werte.personen) {
-    const n = Number(werte.personen);
-    if (!Number.isInteger(n) || n < 1 || n > GRENZEN.personenMax) fehler.personen = `${name(anliegen, 'personen')}: Zahl prüfen`;
+  // Anreise frühestens heute (ein Tag Spielraum für Zeitzonen und Seiten, die über Mitternacht offen sind)
+  if (werte.von && DATUM.test(werte.von) && werte.von < gestern()) fehler.von = `${name(anliegen, 'von')} liegt in der Vergangenheit`;
+  const n = naechte(werte.von, werte.bis);
+  const min = MIN_NAECHTE[anliegen] ?? 0;
+  if (n !== null && n < min) fehler.bis = min ? `${name(anliegen, 'bis')}: mindestens ${min} Nacht nach der ${name(anliegen, 'von')}` : `${name(anliegen, 'bis')} liegt vor ${name(anliegen, 'von')}`;
+  for (const [f, unten] of [['personen', 1], ['erwachsene', 1], ['kinder', 0]] as const) {
+    if (!werte[f]) continue;
+    const z = Number(werte[f]);
+    if (!Number.isInteger(z) || z < unten || z > GRENZEN.personenMax) fehler[f] = `${name(anliegen, f)}: Zahl prüfen`;
   }
   if (werte.uebernachtung && !UEBERNACHTUNG.includes(werte.uebernachtung)) fehler.uebernachtung = 'Übernachtung prüfen';
   if (werte.anrede && !ANREDE.includes(werte.anrede)) fehler.anrede = 'Anrede prüfen';
@@ -138,17 +154,21 @@ function baueMail(p: ReturnType<typeof pruefeFelder>) {
   const { anliegen, werte: w } = p;
   const titel = anliegen === 'termin' ? `Termin: ${w.termin ?? ''}` : ANLIEGEN.find((a) => a.wert === anliegen)!.text;
   const zeit = w.von ? `${datumDE(w.von)}–${datumDE(w.bis)}` : w.zeitraum ?? '';
-  const absender = w.name || [w.vorname, w.nachname].filter(Boolean).join(' ');
+  const absender = [w.vorname, w.nachname].filter(Boolean).join(' ');
+  const personen = w.erwachsene
+    ? `${w.erwachsene} Erw.` + (w.kinder && w.kinder !== '0' ? ` + ${w.kinder} Ki.` : '')
+    : w.personen ? `${w.personen} Pers.` : '';
   const betreff = anliegen === 'termin'
     ? ['Anfrage', w.termin, absender].filter(Boolean).join(' · ')
-    : ['Anfrage', titel.split(':')[0], w.personen ? `${w.personen} Pers.` : '', zeit, absender].filter(Boolean).join(' · ');
+    : ['Anfrage', titel.split(':')[0], personen, zeit, absender].filter(Boolean).join(' · ');
   const zeilen = [`Anliegen: ${titel}`];
   for (const f of FELDER[anliegen].sichtbar) {
     if (f === 'offen' || f === 'nachricht' || f === 'termin') continue; // Termin steht schon unter „Anliegen“
     const v = f === 'von' || f === 'bis' ? datumDE(w[f]) : w[f];
     if (v) zeilen.push(`${name(anliegen, f)}: ${v}`);
+    if (f === 'bis' && w.von && w.bis) zeilen.push(`Nächte: ${naechte(w.von, w.bis)}`);
   }
-  if (p.offen) zeilen.push('Termin: noch offen');
+  if (p.offen) zeilen.push('Flexibel im Termin: ja');
   if (w.nachricht) zeilen.push('', 'Nachricht:', w.nachricht);
   zeilen.push('', '—', 'Gesendet über das Anfrageformular auf selbst-gemacht.eu. „Antworten“ geht direkt an die anfragende Person.');
   return { betreff, antwortAn: w.email!, text: zeilen.join('\n') };
@@ -255,6 +275,8 @@ async function bearbeiten(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === '/api/anfrage' && request.method === 'POST') return anfrage(request, env);
+
+  if (url.pathname === '/api/verfuegbarkeit' && request.method === 'GET') return verfuegbarkeit(env);
 
   if (url.pathname === '/api/anfrage/pruefen' && request.method === 'POST') {
     let body: any;
