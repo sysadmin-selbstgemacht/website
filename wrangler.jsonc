@@ -30,6 +30,7 @@
   // Bindings und Variablen werden NICHT von oben geerbt, sie müssen hier eigens stehen.
   // MEDIEN: gleicher Bucket, damit die Vorschau eines Termins sein Bild zeigt.
   // Kein GITHUB_TOKEN und keine Access-Variablen: Das Termin-Formular läuft nur in Production.
+  // Kein RPMS_TOKEN (3RPMS): Der Gruppenkalender zeigt in Vorschauen „Belegung nicht geladen“, alle Tage wählbar.
   "previews": {
     "r2_buckets": [{ "binding": "MEDIEN", "bucket_name": "selbst-gemacht-medien" }],
     "ratelimits": [

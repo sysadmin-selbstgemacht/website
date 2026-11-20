@@ -1,61 +1,85 @@
 ---
-// Anfrageformular: eine Seite, Felder je Anliegen (docs/formular.md).
+// Anfrageformular: eine Komponente, Felder je Anliegen (docs/formular.md, Regeln in src/lib/anfrage.ts).
 // Spamschutz nach Leitfaden: verstecktes Feld, Zeitprüfung, Rechenaufgabe (ALTCHA) im Hintergrund.
-import { ANLIEGEN, ANREDE, UEBERNACHTUNG, type Anliegen } from '../lib/anfrage';
+//
+// Anliegen:
+//   - ohne Angabe (Startseite, Terminübersicht, übrige Seiten): Auswahl „Worum geht es?“
+//   - mit `anliegen` (Zielgruppenseiten): fest und unsichtbar
+//   - mit `termin` (Terminseite, eigener Termin): fest, „Ihre Anfrage zu: …“
+// Gruppen wählen Anreise und Abreise im Verfügbarkeitskalender (3RPMS, /api/verfuegbarkeit).
+// „Anfrage senden“ bleibt überall gesperrt, bis alle Pflichtfelder gültig sind.
+import { ANLIEGEN, ANREDE, UEBERNACHTUNG, STANDARD, type Anliegen } from '../lib/anfrage';
 interface Props {
   anliegen?: Anliegen;
-  // Terminseite: Anfrage zu genau diesem Termin („Titel · Datum“). Das Anliegen ist dann fest,
-  // „Anfrage senden“ bleibt gesperrt, bis alle Pflichtfelder ausgefüllt sind (Wireframe Terminseite).
-  termin?: string;
+  termin?: string; // „Titel · Datum“
 }
-const { anliegen = 'sonstiges', termin } = Astro.props;
+const { anliegen, termin } = Astro.props;
 ---
-<form class="anfrageformular" data-formular data-sperre={termin ? '' : undefined} novalidate>
+<form class="anfrageformular" data-formular novalidate>
   {termin ? (
     <>
       <input type="hidden" name="anliegen" value="termin" />
       <input type="hidden" name="termin" value={termin} />
       <p class="fester-termin">Ihre Anfrage zu: <strong>{termin}</strong></p>
     </>
+  ) : anliegen ? (
+    <input type="hidden" name="anliegen" value={anliegen} />
   ) : (
     <label>Worum geht es?
       <select name="anliegen">
-        {ANLIEGEN.map((o) => <option value={o.wert} selected={o.wert === anliegen}>{o.text}</option>)}
+        {ANLIEGEN.map((o) => <option value={o.wert} selected={o.wert === 'sonstiges'}>{o.text}</option>)}
       </select>
     </label>
   )}
 
-  <label data-feld="thema"><span>Kurs oder Thema</span> <input name="thema" maxlength="200" /></label>
-  <label data-feld="unternehmen"><span>Unternehmen</span> <input name="unternehmen" autocomplete="organization" maxlength="200" /></label>
+  <label data-feld="thema"><span>{STANDARD.thema}</span> <input name="thema" maxlength="200" /></label>
+  <label data-feld="unternehmen"><span>{STANDARD.unternehmen}</span> <input name="unternehmen" autocomplete="organization" maxlength="200" /></label>
+
+  <!-- Verfügbarkeitskalender (nur Gruppen): schreibt in die Felder von/bis -->
+  <div class="kalender" data-kalender hidden>
+    <p class="kalender-titel"><span>Anreise und Abreise</span></p>
+    <div class="kalender-kopf">
+      <button type="button" data-zurueck aria-label="Vorheriger Monat">‹</button>
+      <strong data-monat aria-live="polite"></strong>
+      <button type="button" data-vor aria-label="Nächster Monat">›</button>
+    </div>
+    <div class="kalender-tage" data-tage></div>
+    <p class="kalender-legende"><span class="probe frei"></span> frei <span class="probe belegt"></span> belegt</p>
+    <p class="kalender-auswahl" data-auswahl aria-live="polite"></p>
+    <p class="hinweis" data-kalenderhinweis></p>
+  </div>
 
   <div class="zeile">
     <label data-feld="von"><span data-text="von">Anreise</span> <input name="von" type="date" /></label>
     <label data-feld="bis"><span data-text="bis">Abreise</span> <input name="bis" type="date" /></label>
   </div>
-  <label data-feld="offen" class="haken"><input name="offen" type="checkbox" /> Termin noch offen</label>
+  <label data-feld="offen" class="haken"><input name="offen" type="checkbox" /> {STANDARD.offen}</label>
   <label data-feld="zeitraum"><span data-text="zeitraum">Zeitraum</span> <input name="zeitraum" maxlength="200" placeholder="z. B. ein Wochenende im Mai" /></label>
 
+  <div class="zeile">
+    <label data-feld="erwachsene"><span>{STANDARD.erwachsene}</span> <input name="erwachsene" type="number" min="1" max="200" inputmode="numeric" /></label>
+    <label data-feld="kinder"><span>{STANDARD.kinder}</span> <input name="kinder" type="number" min="0" max="200" inputmode="numeric" /></label>
+  </div>
   <label data-feld="personen"><span data-text="personen">Personen</span> <input name="personen" type="number" min="1" max="200" inputmode="numeric" /></label>
-  <label data-feld="uebernachtung"><span>Übernachtung</span>
+  <label data-feld="uebernachtung"><span>{STANDARD.uebernachtung}</span>
     <select name="uebernachtung">
-      <option value="">bitte wählen</option>
+      <option value="">Bitte wählen</option>
       {UEBERNACHTUNG.map((u) => <option value={u}>{u}</option>)}
     </select>
   </label>
 
-  <label data-feld="anrede"><span>Anrede</span>
+  <label data-feld="anrede"><span>{STANDARD.anrede}</span>
     <select name="anrede">
       <option value="">Bitte wählen</option>
       {ANREDE.map((a) => <option value={a}>{a}</option>)}
     </select>
   </label>
   <div class="zeile namen">
-    <label data-feld="vorname"><span>Vorname</span> <input name="vorname" autocomplete="given-name" maxlength="100" /></label>
-    <label data-feld="nachname"><span>Nachname</span> <input name="nachname" autocomplete="family-name" maxlength="100" /></label>
+    <label data-feld="vorname"><span>{STANDARD.vorname}</span> <input name="vorname" autocomplete="given-name" maxlength="100" /></label>
+    <label data-feld="nachname"><span>{STANDARD.nachname}</span> <input name="nachname" autocomplete="family-name" maxlength="100" /></label>
   </div>
-  <label data-feld="name"><span>Name</span> <input name="name" autocomplete="name" maxlength="200" /></label>
-  <label data-feld="email"><span>E-Mail</span> <input name="email" type="email" autocomplete="email" maxlength="200" /></label>
-  <label data-feld="telefon"><span>Telefon</span> <input name="telefon" type="tel" autocomplete="tel" maxlength="50" /></label>
+  <label data-feld="email"><span>{STANDARD.email}</span> <input name="email" type="email" autocomplete="email" maxlength="200" /></label>
+  <label data-feld="telefon"><span>{STANDARD.telefon}</span> <input name="telefon" type="tel" autocomplete="tel" maxlength="50" /></label>
   <label data-feld="nachricht"><span data-text="nachricht">Nachricht</span> <textarea name="nachricht" rows="5" maxlength="5000"></textarea></label>
 
   <!-- verstecktes Feld: nur Bots füllen es (display:none, unverfänglicher Name) -->
@@ -63,16 +87,35 @@ const { anliegen = 'sonstiges', termin } = Astro.props;
 
   <p class="hinweis">Mit * markierte Felder brauchen wir. Die Angaben nutzen wir nur, um die Anfrage zu beantworten (<a href="/datenschutz/">Datenschutz</a>).</p>
   <button type="submit">Anfrage senden</button>
-  {termin && <p class="hinweis" data-sperrhinweis>Wird aktiv, sobald alle Pflichtfelder ausgefüllt sind.</p>}
+  <p class="hinweis" data-sperrhinweis>Wird aktiv, sobald alle Pflichtfelder ausgefüllt sind.</p>
   <p class="meldung" role="status" aria-live="polite"></p>
   <pre class="trockenlauf" hidden></pre>
 </form>
 
 <script>
   import { solveChallenge, pbkdf2 } from 'altcha/lib';
-  import { FELDER, BESCHRIFTUNG, STANDARD, pflichtfelder, type Anliegen, type Feld } from '../lib/anfrage';
+  import {
+    FELDER, BESCHRIFTUNG, STANDARD, BESTAETIGUNG, MIT_KALENDER, MIN_NAECHTE, KALENDER_MONATE,
+    sichtbareFelder, pflichtfelder, naechte, type Anliegen, type Feld,
+  } from '../lib/anfrage';
 
   const geladen = Date.now();
+
+  // --- Datum (Ortszeit des Browsers) ---
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const ausIso = (s: string) => new Date(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
+  const plusTage = (s: string, n: number) => { const d = ausIso(s); d.setDate(d.getDate() + n); return iso(d); };
+  const HEUTE = iso(new Date());
+  const GRENZE = (() => { const d = ausIso(HEUTE); d.setMonth(d.getMonth() + KALENDER_MONATE); return iso(d); })();
+  const lang = (s: string) => ausIso(s).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  // --- Belegung aus 3RPMS, einmal je Seite ---
+  type Belegung = { ok: boolean; belegt: Set<string> };
+  let belegung: Promise<Belegung> | null = null;
+  const ladeBelegung = () => (belegung ??= fetch('/api/verfuegbarkeit')
+    .then((r) => r.json())
+    .then((j) => ({ ok: j?.status === 'ok', belegt: new Set<string>(j?.status === 'ok' ? j.belegt : []) }))
+    .catch(() => ({ ok: false, belegt: new Set<string>() })));
 
   // --- Rechenaufgabe im Hintergrund (Leitfaden 3.4) ---
   let ausstehend: Promise<object | null> | null = null;
@@ -107,14 +150,117 @@ const { anliegen = 'sonstiges', termin } = Astro.props;
     const meldung = form.querySelector<HTMLElement>('.meldung')!;
     const trocken = form.querySelector<HTMLElement>('.trockenlauf')!;
     const knopf = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+    const sperrhinweis = form.querySelector<HTMLElement>('[data-sperrhinweis]')!;
+    const von = el('von')!;
+    const bis = el('bis')!;
+    const anliegen = () => el('anliegen')!.value as Anliegen;
+    const zustand = () => ({ offen: !!el('offen')?.checked, von: von.value, bis: bis.value });
+    const mitKalender = () => MIT_KALENDER.includes(anliegen()) && !el('offen')?.checked;
 
+    // ---------- Kalender ----------
+    const kal = form.querySelector<HTMLElement>('[data-kalender]')!;
+    const tage = kal.querySelector<HTMLElement>('[data-tage]')!;
+    const monatText = kal.querySelector<HTMLElement>('[data-monat]')!;
+    const auswahl = kal.querySelector<HTMLElement>('[data-auswahl]')!;
+    const kalHinweis = kal.querySelector<HTMLElement>('[data-kalenderhinweis]')!;
+    const zurueck = kal.querySelector<HTMLButtonElement>('[data-zurueck]')!;
+    const vor = kal.querySelector<HTMLButtonElement>('[data-vor]')!;
+    let bel: Belegung | null = null;
+    let monat = ausIso(HEUTE.slice(0, 8) + '01');
+    const minNacht = () => MIN_NAECHTE[anliegen()] ?? 1;
+
+    const istBelegt = (t: string) => !!bel?.belegt.has(t);
+    const anreiseMoeglich = (t: string) => t >= HEUTE && t < GRENZE && !istBelegt(t);
+    // erste belegte Nacht nach der Anreise: dort ist spätestens Abreise
+    const ersteBelegteNach = (a: string) => {
+      let erste: string | null = null;
+      bel?.belegt.forEach((t) => { if (t > a && (!erste || t < erste)) erste = t; });
+      return erste as string | null;
+    };
+    const abreiseMoeglich = (t: string) => {
+      if (!von.value || bis.value) return false;
+      const n = naechte(von.value, t) ?? 0;
+      const erste = ersteBelegteNach(von.value);
+      return n >= minNacht() && t <= GRENZE && (!erste || t <= erste);
+    };
+
+    function zeichnen() {
+      monatText.textContent = monat.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+      const ersterMonat = ausIso(HEUTE.slice(0, 8) + '01');
+      const letzterMonat = ausIso(GRENZE.slice(0, 8) + '01');
+      zurueck.disabled = monat <= ersterMonat;
+      vor.disabled = monat >= letzterMonat;
+      const teile: string[] = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((w) => `<span class="wochentag" aria-hidden="true">${w}</span>`);
+      const versatz = (monat.getDay() + 6) % 7;
+      for (let i = 0; i < versatz; i++) teile.push('<span></span>');
+      const tageImMonat = new Date(monat.getFullYear(), monat.getMonth() + 1, 0).getDate();
+      for (let tag = 1; tag <= tageImMonat; tag++) {
+        const t = iso(new Date(monat.getFullYear(), monat.getMonth(), tag));
+        const wahlAbreise = !!von.value && !bis.value;
+        const waehlbar = wahlAbreise ? abreiseMoeglich(t) || anreiseMoeglich(t) : anreiseMoeglich(t);
+        const klassen = [
+          istBelegt(t) ? 'belegt' : '',
+          t === von.value || t === bis.value ? 'gewaehlt' : '',
+          von.value && bis.value && t > von.value && t < bis.value ? 'zwischen' : '',
+          t < HEUTE ? 'vergangen' : '',
+        ].filter(Boolean).join(' ');
+        const text = ausIso(t).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + (istBelegt(t) ? ', belegt' : '');
+        teile.push(`<button type="button" class="${klassen}" data-tag="${t}" aria-label="${text}"${t === von.value || t === bis.value ? ' aria-pressed="true"' : ''}${waehlbar ? '' : ' disabled'}>${tag}</button>`);
+      }
+      tage.innerHTML = teile.join('');
+      if (!von.value) auswahl.textContent = 'Bitte den Anreisetag wählen.';
+      else if (!bis.value) auswahl.textContent = `Anreise ${lang(von.value)}. Bitte den Abreisetag wählen.`;
+      else {
+        const n = naechte(von.value, bis.value)!;
+        auswahl.textContent = `Anreise ${lang(von.value)} · Abreise ${lang(bis.value)} · ${n} ${n === 1 ? 'Nacht' : 'Nächte'}`;
+      }
+    }
+
+    tage.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-tag]');
+      if (!b || b.disabled) return;
+      const t = b.dataset.tag!;
+      if (abreiseMoeglich(t)) bis.value = t;
+      else if (anreiseMoeglich(t)) { von.value = t; bis.value = ''; }
+      zeichnen();
+      form.dispatchEvent(new Event('change'));
+    });
+    zurueck.addEventListener('click', () => { monat = new Date(monat.getFullYear(), monat.getMonth() - 1, 1); zeichnen(); });
+    vor.addEventListener('click', () => { monat = new Date(monat.getFullYear(), monat.getMonth() + 1, 1); zeichnen(); });
+
+    async function kalenderStarten() {
+      if (bel) return;
+      kalHinweis.textContent = 'Belegung wird geladen …';
+      zeichnen();
+      bel = await ladeBelegung();
+      kalHinweis.textContent = bel.ok
+        ? 'Belegte Nächte sind markiert. Am Abreisetag einer Gruppe ist die Anreise möglich.'
+        : 'Die Belegung konnte gerade nicht geladen werden. Sie können trotzdem anfragen, wir prüfen die Verfügbarkeit.';
+      // Auswahl verwerfen, falls sie inzwischen belegt ist
+      if (von.value && !anreiseMoeglich(von.value)) { von.value = ''; bis.value = ''; }
+      zeichnen();
+      sperre();
+    }
+
+    // ---------- Datumsfelder (Tagungen): Kopplung ----------
+    von.min = HEUTE;
+    bis.min = HEUTE;
+    von.addEventListener('change', () => {
+      if (mitKalender() || !von.value) return;
+      const frueheste = plusTage(von.value, minNacht());
+      bis.min = frueheste;
+      // leer oder zu früh: vorbelegen, damit der Kalender des Geräts dort öffnet
+      if (!bis.value || bis.value < frueheste) bis.value = frueheste;
+    });
+
+    // ---------- Anzeige ----------
     function anzeigen() {
-      const a = el('anliegen')!.value as Anliegen;
-      const offen = !!el('offen')?.checked;
-      const sichtbar = new Set(FELDER[a].sichtbar);
-      if (sichtbar.has('offen') && !offen) sichtbar.delete('zeitraum');
-      if (offen) { sichtbar.delete('von'); sichtbar.delete('bis'); }
-      const pflicht = new Set(pflichtfelder(a, offen));
+      const a = anliegen();
+      const z = zustand();
+      const sichtbar = sichtbareFelder(a, z);
+      const kalender = mitKalender();
+      if (kalender) { sichtbar.delete('von'); sichtbar.delete('bis'); }
+      const pflicht = new Set(pflichtfelder(a, z));
       form.querySelectorAll<HTMLElement>('[data-feld]').forEach((l) => {
         const f = l.dataset.feld as Feld;
         l.hidden = !sichtbar.has(f);
@@ -122,27 +268,32 @@ const { anliegen = 'sonstiges', termin } = Astro.props;
         const input = l.querySelector('input, select, textarea') as HTMLInputElement | null;
         if (input) input.required = pflicht.has(f) && sichtbar.has(f);
       });
+      kal.hidden = !kalender;
+      kal.classList.toggle('pflicht', kalender);
+      if (kalender) kalenderStarten();
       const b = BESCHRIFTUNG[a] ?? {};
       form.querySelectorAll<HTMLElement>('[data-text]').forEach((s) => {
         const f = s.dataset.text as Feld;
         s.textContent = b[f] ?? STANDARD[f] ?? f;
       });
     }
-    form.addEventListener('change', anzeigen);
-    anzeigen();
 
-    // Terminseite: Knopf erst aktiv, wenn alle Pflichtfelder gültig sind
-    const gesperrt = form.hasAttribute('data-sperre');
-    const sperre = () => { if (gesperrt) knopf.disabled = !form.checkValidity(); };
+    // Gültig: alle sichtbaren Pflichtfelder, bei Gruppen Anreise und Abreise im Kalender
+    const gueltig = () => form.checkValidity() && (!mitKalender() || (!!von.value && !!bis.value));
+    function sperre() {
+      knopf.disabled = !gueltig();
+      sperrhinweis.hidden = !knopf.disabled;
+    }
+    form.addEventListener('change', () => { anzeigen(); sperre(); });
     form.addEventListener('input', sperre);
-    form.addEventListener('change', sperre);
+    anzeigen();
     sperre();
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       trocken.hidden = true;
       // erst im Browser prüfen (Leitfaden 6), dann senden
-      if (!form.checkValidity()) {
+      if (!gueltig()) {
         form.reportValidity();
         meldung.textContent = 'Bitte die markierten Felder ausfüllen.';
         return;
@@ -159,9 +310,9 @@ const { anliegen = 'sonstiges', termin } = Astro.props;
         const r = await fetch('/api/anfrage', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(daten) });
         const b = await r.json().catch(() => ({}));
         if (r.ok && b.status === 'ok') {
-          meldung.textContent = 'Danke! Die Anfrage ist angekommen. Wir melden uns so bald wie möglich.';
+          meldung.textContent = BESTAETIGUNG;
           if (b.trockenlauf) { trocken.textContent = 'TROCKENLAUF – diese Mail würde verschickt:\n\n' + b.trockenlauf; trocken.hidden = false; }
-          else form.reset();
+          else { form.reset(); if (bel) zeichnen(); }
           anzeigen();
         } else if (r.status === 400 && b.felder) {
           meldung.textContent = 'Bitte prüfen: ' + Object.values(b.felder).join(' · ');
@@ -175,7 +326,6 @@ const { anliegen = 'sonstiges', termin } = Astro.props;
       } catch {
         meldung.textContent = 'Keine Verbindung. Die Eingaben bleiben erhalten, bitte noch einmal senden.';
       } finally {
-        knopf.disabled = false;
         sperre();
       }
     });
