@@ -103,6 +103,10 @@ const zahl = (v: unknown): number | undefined => {
 };
 const txt = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max + 1) : '');
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Kennungen kurz halten: Cloudflare bildet daraus die Vorschau-Adresse
+// (<branch>-selbst-gemacht.…workers.dev, ein Adressteil darf höchstens 63 Zeichen haben).
+const TITEL_KURZ = 25;
+const NAME_KURZ = 30;
 const zufall = () => [...crypto.getRandomValues(new Uint8Array(4))].map((b) => b.toString(36).padStart(2, '0')).join('').slice(0, 6);
 
 function datumDE(iso: string) {
@@ -255,8 +259,8 @@ async function terminSpeichern(request: Request, env: InternEnv, gh: Github): Pr
   (Array.isArray(b.neueLeitungen) ? b.neueLeitungen : []).slice(0, T.leitungMax).forEach((nl: any, i: number) => {
     const j = pruefeLeitungFelder(nl, fe, `neu${i}_`, true);
     if (namenVorhanden.has(j.name.toLowerCase())) fe[`neu${i}_name`] = 'Diese Kursleitung gibt es schon, bitte auswählen';
-    let id = kurzname(j.name, 40);
-    for (let n = 2; belegt.has(id); n++) id = `${kurzname(j.name, 37)}-${n}`;
+    let id = kurzname(j.name, NAME_KURZ);
+    for (let n = 2; belegt.has(id); n++) id = `${kurzname(j.name, NAME_KURZ - 3)}-${n}`;
     belegt.add(id);
     const schluessel = `neu:${i}`;
     neueNamen.set(schluessel, j.mail ? 'mail' : '');
@@ -295,7 +299,7 @@ async function terminSpeichern(request: Request, env: InternEnv, gh: Github): Pr
     bildMain = bildwertAus('x.md', ref === 'main' ? roh : await gh.text(`${TERMINE}/${id}.md`, 'main'));
   } else {
     if (p.fehler.beginn || p.fehler.titel) return fehler(400, 'invalid', { felder: p.fehler });
-    const basis = `${p.daten.beginn}-${kurzname(String(p.daten.titel), 40)}`;
+    const basis = `${p.daten.beginn}-${kurzname(String(p.daten.titel), TITEL_KURZ)}`;
     id = basis;
     const ids = new Set(stand.termine.map((t) => t.id));
     for (let n = 2; ids.has(id) || (await gh.branchSha(`termin/${id}`)); n++) {
@@ -399,8 +403,8 @@ async function leitungSpeichern(request: Request, env: InternEnv, gh: Github): P
   let fotoMain: string | null = null;
   if (neu) {
     if (stand.kursleitungen.some((l) => String(l.daten.name).toLowerCase() === j.name.toLowerCase())) fe.name = 'Diese Kursleitung gibt es schon';
-    id = kurzname(j.name, 40);
-    for (let n = 2; stand.kursleitungen.some((l) => l.id === id) || (await gh.branchSha(`kursleitung/${id}`)); n++) id = `${kurzname(j.name, 37)}-${n}`;
+    id = kurzname(j.name, NAME_KURZ);
+    for (let n = 2; stand.kursleitungen.some((l) => l.id === id) || (await gh.branchSha(`kursleitung/${id}`)); n++) id = `${kurzname(j.name, NAME_KURZ - 3)}-${n}`;
   } else {
     if (!/^[a-z0-9-]{2,80}$/.test(id)) return fehler(400, 'id');
     const branch = `kursleitung/${id}`;
