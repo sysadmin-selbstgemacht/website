@@ -5,7 +5,7 @@ beginn: 2026-11-27
 ende: 2026-11-30
 uhrzeit_beginn: "12:00"
 uhrzeit_ende: "13:00"
-eigener_termin: false
+eigener_termin: true
 kurzbeschreibung: "Beispiel: sechs Tage Basenfasten mit Wandern, Ruhe und Begleitung."
 bild: "medien/termine/2026-11-27-beispieltermin-fastenwoch-6v4x4w"
 bild_alt: "Seminar- und Gästehaus SELBSTGEMACHT"
