@@ -23,6 +23,8 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
     h2 { font-size: 1.1rem; margin: 1.75rem 0 .5rem; }
     button, .knopf { font: inherit; padding: .6rem 1rem; border: 1px solid var(--text); background: #fff; color: var(--text); border-radius: .3rem; cursor: pointer; text-decoration: none; display: inline-block; }
     button.haupt, .knopf.haupt { background: var(--text); color: #fff; }
+    .knopf.gross { font-size: 1.1rem; padding: .8rem 1.2rem; text-align: center; border-width: 2px; }
+    .adresse { word-break: break-all; font-size: .75rem; }
     button.gefahr { border-color: var(--rot); color: var(--rot); }
     button:disabled { opacity: .45; cursor: not-allowed; }
     .klein { padding: .35rem .7rem; font-size: .9rem; }
@@ -219,7 +221,11 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
         <div class="schritt"><span class="punkt gruen"></span><span>Gespeichert als Entwurf</span></div>
         <div class="schritt"><span class="punkt" id="punkt-pruefung"></span><span id="text-pruefung">Vorschau wird gebaut …</span></div>
         <p class="hinweis" id="hinweis-pruefung">Das dauert meist ein bis drei Minuten. Diese Seite aktualisiert sich selbst.</p>
-        <p><a id="vorschau-link" class="knopf" target="_blank" rel="noopener" hidden>Vorschau ansehen</a></p>
+        <div id="vorschau-block" class="stand" hidden>
+          <a id="vorschau-link" class="knopf gross" target="_blank" rel="noopener">Vorschau öffnen ↗</a>
+          <span class="hinweis">Öffnet in einem neuen Tab. Dieses Formular bleibt offen. Beim ersten Mal fragt die Vorschau nach dem Mailcode.</span>
+          <span class="hinweis adresse" id="vorschau-adresse"></span>
+        </div>
         <div class="zeile">
           <button class="haupt" id="veroeffentlichen" disabled>Veröffentlichen</button>
           <button id="weiter" hidden>Weiter bearbeiten</button>
@@ -572,7 +578,7 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
     function statusZeigen(p: { pr: number; branch: string; titel?: string }) {
       statusPr = p;
       $('#status-titel').textContent = p.titel ? `Entwurf: ${p.titel}` : 'Entwurf';
-      $('#vorschau-link').hidden = true;
+      $('#vorschau-block').hidden = true;
       $<HTMLButtonElement>('#veroeffentlichen').disabled = true;
       $('#weiter').hidden = !!p.titel?.startsWith('Löschen');
       $('#punkt-pruefung').className = 'punkt laeuft';
@@ -601,8 +607,10 @@ import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, VERPFLEGUNG, UST_WERTE, ustT
       if (r.vorschau) {
         const id = statusPr.branch.split('/').slice(1).join('/');
         const ziel = statusPr.branch.startsWith('termin/') && !r.titel.startsWith('Termin löschen') ? `/termine/${id}/` : '/termine/';
-        link.href = r.vorschau + ziel; link.hidden = false;
-      } else link.hidden = true;
+        link.href = r.vorschau + ziel;
+        $('#vorschau-adresse').textContent = link.href;
+        $('#vorschau-block').hidden = false;
+      } else $('#vorschau-block').hidden = true;
       $<HTMLButtonElement>('#veroeffentlichen').disabled = r.pruefung !== 'gruen';
       // Den Vorschau-Link schreibt Cloudflare als Kommentar an den PR, manchmal kurz nach dem Grün
       if (!vorbei || (r.pruefung === 'gruen' && !r.vorschau)) poll = window.setTimeout(statusAbfragen, 8000);

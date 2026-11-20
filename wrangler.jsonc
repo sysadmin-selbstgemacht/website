@@ -23,9 +23,19 @@
   // Empfänger (MAIL_AN) und Zugangsdaten stehen NICHT hier, sondern als Variable/Secret bei Cloudflare.
   // Variablen aus dem Dashboard (MAIL_AN, MAIL_VON) bei jedem Deploy behalten; MAIL_MODUS steuert das Repo
   "keep_vars": true,
-  "vars": { "MAIL_MODUS": "trockenlauf", "GITHUB_REPO": "sysadmin-selbstgemacht/website" },
+  // VORSCHAU_HOST: Basis der Vorschau-Adressen (bleibt workers.dev, auch nach dem Go-live)
+  "vars": { "MAIL_MODUS": "trockenlauf", "GITHUB_REPO": "sysadmin-selbstgemacht/website", "VORSCHAU_HOST": "selbst-gemacht.fabian-liesch.workers.dev" },
   "preview_urls": true,
   // Vorschau je Branch und Pull Request (Workers Builds, Befehl `npx wrangler preview`).
-  // Leer lassen: Assets und Einstellungen oben gelten auch für die Vorschau.
-  "previews": {}
+  // Bindings und Variablen werden NICHT von oben geerbt, sie müssen hier eigens stehen.
+  // MEDIEN: gleicher Bucket, damit die Vorschau eines Termins sein Bild zeigt.
+  // Kein GITHUB_TOKEN und keine Access-Variablen: Das Termin-Formular läuft nur in Production.
+  "previews": {
+    "r2_buckets": [{ "binding": "MEDIEN", "bucket_name": "selbst-gemacht-medien" }],
+    "ratelimits": [
+      { "name": "ANFRAGE_LIMIT", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } }
+    ],
+    "version_metadata": { "binding": "CF_VERSION_METADATA" },
+    "vars": { "MAIL_MODUS": "trockenlauf" }
+  }
 }
