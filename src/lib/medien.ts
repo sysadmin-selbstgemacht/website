@@ -19,6 +19,6 @@ export function medienUrl(wert: string, groesse: MedienGroesse): string {
 // URL eines Bildes in gegebener Breite (für Teilen-Vorschau und Formular-Vorschaubilder)
 export async function bildUrl(wert: string, breite: number, format: 'jpg' | 'webp' = 'jpg'): Promise<string> {
   if (wert.startsWith('haus/')) return (await getImage({ src: await hausbildDatei(wert), width: breite, format })).src;
-  if (breite === 1200 && format === 'jpg') return medienUrl(wert, 'teilen'); // Teilen-Bild
-  return medienUrl(wert, breite > 800 ? 'gross' : 'klein');
+  // Teilen-Bild und Vorschaubilder: die kleine Fassung (800 px, WebP)
+  return medienUrl(wert, breite > 1200 ? 'gross' : 'klein');
 }

@@ -11,7 +11,7 @@ bild: "haus/platzhalter"
 bild_alt: "Platzhalterbild"
 bild_nachweis: "Beispiel Fotograf"
 uebernachtung: true
-verpflegung: "vegetarisch-vegan"
+verpflegung: "vegetarisch"
 preis_ab: 360
 kursgebuehr: 290
 ust: 19

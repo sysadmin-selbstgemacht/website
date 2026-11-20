@@ -8,7 +8,7 @@ import Anfrageformular from '../../components/Anfrageformular.astro';
 import Basis from '../../layouts/Basis.astro';
 import { bildUrl } from '../../lib/medien';
 import { datumText, datumKurz, datumKopf, datumLang, uhrzeitText, dauerText, namenText } from '../../lib/termine';
-import { VERPFLEGUNG, VERPFLEGUNG_ZUSATZ, euro, ustText, naechte } from '../../lib/termin-felder';
+import { VERPFLEGUNG, verpflegungZusatz, PREIS_AB_UST, euro, ustText, naechte } from '../../lib/termin-felder';
 
 export async function getStaticPaths() {
   const termine = await getCollection('termine');
@@ -98,13 +98,13 @@ const eventDaten = {
     {d.preis_ab !== undefined && (
       <div class="kachel">
         <h2>{d.uebernachtung ? 'Übernachtung und Verpflegung' : 'Verpflegung'}</h2>
-        <p>ab {euro(d.preis_ab)} pro Person für den gesamten Aufenthalt{d.uebernachtung && ', je nach Zimmerkategorie'}. Gezahlt wird vor Ort.</p>
+        <p>ab {euro(d.preis_ab)} ({PREIS_AB_UST}) pro Person für den gesamten Aufenthalt{d.uebernachtung && ', je nach Zimmerkategorie'}. Gezahlt wird vor Ort.</p>
       </div>
     )}
     {d.verpflegung !== 'keine' && (
       <div class="kachel">
         <h2>Verpflegung</h2>
-        <p>{VERPFLEGUNG[d.verpflegung]}. {VERPFLEGUNG_ZUSATZ}</p>
+        <p>{VERPFLEGUNG[d.verpflegung]}. {verpflegungZusatz(d.verpflegung)}</p>
       </div>
     )}
     {leitungen.map((l) => (
