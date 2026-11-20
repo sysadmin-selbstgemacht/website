@@ -170,7 +170,7 @@ function baueMail(p: ReturnType<typeof pruefeFelder>) {
   }
   if (p.offen) zeilen.push('Flexibel im Termin: ja');
   if (w.nachricht) zeilen.push('', 'Nachricht:', w.nachricht);
-  zeilen.push('', '—', 'Gesendet über das Anfrageformular auf selbst-gemacht.eu. „Antworten“ geht direkt an die anfragende Person.');
+  zeilen.push('', '—', 'Gesendet über das Anfrageformular auf selbst-gemacht.eu.');
   return { betreff, antwortAn: w.email!, text: zeilen.join('\n') };
 }
 
