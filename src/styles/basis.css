@@ -33,6 +33,7 @@ a:hover { color: var(--color-link-hover); }
 [hidden] { display: none !important; }
 
 /* Seitenfläche und Kennfarbe je Zielgruppe (body[data-bereich]) */
+body { --seite: var(--color-bg-page); }
 body[data-bereich='gruppen'] { --seite: var(--color-bg-page-gruppen); --kennfarbe: var(--color-audience-gruppen); --kennschrift: #000; }
 body[data-bereich='tagungen'] { --seite: var(--color-bg-page-tagungen); --kennfarbe: var(--color-audience-tagungen); --kennschrift: #fff; }
 body[data-bereich='kursleitende'] { --seite: var(--color-bg-page-kursleitende); --kennfarbe: var(--color-audience-kursleitende); --kennschrift: #000; }
