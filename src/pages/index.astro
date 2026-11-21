@@ -117,15 +117,15 @@ const stimmen = [
         { nr: '271', alt: 'Aufenthaltsraum mit Küche' },
         { nr: '478', alt: 'Abend an der Feuerschale' },
         { nr: '178', alt: 'Bewegungsraum mit Sitzkissen' },
-        { nr: '250', alt: 'Lamawanderung' },
+        { nr: '250', alt: 'Lamawanderung', position: 'center 9%' },
       ]}
     />
   </section>
 
   <Stimmen stimmen={stimmen} gross />
 
-  <!-- Ein Ort für Entwicklung: Hintergrund Bild 3 (Hochformat; Ausschnitt so, dass der Lamakopf ganz zu sehen ist) -->
-  <BildHintergrund nr="3" position="center 40%" titel="Ein Ort für Entwicklung" id="termine-titel">
+  <!-- Ein Ort für Entwicklung: Hintergrund Bild 3 (Hochformat; Ausschnitt center 52 %, von Matthias bestätigt) -->
+  <BildHintergrund nr="3" position="center 52%" titel="Ein Ort für Entwicklung" id="termine-titel">
     <div class="entwicklung">
       <p class="p">In unserem Haus finden Seminare, Kurse und Retreats statt. Gruppen treffen sich für besondere gemeinsame Momente. Wir bieten Raum für Entfaltung, neue Sichtweisen und neue Leichtigkeit.</p>
       <a class="knopf" href={SEITEN.termine.pfad}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" /><path d="M8 14h.01" /><path d="M12 14h.01" /><path d="M16 14h.01" /><path d="M8 18h.01" /><path d="M12 18h.01" /><path d="M16 18h.01" /></svg>Zu den Terminen</a>

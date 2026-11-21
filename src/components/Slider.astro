@@ -24,11 +24,11 @@ interface Props {
 }
 const { folien, label, hoeheDesktop = 810, hoeheMobil = 300 } = Astro.props;
 ---
-<div class="slider" data-slider role="region" aria-roledescription="Karussell" aria-label={label} style={`--h-d:${hoeheDesktop}px;--h-m:${hoeheMobil}px`}>
+<div class="slider" data-slider role="region" aria-roledescription="Karussell" aria-label={label} style={`--h-d:${hoeheDesktop}px;--h-d-zahl:${hoeheDesktop};--h-m:${hoeheMobil}px`}>
   <div class="spur" data-spur tabindex="0">
     {folien.map((f, i) => (
       <figure class="folie" aria-roledescription="Folie" aria-label={`${i + 1} von ${folien.length}`}>
-        <div class="medium">
+        <div class="medium" style={f.position ? `--pos:${f.position}` : undefined}>
           {f.video ? (
             f.video.name ? (
               <>
@@ -74,7 +74,7 @@ const { folien, label, hoeheDesktop = 810, hoeheMobil = 300 } = Astro.props;
   .spur:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: -2px; }
   .folie { flex: 0 0 100%; margin: 0; scroll-snap-align: start; }
   .medium { position: relative; height: var(--h-m); background: var(--neutral-300); }
-  .medium :global(img), .medium video { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; -webkit-user-drag: none; }
+  .medium :global(img), .medium video { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, center); display: block; user-select: none; -webkit-user-drag: none; }
   .video-offen { height: 100%; display: grid; place-items: center; padding: 16px; text-align: center; }
   .abspielen { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 72px; height: 72px; border-radius: 9999px; border: 0; background: rgba(255, 255, 255, .92); box-shadow: 0 4px 16px rgba(0, 0, 0, .25); display: flex; align-items: center; justify-content: center; padding: 0 0 0 4px; cursor: pointer; }
   .bildtext { margin: 16px 20px 0; min-height: 48px; font-size: 16px; line-height: 1.5; text-align: center; }
@@ -85,11 +85,12 @@ const { folien, label, hoeheDesktop = 810, hoeheMobil = 300 } = Astro.props;
   .punkte button[aria-current='true'] span { background: var(--neutral-600); }
 
   @media (min-width: 1024px) {
-    .medium { height: var(--h-d); }
+    /* Höhe wächst ab 1440 px mit der Breite (Verhältnis wie im Wireframe), damit der Bildausschnitt gleich bleibt */
+    .medium { height: max(var(--h-d), calc(100vw * var(--h-d-zahl) / 1440)); }
     .bildtext { margin: 24px auto 0; max-width: 1200px; padding-inline: 20px; min-height: 45px; font-size: 36px; line-height: 1.25; font-weight: 300; color: #000; }
     .spur { cursor: grab; }
     .spur.ziehen { cursor: grabbing; scroll-snap-type: none; }
-    .pfeil { position: absolute; top: calc(var(--h-d) / 2 - 28px); width: 56px; height: 56px; border-radius: 9999px; border: 0; background: rgba(255, 255, 255, .92); box-shadow: 0 2px 12px rgba(0, 0, 0, .2); color: #000; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+    .pfeil { position: absolute; top: calc(max(var(--h-d), calc(100vw * var(--h-d-zahl) / 1440)) / 2 - 28px); width: 56px; height: 56px; border-radius: 9999px; border: 0; background: rgba(255, 255, 255, .92); box-shadow: 0 2px 12px rgba(0, 0, 0, .2); color: #000; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
     .pfeil[hidden] { display: none; }
     .zurueck { left: 24px; }
     .vor { right: 24px; }
