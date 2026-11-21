@@ -1,11 +1,13 @@
 ---
 // Video in einer gerundeten 16:9-Karte, startet erst auf Klick (Handoff 21.11.). Quelle: R2 (src/lib/videos.ts).
 import { videoQuellen, type VideoName } from '../lib/videos';
+import { videoPoster } from '../lib/video-poster';
 interface Props { name: VideoName; label: string }
 const { name, label } = Astro.props;
+const poster = await videoPoster(name);
 ---
 <div class="video-karte" data-videokarte>
-  <video preload="metadata" playsinline aria-label={label}>
+  <video preload="metadata" playsinline aria-label={label} poster={poster}>
     {videoQuellen(name).map((q) => <source src={q.src} type={q.type} />)}
   </video>
   <button type="button" class="abspielen" aria-label={`${label} abspielen`}>
