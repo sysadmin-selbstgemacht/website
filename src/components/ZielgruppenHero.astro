@@ -39,13 +39,13 @@ const rueckfall = await getImage({ src: katalogBild(desktop), width: 1600, forma
 </section>
 
 <style>
-  .zg-held { position: relative; height: min(600px, calc(100svh - 68px)); min-height: 420px; overflow: hidden; background: var(--neutral-300); }
+  .zg-held { position: relative; height: min(600px, calc(100svh - 64px)); min-height: 420px; overflow: hidden; background: var(--neutral-300); }
   img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--pos-m); }
   .zg-verlauf { position: absolute; left: 0; right: 0; bottom: 0; height: 230px; background: linear-gradient(to bottom, color-mix(in srgb, var(--seite) 0%, transparent) 0%, color-mix(in srgb, var(--seite) 90%, transparent) 55%, var(--seite) 78%); }
   .zg-inhalt { position: absolute; left: 0; right: 0; bottom: 32px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
   .zg-etikett { display: inline-flex; height: 32px; align-items: center; padding: 0 14px; border-radius: var(--radius-lg); background: var(--kennfarbe); color: var(--kennschrift); font-size: 15px; font-weight: 500; }
   @media (min-width: 1024px) {
-    .zg-held { height: min(810px, calc(100svh - 92px)); min-height: 520px; }
+    .zg-held { height: min(810px, calc(100svh - 88px)); min-height: 520px; }
     img { object-position: var(--pos-d); }
     .zg-verlauf { height: 300px; background: linear-gradient(to bottom, color-mix(in srgb, var(--seite) 0%, transparent) 0%, color-mix(in srgb, var(--seite) 90%, transparent) 55%, var(--seite) 80%); }
     .zg-inhalt { bottom: 56px; gap: 16px; }

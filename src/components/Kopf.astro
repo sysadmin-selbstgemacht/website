@@ -12,6 +12,7 @@ const { ohneAnfrage = false } = Astro.props as { ohneAnfrage?: boolean };
 const aktuell = Astro.url.pathname;
 const istAktuell = (href: string) => aktuell === href || aktuell.startsWith(href);
 ---
+<div class="kopf-marke" aria-hidden="true"></div>
 <header class="kopf">
   <div class="w kopf-zeile">
     <a class="kopf-logo" href="/"><img src={logoUrl} alt="SELBSTGEMACHT, zur Startseite" width="371" height="295" /></a>
@@ -50,8 +51,10 @@ const istAktuell = (href: string) => aktuell === href || aktuell.startsWith(href
 </dialog>
 
 <style>
-  /* Kopf bleibt oben stehen, leicht durchscheinend (Test: 80 % Weiß, 21.11.) */
-  .kopf { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, .8); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  /* Kopf bleibt oben stehen: ganz oben deckend weiß, beim Scrollen 80 % Weiß mit leichter Unschärfe (21.11.) */
+  .kopf { position: sticky; top: 0; z-index: 50; background: #fff; transition: background-color .2s; }
+  .kopf.gescrollt { background: rgba(255, 255, 255, .8); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .kopf-marke { position: absolute; top: 0; left: 0; width: 1px; height: 1px; }
   .kopf-zeile { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .kopf-logo { display: flex; align-items: center; }
   .kopf-logo img { height: 46px; width: auto; }
@@ -62,8 +65,6 @@ const istAktuell = (href: string) => aktuell === href || aktuell.startsWith(href
   .kopf-anfragen:hover { background: var(--color-bg-brand-subtle); color: var(--green-800); }
   .burger, .menue-zu { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border: 0; padding: 0; background: transparent; cursor: pointer; margin-right: -8px; }
 
-  /* Kennfarben-Linie unter dem Kopf auf Zielgruppenseiten */
-  :global(body[data-bereich]) .kopf { border-bottom: 4px solid var(--kennfarbe); }
 
   @media (min-width: 1024px) {
     .kopf-zeile { height: 88px; display: grid; grid-template-columns: 1fr auto 1fr; }
@@ -92,6 +93,13 @@ const istAktuell = (href: string) => aktuell === href || aktuell.startsWith(href
 </style>
 
 <script>
+  // Kopf: durchscheinend erst, wenn die Markierung oben aus dem Bild ist (ohne Skript bleibt er weiß)
+  const kopf = document.querySelector<HTMLElement>('.kopf');
+  const marke = document.querySelector('.kopf-marke');
+  if (kopf && marke && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => kopf.classList.toggle('gescrollt', !e.isIntersecting)).observe(marke);
+  }
+
   const dialog = document.getElementById('menue-mobil') as HTMLDialogElement | null;
   const auf = document.querySelector<HTMLButtonElement>('[data-menue-auf]');
   if (dialog && auf) {
