@@ -37,22 +37,37 @@ const werte = [
     <p class="p" set:html={markiere('[Zwei Sätze zu Katrin und Annekathrin: wer sie sind, was sie hierher gebracht hat.]')} />
   </section>
 
-  <section class="w uu-paar">
-    <div class="uu-bild"><Bild src={katalogBild('143')} alt="Das Haus mit Garten und Terrasse im Sommer" sizes="(min-width: 1024px) 680px, 100vw" /></div>
-    <div class="uu-text">
-      <h2 class="h2">Das Haus</h2>
-      <p class="p">Ein ehemaliger Konsum, 2010 gekauft und mit Lehm und heimischem Holz umgebaut. Seit 2012 heißt er SELBSTGEMACHT. Wir heizen mit Pellets, das Regenwasser fließt in den Teich.</p>
+  <!-- Das Haus und Alfred: Desktop zwei Bild-Text-Reihen, mobil zwei Wischkarten (Wireframe) -->
+  <section class="uu-haus" aria-labelledby="uu-haus-titel">
+    <h2 class="h2 w nur-mobil" id="uu-haus-titel">Das Haus</h2>
+    <div class="uu-wisch" data-wisch tabindex="0">
+      <article class="w uu-paar uu-karte">
+        <div class="uu-bild"><Bild src={katalogBild('143')} alt="Das Haus mit Garten und Terrasse im Sommer" sizes="(min-width: 1024px) 680px, 350px" /></div>
+        <div class="uu-text">
+          <h2 class="h2 nur-desktop">Das Haus</h2>
+          <p class="p">Ein ehemaliger Konsum, 2010 gekauft und mit Lehm und heimischem Holz umgebaut. Seit 2012 heißt er SELBSTGEMACHT. Wir heizen mit Pellets, das Regenwasser fließt in den Teich.</p>
+        </div>
+      </article>
+      <article class="w uu-paar uu-gespiegelt uu-eng uu-karte">
+        <div class="uu-bild uu-alfred"><Bild src={katalogBild('139')} alt="Alfred Görstner vor dem Haus" sizes="(min-width: 1024px) 680px, 350px" /></div>
+        <div class="uu-text">
+          <h2 class="h2 nur-desktop">Der Mann hinter dem Haus</h2>
+          <span class="uu-kartentitel nur-mobil">Alfred Görstner</span>
+          <p class="p">Alfred Görstner ist Architekt und Maler. Er hat das Haus umgebaut, seine Bilder hängen in den Zimmern. Sein Atelier liegt ganz in der Nähe.</p>
+          <a class="textlink uu-link" href="https://alfa-kunst.de/" target="_blank" rel="noopener">Zu Alfreds Website<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON.extern} /></a>
+        </div>
+      </article>
     </div>
+    <div class="uu-punkte nur-mobil" aria-hidden="true"><span data-punkt class="an"></span><span data-punkt></span></div>
   </section>
-
-  <section class="w uu-paar uu-gespiegelt uu-eng">
-    <div class="uu-bild uu-alfred"><Bild src={katalogBild('139')} alt="Alfred Görstner vor dem Haus" sizes="(min-width: 1024px) 680px, 100vw" /></div>
-    <div class="uu-text">
-      <h2 class="h2">Der Mann hinter dem Haus</h2>
-      <p class="p">Alfred Görstner ist Architekt und Maler. Er hat das Haus umgebaut, seine Bilder hängen in den Zimmern. Sein Atelier liegt ganz in der Nähe.</p>
-      <span class="textlink uu-link">Zu Alfreds Website<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON.extern} /> <span class="offen-markiert">[Link offen]</span></span>
-    </div>
-  </section>
+  <script>
+    const spur = document.querySelector<HTMLElement>('[data-wisch]');
+    const punkte = [...document.querySelectorAll<HTMLElement>('.uu-punkte [data-punkt]')];
+    spur?.addEventListener('scroll', () => {
+      const i = Math.round(spur.scrollLeft / (spur.scrollWidth - spur.clientWidth || 1));
+      punkte.forEach((p, k) => p.classList.toggle('an', k === i));
+    }, { passive: true });
+  </script>
 
   <section class="w uu-paar">
     <div class="uu-bild"><Bild src={katalogBild('135')} alt="Selbstgemachte Marmelade in Gläsern auf altem Holz" sizes="(min-width: 1024px) 680px, 100vw" /></div>
@@ -63,7 +78,7 @@ const werte = [
   </section>
 
   <section class="w sektion">
-    <h2 class="h2 titel-abstand">Das Haus im Film</h2>
+    <h2 class="h2 titel-abstand">SELBSTGEMACHT im Film</h2>
     <VideoKarte name="imagefilm" label="Imagefilm SELBSTGEMACHT" />
     <p class="uu-hinweis">Mit Ton, startet erst auf Klick · etwa 2:45 Minuten</p>
   </section>
@@ -92,8 +107,27 @@ const werte = [
   .uu-alfred :global(img) { object-position: 60% 35%; }
   .uu-text { display: flex; flex-direction: column; gap: 12px; }
   .uu-link { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; }
+  .uu-haus { padding-top: 64px; }
+  .uu-haus > .h2 { margin-bottom: 24px; }
+  .uu-wisch { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 0 20px; scroll-padding-left: 20px; }
+  .uu-wisch::-webkit-scrollbar { display: none; }
+  .uu-karte { flex: 0 0 100%; scroll-snap-align: start; padding: 0; background: #fff; border-radius: var(--radius-lg); overflow: hidden; gap: 0; align-content: start; }
+  .uu-karte .uu-bild { border-radius: 0; }
+  .uu-karte .uu-text { padding: 14px 16px; gap: 4px; }
+  .uu-karte .p { font-size: 15px; line-height: 1.5; }
+  .uu-kartentitel { font-size: 16px; font-weight: 500; color: #000; }
+  .uu-punkte { display: flex; justify-content: center; gap: 16px; margin-top: 20px; }
+  .uu-punkte span { width: 8px; height: 8px; border-radius: 9999px; background: var(--neutral-200); }
+  .uu-punkte span.an { background: var(--neutral-600); }
   .uu-hinweis { margin: 12px 0 0; font-size: 15px; color: var(--neutral-600); }
   @media (min-width: 1024px) {
+    .uu-haus { padding-top: 0; }
+    .uu-wisch { display: block; overflow: visible; padding: 0; }
+    .uu-karte { padding: 120px 20px 0; background: none; border-radius: 0; overflow: visible; gap: 64px; }
+    .uu-karte.uu-eng { padding-top: 64px; }
+    .uu-karte .uu-bild { border-radius: var(--radius-xl); }
+    .uu-karte .uu-text { padding: 0; gap: 20px; }
+    .uu-karte .p { font-size: 18px; line-height: 1.6; }
     .uu-werte { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px; font-size: 16px; line-height: 1.55; }
     .uu-werte li { gap: 8px; }
     .uu-wort { font-size: 56px; }

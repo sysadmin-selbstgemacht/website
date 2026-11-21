@@ -84,6 +84,7 @@ body[data-bereich='kursleitende'] { --seite: var(--color-bg-page-kursleitende); 
 /* nur auf Desktop zeigen */
 .nur-desktop { display: none; }
 @media (min-width: 1024px) { .nur-desktop { display: revert; } }
+@media (min-width: 1024px) { .nur-mobil { display: none !important; } }
 
 /* Rechtstexte (Impressum, Datenschutz) nach Wireframe: schmale Spalte, offene Punkte gestrichelt markiert */
 .rt-zurueck { padding-top: 16px; }
