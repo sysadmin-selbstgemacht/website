@@ -144,6 +144,7 @@ const eventDaten = {
           <div class="ts-leitung-text">
             <span class="ts-titel">Kursleitung: {l.data.name}</span>
             {l.data.vorstellung && <span>{l.data.vorstellung}</span>}
+            {l.data.website && <a class="textlink ts-web" href={l.data.website} target="_blank" rel="noopener">Website der Kursleitung<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON.extern} /></a>}
           </div>
         </div>
       ))}
@@ -271,6 +272,12 @@ const eventDaten = {
     .ts-karten, .ts-leitungen { gap: 24px; }
     .ts-karte { padding: 24px; gap: 20px; }
     .ts-leitung-text { padding: 24px; gap: 6px; }
+    /* Karte der Kursleitung so hoch wie die Faktenkarten links zusammen: das Foto füllt den Rest */
+    .ts-leitung { flex: 1 1 auto; display: flex; flex-direction: column; }
+    .ts-leitung :global(figure) { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 240px; }
+    .ts-leitung :global(picture) { flex: 1 1 0; position: relative; min-height: 0; display: block; }
+    .ts-leitung :global(picture img) { position: absolute; inset: 0; height: 100%; aspect-ratio: auto; }
+    .ts-leitung :global(figure > img) { flex: 1 1 0; min-height: 0; height: 0; aspect-ratio: auto; }
     .ts-ueber { padding-top: 120px; grid-template-columns: 4fr 8fr; gap: 64px; align-items: start; }
     .ts-inhalt { font-size: 18px; }
     .ts-zimmer { padding-top: 120px; }

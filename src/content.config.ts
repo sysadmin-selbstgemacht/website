@@ -22,6 +22,7 @@ const kursleitungen = defineCollection({
       name: z.string().min(L.nameMin).max(L.nameMax), // feste Schreibweise
       vorstellung: z.string().max(L.vorstellungMax).optional(),
       mail: z.string().email().optional(), // für Anfragen bei externen Terminen
+      website: z.string().url().optional(), // erscheint auf der Terminseite als „Website der Kursleitung“
       foto: bildwert, // 16:9, prüft der Worker beim Hochladen
       foto_alt: z.string().max(T.bildAltMax),
       foto_nachweis: z.string().max(T.nachweisMax).optional(), // erscheint dezent unter dem Foto
