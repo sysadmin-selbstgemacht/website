@@ -1,0 +1,38 @@
+---
+// Karten mit Bild und Text in Kennfarbe („Gemeinsam erleben“): Desktop drei Spalten, mobil zum Wischen.
+import Bild from './Bild.astro';
+import { katalogBild, type KatalogNr } from '../lib/bilder';
+interface Karte { nr: KatalogNr; alt: string; titel: string; text: string }
+interface Props { titel: string; einleitung?: string; karten: Karte[] }
+const { titel, einleitung, karten } = Astro.props;
+---
+<section class="sektion erlebnisse">
+  <div class="w">
+    <h2 class="h2">{titel}</h2>
+    {einleitung && <p class="p einleitung">{einleitung}</p>}
+  </div>
+  <div class="erl-spur" tabindex="0" aria-label={titel}>
+    {karten.map((k) => (
+      <div class="erl-karte">
+        <Bild src={katalogBild(k.nr)} alt={k.alt} sizes="(min-width: 1024px) 384px, 240px" />
+        <div class="erl-text"><span class="erl-titel">{k.titel}</span><span>{k.text}</span></div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .erlebnisse .h2 { margin-bottom: 0; }
+  .erl-spur { display: flex; gap: 12px; overflow-x: auto; padding: 0 20px; scroll-padding-left: 20px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .erl-spur::-webkit-scrollbar { display: none; }
+  .erl-karte { flex: 0 0 240px; scroll-snap-align: start; border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; background: var(--kennfarbe, #fff); }
+  .erl-karte :global(img) { width: 100%; height: 150px; object-fit: cover; display: block; }
+  .erl-text { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; line-height: 1.4; color: var(--kennschrift, #000); }
+  .erl-titel { font-size: 16px; font-weight: 500; }
+  @media (min-width: 1024px) {
+    .erl-spur { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; overflow: visible; max-width: calc(1200px + 40px); margin-inline: auto; padding-inline: 20px; }
+    .erl-karte :global(img) { height: 220px; }
+    .erl-text { padding: 20px 24px; gap: 6px; font-size: 16px; line-height: 1.5; }
+    .erl-titel { font-size: 18px; }
+  }
+</style>
