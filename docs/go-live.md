@@ -60,7 +60,7 @@ Zwischen 1 und 2 zeigt die Hauptdomain kurz einen Fehler. Darum beide Schritte d
 ## D · Prüfen (direkt danach)
 
 - [ ] `https://selbst-gemacht.eu` zeigt die neue Seite (Inkognito-Fenster, Handy im Mobilfunk)
-- [ ] `https://www.selbst-gemacht.eu/firmen/` leitet auf `https://selbst-gemacht.eu/firmen/` um
+- [ ] `https://www.selbst-gemacht.eu/tagungen/` leitet auf `https://selbst-gemacht.eu/tagungen/` um
 - [ ] Alte Adressen leiten um, Stichproben: `/business/`, `/startseite/`, `/produkt/fastenkurs-mit-gisela/`, `/datenschutzerklaerung/`
 - [ ] Unbekannte Adresse zeigt die 404-Seite
 - [ ] Quelltext: kein `noindex`; `/robots.txt` mit Sitemap-Zeile; `/sitemap.xml` mit echten Adressen

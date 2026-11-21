@@ -1,20 +1,28 @@
 ---
 import Kopf from '../components/Kopf.astro';
 import Fuss from '../components/Fuss.astro';
+import Anfrage from '../components/Anfrage.astro';
+import '../styles/basis.css';
 import '../styles/geruest.css';
 import { SEITEN, type SeitenSchluessel } from '../lib/seiten';
 
 // Feste Seiten übergeben `seite` (Angaben aus src/lib/seiten.ts).
 // Termine übergeben Titel und Beschreibung direkt.
+// anliegen: Zielgruppenseite mit festem Anliegen. Bestimmt auch Seitenfläche und Kennfarbe (body[data-bereich]).
+// geruest: Seite ist noch graues Gerüst (alte Platzhalter-Stile, schmale Spalte). Neue Seiten setzen geruest={false}.
+type Gemeinsam = { anliegen?: 'gruppe' | 'firma' | 'kursleitung'; geruest?: boolean };
 type Props =
-  | { seite: SeitenSchluessel; anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges' }
-  | { titel: string; beschreibung: string; bild?: string; anliegen?: 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges'; ohneAnfrage?: boolean };
-// ohneAnfrage: Seite hat ein eigenes Anfrageformular (Terminseite). Dann kein „Anfragen“ im Kopf, kein Formular im Fuß.
+  | ({ seite: SeitenSchluessel } & Gemeinsam)
+  | ({ titel: string; beschreibung: string; bild?: string; ohneAnfrage?: boolean } & Gemeinsam);
+// ohneAnfrage: Seite hat ein eigenes Anfrageformular (Terminseite). Dann kein „Anfragen“ im Kopf und kein Abschnitt #anfrage.
 
 const p = Astro.props;
 const angaben = 'seite' in p ? SEITEN[p.seite] : { titel: p.titel, beschreibung: p.beschreibung, bild: p.bild };
 const anliegen = p.anliegen;
 const ohneAnfrage = 'ohneAnfrage' in p && !!p.ohneAnfrage;
+const geruest = p.geruest ?? true;
+const BEREICH = { gruppe: 'gruppen', firma: 'tagungen', kursleitung: 'kursleitende' } as const;
+const bereich = anliegen ? BEREICH[anliegen] : undefined;
 const beschreibung = angaben.beschreibung;
 const bild = 'bild' in angaben ? (angaben.bild as string | undefined) : undefined;
 
@@ -35,6 +43,7 @@ const bildUrl = bild ? new URL(bild, Astro.site).href : undefined;
     {NOINDEX && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={kanonisch.href} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/roboto-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="sitemap" href="/sitemap.xml" />
     <!-- Vorschau beim Teilen (WhatsApp, Facebook, LinkedIn …) -->
     <meta property="og:type" content="website" />
@@ -47,11 +56,12 @@ const bildUrl = bild ? new URL(bild, Astro.site).href : undefined;
     <meta name="twitter:card" content={bildUrl ? 'summary_large_image' : 'summary'} />
     <slot name="head" />
   </head>
-  <body>
+  <body data-bereich={bereich}>
     <Kopf ohneAnfrage={ohneAnfrage} />
-    <main>
+    <main class:list={{ geruest }}>
       <slot />
     </main>
-    <Fuss anliegen={anliegen} ohneAnfrage={ohneAnfrage} />
+    {!ohneAnfrage && <Anfrage anliegen={anliegen} />}
+    <Fuss />
   </body>
 </html>

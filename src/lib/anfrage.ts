@@ -7,7 +7,7 @@ export type Anliegen = 'gruppe' | 'firma' | 'kursleitung' | 'sonstiges' | 'termi
 export const ANLIEGEN: { wert: Anliegen; text: string }[] = [
   { wert: 'gruppe', text: 'Gruppen' },
   { wert: 'firma', text: 'Tagungen' },
-  { wert: 'kursleitung', text: 'Kursleitung: Kurs oder Retreat' }, // Bezeichnung offen (Formularfrage 1)
+  { wert: 'kursleitung', text: 'Kursleitende' }, // entschieden 21.11.
   { wert: 'sonstiges', text: 'Sonstiges' },
 ];
 export const ALLE_ANLIEGEN: Anliegen[] = [...ANLIEGEN.map((a) => a.wert), 'termin'];
@@ -54,7 +54,8 @@ export const MIN_NAECHTE: Partial<Record<Anliegen, number>> = { gruppe: 1, firma
 export const KALENDER_MONATE = 18;
 
 export const BESCHRIFTUNG: Partial<Record<Anliegen, Partial<Record<Feld, string>>>> = {
-  firma: { personen: 'Teilnehmende' },
+  gruppe: { zeitraum: 'Ihr Wunschzeitraum' },
+  firma: { personen: 'Teilnehmende', zeitraum: 'Ihr Wunschzeitraum' },
   kursleitung: { zeitraum: 'Wunschzeitraum' },
   sonstiges: { nachricht: 'Ihre Nachricht' },
 };
@@ -66,6 +67,19 @@ export const STANDARD: Partial<Record<Feld, string>> = {
   thema: 'Kurs oder Thema', email: 'E-Mail', telefon: 'Telefon', nachricht: 'Nachricht (freiwillig)',
   termin: 'Termin', anrede: 'Anrede', vorname: 'Vorname', nachname: 'Nachname',
 };
+
+// Beispieltext im leeren Feld (Floating Label: Beschriftung steht im Feld, beim Tippen klein darüber).
+// Ohne Eintrag zeigt das Feld seine Beschriftung.
+export const BEISPIEL: Partial<Record<Anliegen, Partial<Record<Feld, string>>>> = {
+  gruppe: { zeitraum: 'Ihr Wunschzeitraum, z. B. ein Wochenende im Mai' },
+  kursleitung: { zeitraum: 'Wunschzeitraum, z. B. Frühjahr 2027, 4 Tage' },
+};
+
+// Zweistufiges Formular (Wireframes 21.11.): Schritt 1 Anliegen-Daten, Schritt 2 Kontaktdaten.
+// Sonstiges und Termin haben nur die Kontaktdaten und kommen ohne Schritt 1 aus.
+export const KONTAKTFELDER: Feld[] = ['anrede', 'vorname', 'nachname', 'email', 'telefon', 'nachricht'];
+export const SCHRITT1_NAME: Partial<Record<Anliegen, string>> = { gruppe: 'Ihr Aufenthalt', firma: 'Ihre Tagung', kursleitung: 'Ihr Kurs' };
+export const zweistufig = (a: Anliegen) => a in SCHRITT1_NAME;
 
 export const UEBERNACHTUNG = ['ja', 'nein', 'teilweise'];
 

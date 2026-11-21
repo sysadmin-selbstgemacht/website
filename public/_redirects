@@ -4,26 +4,26 @@
 # Statische Regeln zuerst, Platzhalter (*) zuletzt.
 
 # --- Hauptseiten ---
-/startseite/ /gruppen-und-familien/ 301
-/startseite /gruppen-und-familien/ 301
-/erleben/ /gruppen-und-familien/ 301
-/erleben /gruppen-und-familien/ 301
-/erleben-neu/ /gruppen-und-familien/ 301
-/erleben-neu /gruppen-und-familien/ 301
-/uebernachtung/ /gruppen-und-familien/ 301
-/uebernachtung /gruppen-und-familien/ 301
-/faq/ /gruppen-und-familien/ 301
-/faq /gruppen-und-familien/ 301
-/business/ /firmen/ 301
-/business /firmen/ 301
-/business-tagung/ /firmen/ 301
-/business-tagung /firmen/ 301
-/business-uebernachtung/ /firmen/ 301
-/business-uebernachtung /firmen/ 301
-/business-aktivitaeten/ /firmen/ 301
-/business-aktivitaeten /firmen/ 301
-/business-faq/ /firmen/ 301
-/business-faq /firmen/ 301
+/startseite/ /gruppen/ 301
+/startseite /gruppen/ 301
+/erleben/ /gruppen/ 301
+/erleben /gruppen/ 301
+/erleben-neu/ /gruppen/ 301
+/erleben-neu /gruppen/ 301
+/uebernachtung/ /gruppen/ 301
+/uebernachtung /gruppen/ 301
+/faq/ /gruppen/ 301
+/faq /gruppen/ 301
+/business/ /tagungen/ 301
+/business /tagungen/ 301
+/business-tagung/ /tagungen/ 301
+/business-tagung /tagungen/ 301
+/business-uebernachtung/ /tagungen/ 301
+/business-uebernachtung /tagungen/ 301
+/business-aktivitaeten/ /tagungen/ 301
+/business-aktivitaeten /tagungen/ 301
+/business-faq/ /tagungen/ 301
+/business-faq /tagungen/ 301
 /wir/ /ueber-uns/ 301
 /wir /ueber-uns/ 301
 /business-wir/ /ueber-uns/ 301
@@ -78,10 +78,10 @@
 # --- Blog (entfällt) ---
 /gastgeber/ /ueber-uns/ 301
 /gastgeber /ueber-uns/ 301
-/waldbaden/ /gruppen-und-familien/ 301
-/waldbaden /gruppen-und-familien/ 301
-/tagungspausen/ /firmen/ 301
-/tagungspausen /firmen/ 301
+/waldbaden/ /gruppen/ 301
+/waldbaden /gruppen/ 301
+/tagungspausen/ /tagungen/ 301
+/tagungspausen /tagungen/ 301
 /fruehlingszeit-fastenzeit/ /termine/ 301
 /fruehlingszeit-fastenzeit /termine/ 301
 /lesen/ / 301

@@ -1,34 +1,70 @@
 ---
-// Fußzeile mit dem gemeinsamen Anfrageformular (Brief 6d).
-// Das Anliegen ist je Seite vorausgewählt.
-import Anfrageformular from './Anfrageformular.astro';
-import type { Anliegen } from '../lib/anfrage';
-import { MAIL_ANFRAGE, mailtoAnfrage, TELEFON_ANZEIGE, TELEFON_LINK, WHATSAPP_LINK } from '../lib/kontakt';
-interface Props {
-  anliegen?: Anliegen;
-  ohneAnfrage?: boolean; // Seite hat ein eigenes Formular (Terminseite)
-}
-const { anliegen, ohneAnfrage = false } = Astro.props;
+// Footer nach Wireframes und Spec 21.11.: Name / Seminar- und Gästehaus / Adresse · Kontakt · Anreise und Unterlagen,
+// unten Impressum, Datenschutz, Facebook, Instagram. Ohne Google-Bewertungen. Anker #kontakt (Menüpunkt „Kontakt“).
+// Das Anfrageformular steht nicht mehr hier, sondern als eigener Abschnitt davor (Anfrage.astro).
+import {
+  HAUS_NAME, HAUS_ZUSATZ, ADRESSE, ROUTE_LINK, FACTSHEET_LINK, FACEBOOK_LINK, INSTAGRAM_LINK,
+  MAIL_ANFRAGE, mailtoAnfrage, TELEFON_ANZEIGE, TELEFON_LINK, WHATSAPP_LINK,
+} from '../lib/kontakt';
 ---
-<footer class="fuss">
-  {!ohneAnfrage && (
-    <section id="anfrage" class="anfrage">
-      <h2>Anfrage</h2>
-      <p class="offen">Offen: Ansprache du/Sie, Empfängeradresse. Versand läuft im Trockenlauf (zeigt die Mail an, verschickt nichts).</p>
-      <Anfrageformular anliegen={anliegen} />
-    </section>
-  )}
-  <section class="kontakt">
-    <p>SELBSTGEMACHT – Seminar- und Gästehaus · Arnsgrün</p>
-    <ul class="kontaktwege">
-      <li><a href={TELEFON_LINK}>{TELEFON_ANZEIGE}</a></li>
-      <li><a href={WHATSAPP_LINK} target="_blank" rel="noopener">WhatsApp</a></li>
-      <li><a href={mailtoAnfrage}>{MAIL_ANFRAGE}</a></li>
-    </ul>
-    <p class="offen">Offen: Anfahrt, Factsheet, Social-Media-Links (Katrins Profile oder Haus-Profile?)</p>
-    <ul class="rechtliches">
-      <li><a href="/impressum/">Impressum</a></li>
-      <li><a href="/datenschutz/">Datenschutz</a></li>
-    </ul>
-  </section>
+<footer id="kontakt" class="fuss">
+  <div class="w">
+    <div class="fuss-spalten">
+      <div class="fuss-haus">
+        <span class="fuss-name">{HAUS_NAME}</span>
+        <span>{HAUS_ZUSATZ}</span>
+        <span>{ADRESSE}</span>
+      </div>
+      <div class="fuss-liste">
+        <span class="fuss-titel">Kontakt</span>
+        <a href={TELEFON_LINK}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>{TELEFON_ANZEIGE}</a>
+        <a href={WHATSAPP_LINK} target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>WhatsApp</a>
+        <a href={mailtoAnfrage}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>{MAIL_ANFRAGE}</a>
+      </div>
+      <div class="fuss-liste">
+        <span class="fuss-titel">Anreise und Unterlagen</span>
+        <a href={ROUTE_LINK} target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></svg>Route planen in Google Maps<svg class="extern" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6" /></svg></a>
+        {FACTSHEET_LINK ? (
+          <a href={FACTSHEET_LINK} download><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>Factsheet (PDF)</a>
+        ) : (
+          <span class="fuss-platz"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>Factsheet (PDF) <span class="offen-markiert">[Datei offen]</span></span>
+        )}
+      </div>
+    </div>
+    <div class="fuss-unten">
+      <div class="fuss-recht"><a href="/impressum/">Impressum</a><a href="/datenschutz/">Datenschutz</a></div>
+      <div class="fuss-social">
+        {FACEBOOK_LINK
+          ? <a href={FACEBOOK_LINK} target="_blank" rel="noopener" aria-label="SELBSTGEMACHT bei Facebook"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg></a>
+          : <span class="offen-markiert">[Facebook-Link offen]</span>}
+        {INSTAGRAM_LINK
+          ? <a href={INSTAGRAM_LINK} target="_blank" rel="noopener" aria-label="SELBSTGEMACHT bei Instagram"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg></a>
+          : <span class="offen-markiert">[Instagram-Link offen]</span>}
+      </div>
+    </div>
+  </div>
 </footer>
+
+<style>
+  .fuss { background: var(--color-bg-inverse); color: #fff; font-size: 16px; line-height: 1.6; padding: 48px 0; }
+  .fuss a { color: #fff; }
+  .fuss-spalten { display: flex; flex-direction: column; gap: 24px; }
+  .fuss-haus { display: flex; flex-direction: column; gap: 4px; }
+  .fuss-name, .fuss-titel { font-weight: 500; }
+  .fuss-titel { display: none; margin-bottom: 4px; }
+  .fuss-liste { display: flex; flex-direction: column; gap: 4px; }
+  .fuss-liste > a, .fuss-platz { min-height: 44px; display: flex; align-items: center; gap: 10px; }
+  .fuss-liste svg { flex: 0 0 20px; }
+  .fuss-liste svg.extern { flex-basis: 16px; }
+  .fuss-unten { margin-top: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 15px; }
+  .fuss-recht { display: flex; gap: 24px; }
+  .fuss-social { display: flex; gap: 4px; align-items: center; }
+  .fuss-social a { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+  @media (min-width: 1024px) {
+    .fuss { padding: 64px 0 32px; }
+    .fuss-spalten { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 48px; }
+    .fuss-titel { display: block; }
+    .fuss-unten { margin-top: 48px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.35); }
+    .fuss-recht { gap: 32px; }
+  }
+</style>

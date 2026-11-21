@@ -21,13 +21,13 @@ export const SEITEN = {
       'Ein Haus, exklusiv für eine Gruppe: Seminar- und Gästehaus in Arnsgrün für Familien, Freundeskreise, Tagungen, Kurse und Retreats. Bis zu 30 Gäste.',
   },
   gruppen: {
-    pfad: '/gruppen-und-familien/',
+    pfad: '/gruppen/',
     titel: 'Gruppenhaus für Familien und Freunde · SELBSTGEMACHT',
     beschreibung:
       'Das ganze Haus für Familienfeste, Freundeswochenenden und Gruppenreisen: 10 Zimmer, bis zu 30 Gäste, Küche, Terrassen und Wiese in Arnsgrün.',
   },
-  firmen: {
-    pfad: '/firmen/',
+  tagungen: {
+    pfad: '/tagungen/',
     titel: 'Tagungshaus für Teams und Workshops · SELBSTGEMACHT',
     beschreibung:
       'Ungestört tagen im eigenen Haus: Seminarraum mit Technik, Verpflegung, Rahmenprogramm mit Lamas und Wald. Für Teams, Workshops und Seminare in Thüringen.',
@@ -69,3 +69,13 @@ export const SEITEN = {
 } satisfies Record<string, Seite>;
 
 export type SeitenSchluessel = keyof typeof SEITEN;
+
+// Hauptmenü (Kopf und Menü mobil), Reihenfolge nach Spec 21.11.
+// „Kontakt“ (nur Desktop, Anker #kontakt am Footer) ergänzt Kopf.astro selbst.
+export const MENUE = [
+  { href: SEITEN.gruppen.pfad, text: 'Gruppen' },
+  { href: SEITEN.tagungen.pfad, text: 'Tagungen' },
+  { href: SEITEN.kursleitende.pfad, text: 'Kursleitende' },
+  { href: SEITEN.termine.pfad, text: 'Termine' },
+  { href: SEITEN.ueberUns.pfad, text: 'Über uns' },
+];
