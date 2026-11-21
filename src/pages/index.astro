@@ -139,7 +139,8 @@ const stimmen = [
   .titel-abstand { margin-bottom: 24px; }
 
   /* Hero */
-  .held { position: relative; height: 600px; overflow: hidden; }
+  /* Hero füllt höchstens das Fenster unter dem Kopf, damit Titel und Wege ohne Scrollen sichtbar sind */
+  .held { position: relative; height: min(600px, calc(100svh - 64px)); min-height: 420px; overflow: hidden; }
   .held-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .held { background: var(--neutral-300); }
   .held-verlauf { position: absolute; left: 0; right: 0; bottom: 0; height: 230px; background: linear-gradient(to bottom, rgba(244, 243, 239, 0) 0%, rgba(244, 243, 239, .9) 55%, #f4f3ef 78%); }
@@ -190,7 +191,7 @@ const stimmen = [
   @media (min-width: 1024px) {
     .sektion { padding-top: 120px; }
     .titel-abstand { margin-bottom: 40px; }
-    .held { height: 810px; }
+    .held { height: min(810px, calc(100svh - 88px)); min-height: 520px; }
     .held-verlauf { height: 300px; background: linear-gradient(to bottom, rgba(244, 243, 239, 0) 0%, rgba(244, 243, 239, .9) 55%, #f4f3ef 80%); }
     .held-inhalt { bottom: 56px; gap: 20px; }
     .held-wege { gap: 12px; }
@@ -198,7 +199,7 @@ const stimmen = [
 
     .willkommen { padding-top: 96px; display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: center; }
     .willkommen-text { gap: 20px; }
-    .willkommen-satz { font-size: 36px; line-height: 1.25; font-weight: 300; color: #000; }
+    .willkommen-satz { font-size: 36px; line-height: 1.25; font-weight: 200; color: #000; }
     .willkommen-bild :global(img) { height: 440px; }
 
     .karten { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }

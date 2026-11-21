@@ -72,10 +72,11 @@ export type SeitenSchluessel = keyof typeof SEITEN;
 
 // Hauptmenü (Kopf und Menü mobil), Reihenfolge nach Spec 21.11.
 // „Kontakt“ (nur Desktop, Anker #kontakt am Footer) ergänzt Kopf.astro selbst.
-export const MENUE = [
-  { href: SEITEN.gruppen.pfad, text: 'Gruppen' },
-  { href: SEITEN.tagungen.pfad, text: 'Tagungen' },
-  { href: SEITEN.kursleitende.pfad, text: 'Kursleitende' },
+// linie: Farbe der Unterstreichung bei Hover und aktivem Punkt = Kennfarbe der Zielseite (sonst Grün).
+export const MENUE: { href: string; text: string; linie?: string }[] = [
+  { href: SEITEN.gruppen.pfad, text: 'Gruppen', linie: 'var(--color-audience-gruppen)' },
+  { href: SEITEN.tagungen.pfad, text: 'Tagungen', linie: 'var(--color-audience-tagungen)' },
+  { href: SEITEN.kursleitende.pfad, text: 'Kursleitende', linie: 'var(--color-audience-kursleitende)' },
   { href: SEITEN.termine.pfad, text: 'Termine' },
   { href: SEITEN.ueberUns.pfad, text: 'Über uns' },
 ];
