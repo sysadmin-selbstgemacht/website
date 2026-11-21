@@ -1,5 +1,5 @@
 ---
-// Terminliste: die nächsten 12 Monate, nach Monat gegliedert (Brief 6d, Briefing 20.11. Abschnitt 2).
+// Terminliste: die nächsten 15 Monate, nach Monat gegliedert (Brief 6d, Briefing 20.11. Abschnitt 2).
 // Statische Seite: "heute" ist der Zeitpunkt des Builds. Ein kleines Skript blendet im Browser
 // zusätzlich aus, was inzwischen vorbei ist. Siehe docs/termine.md.
 import { getCollection, getEntries } from 'astro:content';
@@ -30,7 +30,7 @@ function preis(t: { kursgebuehr?: number; uebernachtung: boolean }) {
 const heute = new Date();
 heute.setHours(0, 0, 0, 0);
 const grenze = new Date(heute);
-grenze.setMonth(grenze.getMonth() + 12);
+grenze.setMonth(grenze.getMonth() + 15);
 
 const termine = (await getCollection('termine'))
   .filter((t) => t.data.ende >= heute && t.data.beginn <= grenze)
@@ -48,7 +48,7 @@ for (const t of termine) {
 <Basis seite="termine" geruest={false}>
   <section class="w termine-kopf">
     <h1 class="h1">Termine</h1>
-    <p class="p">Kurse, Retreats und Veranstaltungen der nächsten 12 Monate.<br />Klicken Sie auf einen Termin, dort finden Sie alle Details und die Anmeldung.</p>
+    <p class="p">Kurse, Retreats und Veranstaltungen der nächsten 15 Monate.<br />Klicken Sie auf einen Termin, dort finden Sie alle Details und die Anmeldung.</p>
     <div class="filter" role="group" aria-label="Termine filtern" data-filter>
       <button type="button" data-f="alle" aria-pressed="true">Alle</button>
       <button type="button" data-f="e" aria-pressed="false">Eintägig</button>

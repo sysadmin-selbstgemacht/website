@@ -39,13 +39,14 @@ Externe Termine (`eigener_termin: false`) brauchen eine Kursleitung mit Mailadre
   "name": "Gisela Beispiel",
   "vorstellung": "Kurzvorstellung, max. 400 Zeichen",
   "mail": "gisela@example.com",
+  "website": "https://www.example.com",
   "foto": "medien/kursleitungen/gisela-beispiel-d4e5f6",
   "foto_alt": "Gisela Beispiel",
   "foto_nachweis": "Studio X"
 }
 ```
 
-`mail` und `foto_nachweis` sind optional. Der Name ist die feste Schreibweise; „Weitere Termine mit …“ vergleicht die Kennungen, nicht die Namen.
+`mail`, `website` und `foto_nachweis` sind optional. `website` erscheint auf der Terminseite als „Website der Kursleitung“. Der Name ist die feste Schreibweise; „Weitere Termine mit …“ vergleicht die Kennungen, nicht die Namen.
 
 Stimmt ein Feld nicht, scheitert der Build. Der Termin geht dann nicht live, die bisherige Seite bleibt online.
 
@@ -59,6 +60,6 @@ Stimmt ein Feld nicht, scheitert der Build. Der Termin geht dann nicht live, die
 
 ## Anzeige
 
-- Die Terminliste zeigt die **nächsten 12 Monate**, nach Monat gegliedert. Je Termin: Datum mit Wochentag fett, Uhrzeit, Titel, Dauer, Leitung, Kurzbeschreibung.
+- Die Terminliste zeigt die **nächsten 15 Monate**, nach Monat gegliedert. Je Termin: Datum mit Wochentag fett, Uhrzeit, Titel, Dauer, Leitung, Kurzbeschreibung.
 - Jeder Termin bekommt eine eigene Seite unter `/termine/<dateiname>/` mit Veranstaltungsdaten für Suchmaschinen (schema.org/Event) und steht, solange er nicht vorbei ist, in der Sitemap.
 - Vergangene Termine blendet die Seite im Browser aus (Datum nach deutscher Zeit). Aus der Sitemap fallen sie beim nächsten Build heraus.
