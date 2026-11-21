@@ -51,10 +51,12 @@ const titel = anliegen ? TITEL[anliegen] : 'Haus anfragen';
     .anfrage { margin-top: 120px; }
     .auswahl { padding: 96px 0; }
     .auswahl .anfrage-inhalt { max-width: 680px; gap: 28px; }
-    .fest { padding: 0; display: grid; grid-template-columns: 1fr 64px minmax(0, 576px) minmax(20px, calc((100vw - 1200px) / 2)); align-items: start; }
+    /* Bild läuft über die ganze Höhe des Abschnitts bis an den Footer, auch wenn das Formular höher wird (Kalender) */
+    .fest { padding: 0; display: grid; grid-template-columns: 1fr 64px minmax(0, 576px) minmax(20px, calc((100vw - 1200px) / 2)); align-items: stretch; }
     .fest .anfrage-inhalt { grid-column: 3; padding: 0 0 80px; gap: 28px; }
-    .anfrage-bild { display: block; position: relative; grid-column: 1; height: 760px; }
-    .anfrage-bild :global(img) { width: 100%; height: 760px; object-fit: cover; object-position: 80% center; }
+    .anfrage-bild { display: block; position: relative; grid-column: 1; min-height: 760px; }
+    .anfrage-bild :global(picture) { position: absolute; inset: 0; display: block; }
+    .anfrage-bild :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: 80% center; }
     .bild-offen { position: absolute; left: 16px; top: 16px; font-size: 14px; }
   }
 </style>
