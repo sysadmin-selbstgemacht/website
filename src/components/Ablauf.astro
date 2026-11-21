@@ -1,0 +1,58 @@
+---
+// „So läuft Ihre Anfrage“: nummerierte Schritte und Karte mit Annekathrin (Bild P-389).
+// Gruppen: Bild im Original; Tagungen und Kursleitende: gespiegelt (Entscheidung 21.11.).
+// Desktop: Schritte links, Karte rechts; mit karteLinks umgekehrt (Tagungen).
+import Bild from './Bild.astro';
+import { katalogBild } from '../lib/bilder';
+interface Props { titel?: string; schritte: { titel: string; text: string }[]; text: string; gespiegelt?: boolean; karteLinks?: boolean }
+const { titel = 'So läuft Ihre Anfrage', schritte, text, gespiegelt = false, karteLinks = false } = Astro.props;
+const markiere = (t: string) => t.replace(/\[([^\]]+)\]/g, '<span class="offen-markiert">[$1]</span>');
+---
+<section class:list={['w sektion ablauf', { 'karte-links': karteLinks }]}>
+  <div class="abl-schritte">
+    <h2 class="h2">{titel}</h2>
+    <ol>
+      {schritte.map((s, i) => (
+        <li><span class="abl-zahl" aria-hidden="true">{i + 1}</span><span><span class="abl-titel">{s.titel}</span><span class="abl-text">{s.text}</span></span></li>
+      ))}
+    </ol>
+  </div>
+  <div class="abl-karte">
+    <div class:list={['abl-bild', { gespiegelt }]}><Bild src={katalogBild('p389')} alt="Annekathrin" sizes="(min-width: 1024px) 590px, 100vw" /></div>
+    <div class="abl-unten">
+      <p><strong>Annekathrin</strong> <span set:html={markiere(text)} /></p>
+      <a class="knopf" href="#anfrage">Anfragen</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ablauf { display: flex; flex-direction: column; gap: 32px; }
+  .abl-schritte { display: flex; flex-direction: column; gap: 24px; }
+  ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 32px; }
+  li { display: flex; gap: 14px; align-items: flex-start; }
+  .abl-zahl { font: 200 72px/0.8 var(--font-sans); color: var(--kennfarbe, var(--green-700)); }
+  :global(body[data-bereich='gruppen']) .abl-zahl { color: var(--green-700); }
+  .abl-titel { display: block; font-size: 16px; font-weight: 500; line-height: 1.3; color: #000; }
+  .abl-text { font-size: 15px; line-height: 1.5; }
+  .abl-karte { background: #fff; border-radius: var(--radius-xl); overflow: hidden; display: flex; flex-direction: column; }
+  .abl-bild :global(img) { width: 100%; height: 260px; object-fit: cover; display: block; }
+  .abl-bild.gespiegelt :global(img) { transform: scaleX(-1); }
+  .abl-unten { padding: 16px; display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+  .abl-unten p { margin: 0; font-size: 15px; line-height: 1.5; }
+  .abl-unten strong { font-weight: 500; color: #000; }
+  @media (min-width: 1024px) {
+    .ablauf { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .abl-schritte { gap: 40px; }
+    .karte-links .abl-schritte { order: 2; }
+    ol { gap: 36px; }
+    li { gap: 16px; }
+    .abl-zahl { font-size: 88px; }
+    .abl-titel { font-size: 18px; }
+    .abl-text { font-size: 16px; }
+    .karte-links .abl-karte { order: 1; }
+    .abl-bild :global(img) { height: 380px; }
+    .abl-unten { padding: 24px; gap: 20px; }
+    .abl-unten p { font-size: 16px; line-height: 1.55; }
+  }
+</style>

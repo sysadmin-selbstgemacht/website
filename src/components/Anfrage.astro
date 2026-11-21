@@ -5,12 +5,12 @@
 import type { ImageMetadata } from 'astro';
 import Anfrageformular from './Anfrageformular.astro';
 import Bild from './Bild.astro';
-import platzhalter from '../assets/bilder/platzhalter.webp';
+import { katalogBild } from '../lib/bilder';
 import type { Anliegen } from '../lib/anfrage';
 
 interface Props {
   anliegen?: Exclude<Anliegen, 'termin' | 'sonstiges'>;
-  bild?: ImageMetadata; // Hausbild (Bildkatalog 144); bis zur Lieferung Platzhalter
+  bild?: ImageMetadata; // Standard: Hausbild 144 (Bildliste)
   bildAlt?: string;
 }
 const { anliegen, bild, bildAlt = 'Das Haus mit Rasen und Terrasse im Sommer' } = Astro.props;
@@ -24,8 +24,7 @@ const titel = anliegen ? TITEL[anliegen] : 'Haus anfragen';
 {anliegen ? (
   <section id="anfrage" class="anfrage fest">
     <div class="anfrage-bild">
-      <Bild src={bild ?? platzhalter} alt={bild ? bildAlt : ''} sizes="(min-width: 1024px) 50vw, 0px" />
-      {!bild && <span class="bild-offen offen-markiert">[Bild offen: Katalog 144]</span>}
+      <Bild src={bild ?? katalogBild('144')} alt={bildAlt} sizes="(min-width: 1024px) 50vw, 0px" />
     </div>
     <div class="anfrage-inhalt">
       <h2 class="h2">{titel}</h2>

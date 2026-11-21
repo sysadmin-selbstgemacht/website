@@ -1,16 +1,110 @@
 ---
+// Gruppen nach Wireframe „Gruppen · Desktop“ und „Gruppen · mobil“ (Canvas, Stand 21.11.).
+// Bilder laut Bildliste, FAQ-Texte laut spec_menue-footer-faq_2026-11-21.md. Offenes bleibt sichtbar markiert.
 import Basis from '../layouts/Basis.astro';
-import Abschnitt from '../components/Abschnitt.astro';
+import Bild from '../components/Bild.astro';
+import ZielgruppenHero from '../components/ZielgruppenHero.astro';
+import AufEinenBlick from '../components/AufEinenBlick.astro';
+import Slider from '../components/Slider.astro';
+import Stimmen from '../components/Stimmen.astro';
+import Erlebnisse from '../components/Erlebnisse.astro';
+import Ablauf from '../components/Ablauf.astro';
+import Faq from '../components/Faq.astro';
+import { katalogBild } from '../lib/bilder';
 ---
-<Basis seite="gruppen" anliegen="gruppe">
-  <div class="held"><div><p class="zweck">Kopfbereich: Bild oder Header-Clip „Familie Hero“</p><h1>Gruppen und Familien</h1></div></div>
+<Basis seite="gruppen" anliegen="gruppe" geruest={false}>
+  <ZielgruppenHero desktop="435" mobil="433" etikett="Gruppen" titel="Ein Haus einfach gemacht für Ihre Gruppe" />
 
-  <Abschnitt titel="Das ganze Haus für euch" zweck="Exklusive Nutzung, bis zu 30 Gäste, moderne Ausstattung, individuelle Wünsche." offen="Preisanker „ab … € pro Nacht“ ja oder nein?" />
-  <Abschnitt titel="Räume und Zimmer" zweck="10 Zimmer, Quadratmeter statt Grundrisse, Aufenthaltsraum, Selbstversorgerküche, Terrassen, Wiese." offen="Schwebezelte: zählen sie zur Bettenzahl, Saison, Aufpreis?" />
-  <Abschnitt titel="Verpflegung" zweck="Frühstück aus der Region, Selbstversorgung oder Absprache." />
-  <Abschnitt titel="Was ihr dazubuchen könnt" zweck="Lamas, Waldbaden u. a. nur anteasern: „Sprecht uns an“." />
-  <Abschnitt titel="Anlässe" zweck="Private Anlässe der Gruppe (z. B. Silberhochzeit) anteasern; keine Feiern mit Catering." />
-  <Abschnitt titel="Verfügbarkeit" zweck="Belegte Zeiträume, immer mit Button „Zeitraum anfragen“." offen="Technischer Weg nach Antwort von 3RPMS." />
-  <Abschnitt titel="Gästestimmen" zweck="Nur echte Zitate mit Freigabe; Google-Bewertungen mit Quelle." />
-  <Abschnitt titel="Anreise" zweck="Mitte Deutschlands, A9/A4/A72." offen="Abholung vom Bahnhof?" />
+  <!-- Versprechen -->
+  <section class="w versprechen">
+    <p class="versprechen-text">Alle schlafen unter einem Dach, jedes Zimmer mit eigenem Bad. Sie kochen gemeinsam in der großen Küche und genießen zusammen an einer langen Tafel.<br />Auf Wunsch bekochen wir sie liebevoll. <br />Platz für Rückzug gibt es auch.</p>
+    <div class="versprechen-bild nur-desktop"><Bild src={katalogBild('430')} alt="Gedeckte Tafel auf der Terrasse" sizes="(min-width: 1024px) 700px, 0px" /></div>
+  </section>
+
+  <AufEinenBlick
+    einleitung="Die wichtigsten Informationen für Ihren Aufenthalt - sprechen Sie uns bei Fragen gerne an."
+    karten={[
+      { icon: 'bett', titel: '24 Betten', text: '5 Doppel-, 2 Einzel- und 3 Familienzimmer, alle mit eigenem Bad.<br>Mit Aufbettung bis maximal 30 Personen. Ausstattung für 4 Kleinkinder vorhanden.' },
+      { icon: 'kochtopf', titel: 'Küche und Aufenthaltsraum', text: 'Große Selbstversorgerküche, Aufenthaltsraum mit Tafel für alle. Verpflegung zubuchbar ab 16 Personen.' },
+      { icon: 'draussen', titel: 'Draußen genießen', text: 'Zwei Terrassen mit 220 m², Holzkohlegrill und Feuerschale.' },
+      { icon: 'euro', titel: 'Preis', text: '890 € pro Nacht für 20 Personen, ab 2 Übernachtungen,<br>zzgl. 150 € Endreinigung.' },
+    ]}
+    lage="Ländliche Idylle im Thüringer Vogtland."
+  />
+
+  <section class="sektion" aria-labelledby="zeit-titel">
+    <div class="w"><h2 class="h2 titel-abstand" id="zeit-titel">Gemeinsam Zeit verbringen</h2></div>
+    <Slider
+      label="Gemeinsam Zeit verbringen"
+      hoeheDesktop={810}
+      hoeheMobil={219}
+      folien={[
+        { nr: '199', alt: 'Gruppe beim Aperitif', text: 'Auf eine entspannte gemeinsame Zeit' },
+        { nr: '158', alt: 'Doppelzimmer mit Tagesbett und Sesseln', text: 'Großzügiges Doppelzimmer mit Tagesbett und Sesseln' },
+        { nr: '232', alt: 'Einzelzimmer', text: 'Viel Platz im Einzelzimmer' },
+        { nr: '239', alt: 'Familienzimmer mit Kitchenette', text: 'Familienzimmer mit Hochbett und Kitchenette' },
+        { nr: '259', alt: 'Pizza im Steinofen', text: 'Seit 3 Stunden ist der Ofen angeheizt, nun darf die erste Pizza backen' },
+        { nr: '352', alt: 'Kinder machen es sich draußen gemütlich', text: 'Draußen ist Platz zum Toben und zum Faulenzen.' },
+        { nr: '429', alt: 'Gedeckte Tafel auf der Terrasse', text: 'Eine lange Tafel für alle, drinnen oder auf der Terrasse.' },
+        { nr: '347', alt: 'Hund auf der Terrasse', text: 'Auch vierbeinige Gruppenmitglieder sind uns willkommen' },
+        { nr: '251', alt: 'Familie bei der Lamawanderung', text: 'Mit unseren Lamas unterwegs – ein kleines Abenteuer' },
+        { nr: '192', alt: 'Frühstück in Gesellschaft', text: 'Verwöhnfrühstück in geselliger Runde' },
+        { nr: '534', alt: 'Das Haus von oben zur blauen Stunde', text: 'Überblick in der blauen Stunde – dörfliche Ruhe' },
+        { nr: '478', alt: 'Feuerschale zur blauen Stunde vor dem Haus', text: 'Ein erlebnisreicher Tag geht zu Ende' },
+      ]}
+    />
+  </section>
+
+  <Stimmen stimmen={[
+    { text: 'Entscheidend dafür, dass man sich hier wohl und wirklich willkommen fühlt, sind die immer herzlichen, hilfsbereiten und unkomplizierten Anne und Katrin.', name: 'Nadine Hirche', zusatz: 'Freundesgruppe · Juni 2026' },
+    { text: '[…] Besonders begeistert waren wir von den wunderschönen Gästezimmern und der großen, bestens ausgestatteten Küche, die viel Platz für gemeinsames Kochen, Essen und gemütliches Beisammensein bietet. Wir haben uns vom ersten Moment an rundum wohlgefühlt und die gemeinsame Zeit in vollen Zügen genossen. Ein perfekter Ort für ein schönes Familienwochenende, an dem man sich einfach zu Hause fühlen kann. […]', name: 'Maika Heilmann', zusatz: 'Familie · März 2026' },
+    { text: 'Das Haus ist für uns einfach perfekt: ein wunderschöner, großzügiger Gemeinschaftsbereich mit gemütlichem Kamin, in dem alle zusammenkommen können, und gleichzeitig liebevoll und individuell gestaltete Zimmer, in die man sich auch mal zurückziehen kann. Überall merkt man, mit wie viel Liebe zum Detail und Gespür für Materialien und Gestaltung dieses besondere Haus entstanden ist.', name: 'René Böhme', zusatz: 'Freundesgruppe · Dezember 2025' },
+  ]} />
+
+  <Erlebnisse
+    titel="Gemeinsam erleben"
+    einleitung="Sich auf Neues einlassen, intensiv erleben, ausprobieren: Mit unseren Erlebnissen öffnen wir neue Perspektiven."
+    karten={[
+      { nr: '250', alt: 'Lamawanderung mit Kind', titel: 'Lamawanderung', text: 'Mit unseren Lamas Ruhe und Gelassenheit erleben.' },
+      { nr: '260', alt: 'Pizza backen am Steinofen', titel: 'Pizza backen am Steinofen', text: 'Gemeinsam, mit Begleitung.' },
+      { nr: '290', alt: 'Baumzelt im Wald', titel: 'Baumzeltübernachtung', text: 'Eine Nacht zwischen den Baumkronen, mit Blick in die Sterne.' },
+      { nr: '314', alt: 'Hängematten im Wald', titel: 'Hängemattenauszeit im Wald', text: 'Sanft schaukeln, dem Blätterrauschen lauschen und einfach sein.' },
+      { nr: '197', alt: 'Filzen mit Kind', titel: 'Filzen', text: 'Aus Wolle, Wasser und Seife entsteht mit eigenen Händen etwas Bleibendes.' },
+    ]}
+  />
+
+  <Ablauf
+    schritte={[
+      { titel: 'Sie fragen an', text: 'mit Ihrem Wunschzeitraum, über das Formular, per Telefon oder Mail' },
+      { titel: 'Wir melden uns', text: 'innerhalb eines Werktags und sprechen persönlich mit Ihnen' },
+      { titel: 'Ihr Angebot', text: 'für Ihren Aufenthalt im ganzen Haus' },
+    ]}
+    text="ist Ihre Ansprechpartnerin für Ihre Anfrage. [Text offen]"
+  />
+
+  <Faq id="faq-gruppen" fragen={[
+    { frage: 'Was ist im Preis enthalten?', antwort: 'Bettwäsche, Handtücher, Pflegeprodukte, Föhn, WLAN und Parken.' },
+    { frage: 'Küche und Verpflegung', antwort: 'Sie kochen selbst in unserer großen Selbstversorgerküche und essen gemeinsam an der Tafel im Aufenthaltsraum. Ab 16 Personen können Sie Verpflegung durch unser Hausteam dazubuchen: vegetarisch oder vegan, glutenfrei immer, laktosefrei auf Wunsch. Auch der Pizzaofen kann zum gemeinsamen Essen werden.' },
+    { frage: 'Kommen Kinder oder ein Hund mit?', antwort: 'Kinder sind herzlich willkommen. Für vier Kleinkinder ist Ausstattung vorhanden. Auch vierbeinige Gruppenmitglieder sind willkommen. [offen: Bedingungen für Hunde, z. B. Anzahl, Aufpreis]' },
+    { frage: 'Anreise, Abreise und Parken', antwort: 'Sie erreichen uns mit Bahn und Taxi oder mit dem Auto. Parken ist im Preis enthalten. [offen: Uhrzeiten Anreise/Abreise, Anzahl Stellplätze]' },
+    { frage: 'Bei Regen und für Ausflüge', antwort: 'Im Aufenthaltsraum mit Kamin ist Platz für alle. Dazu können Sie Erlebnisse buchen: Lamawanderung, Pizza backen am Steinofen, Filzen, eine Baumzeltübernachtung oder eine Hängemattenauszeit im Wald. Der Wald ist zwei Minuten zu Fuß entfernt. [offen: Ausflugsziele in der Umgebung]' },
+    { frage: 'Mindestaufenthalt und Kaution', antwort: 'Der Mindestaufenthalt beträgt zwei Nächte. [offen: Kaution]' },
+    { frage: 'Treppen und Barrierefreiheit', antwort: '[offen: keine Angaben in den Docs]' },
+    { frage: 'Lautstärke und Ruhezeiten', antwort: 'Ihre Gruppe hat das Haus für sich, Sie stören also keine anderen Gäste. [offen: Ruhezeiten im Ort]' },
+  ]}>
+    <Fragment slot="einleitung">
+      <p class="p nur-desktop"><span class="offen-markiert">[Absatz 1, etwa zwei Zeilen: die wichtigsten Antworten auf einen Blick.]</span></p>
+      <p class="p nur-desktop"><span class="offen-markiert">[Absatz 2, etwa zwei Zeilen: Ihre Frage ist nicht dabei? Annekathrin hilft gern weiter, per Telefon oder WhatsApp.]</span></p>
+    </Fragment>
+  </Faq>
 </Basis>
+
+<style>
+  .versprechen { padding-top: 64px; }
+  .versprechen-text { margin: 0; font-size: 16px; line-height: 1.6; }
+  @media (min-width: 1024px) {
+    .versprechen { padding-top: 96px; display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: center; }
+    .versprechen-text { font-size: 36px; line-height: 1.25; font-weight: 200; color: #000; }
+    .versprechen-bild :global(img) { width: 100%; height: 440px; object-fit: cover; object-position: center 55%; border-radius: var(--radius-xl); }
+  }
+</style>

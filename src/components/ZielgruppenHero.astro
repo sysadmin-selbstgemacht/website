@@ -1,0 +1,54 @@
+---
+// Hero der Zielgruppenseiten (Gruppen, Tagungen, Kursleitende): Bild über die volle Breite,
+// Verlauf in die Seitenfläche, Etikett in Kennfarbe, Titel. Höhe höchstens Fenster unter dem Kopf.
+// Mobil und Desktop können verschiedene Bilder haben (Bildliste: Gruppen 433 mobil, 435 Desktop).
+import { getImage } from 'astro:assets';
+import { katalogBild, type KatalogNr } from '../lib/bilder';
+interface Props {
+  desktop: KatalogNr;
+  mobil?: KatalogNr;
+  etikett: string;
+  titel: string;
+  position?: string; // object-position Desktop
+  positionMobil?: string;
+}
+const { desktop, mobil = desktop, etikett, titel, position = 'center', positionMobil = 'center' } = Astro.props;
+const breiten = [480, 800, 1200, 1600, 2400];
+async function quellen(nr: KatalogNr, format: 'avif' | 'webp') {
+  const src = katalogBild(nr);
+  const teile = await Promise.all(breiten.filter((b) => b <= src.width).map(async (b) => `${(await getImage({ src, width: b, format })).src} ${b}w`));
+  return teile.join(', ');
+}
+const dAvif = await quellen(desktop, 'avif'), dWebp = await quellen(desktop, 'webp');
+const mAvif = await quellen(mobil, 'avif'), mWebp = await quellen(mobil, 'webp');
+const rueckfall = await getImage({ src: katalogBild(desktop), width: 1600, format: 'webp' });
+---
+<section class="zg-held">
+  <picture>
+    <source media="(min-width: 1024px)" type="image/avif" srcset={dAvif} sizes="100vw" />
+    <source media="(min-width: 1024px)" type="image/webp" srcset={dWebp} sizes="100vw" />
+    <source type="image/avif" srcset={mAvif} sizes="100vw" />
+    <source type="image/webp" srcset={mWebp} sizes="100vw" />
+    <img src={rueckfall.src} alt="" fetchpriority="high" decoding="async" style={`--pos-d:${position};--pos-m:${positionMobil}`} />
+  </picture>
+  <div class="zg-verlauf" aria-hidden="true"></div>
+  <div class="w zg-inhalt">
+    <span class="zg-etikett">{etikett}</span>
+    <h1 class="h1">{titel}</h1>
+  </div>
+</section>
+
+<style>
+  .zg-held { position: relative; height: min(600px, calc(100svh - 68px)); min-height: 420px; overflow: hidden; background: var(--neutral-300); }
+  img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--pos-m); }
+  .zg-verlauf { position: absolute; left: 0; right: 0; bottom: 0; height: 230px; background: linear-gradient(to bottom, color-mix(in srgb, var(--seite) 0%, transparent) 0%, color-mix(in srgb, var(--seite) 90%, transparent) 55%, var(--seite) 78%); }
+  .zg-inhalt { position: absolute; left: 0; right: 0; bottom: 32px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+  .zg-etikett { display: inline-flex; height: 32px; align-items: center; padding: 0 14px; border-radius: var(--radius-lg); background: var(--kennfarbe); color: var(--kennschrift); font-size: 15px; font-weight: 500; }
+  @media (min-width: 1024px) {
+    .zg-held { height: min(810px, calc(100svh - 92px)); min-height: 520px; }
+    img { object-position: var(--pos-d); }
+    .zg-verlauf { height: 300px; background: linear-gradient(to bottom, color-mix(in srgb, var(--seite) 0%, transparent) 0%, color-mix(in srgb, var(--seite) 90%, transparent) 55%, var(--seite) 80%); }
+    .zg-inhalt { bottom: 56px; gap: 16px; }
+    .zg-etikett { height: 36px; padding: 0 16px; font-size: 16px; }
+  }
+</style>
