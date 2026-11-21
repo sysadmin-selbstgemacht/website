@@ -1,13 +1,15 @@
 ---
 // Detailseite je Termin: teilbarer Link und Veranstaltungsdaten für Suchmaschinen (Brief 6d).
 // Aufbau und Inhalte nach Wireframe „Terminseite“ (Canvas) und Briefing 20.11., Abschnitt 3.
-// Gestaltung (Farben, Schrift, Kacheln mit Icons) folgt mit dem Design; hier Reihenfolge und Inhalt.
+// Gestaltung nach TerminseiteDesktop/Terminseite (Canvas 21.11.).
 import { getCollection, getEntries, render } from 'astro:content';
 import Medienbild from '../../components/Medienbild.astro';
 import Anfrageformular from '../../components/Anfrageformular.astro';
 import Basis from '../../layouts/Basis.astro';
+import Slider from '../../components/Slider.astro';
+import { ICON } from '../../lib/icons';
 import { bildUrl } from '../../lib/medien';
-import { datumText, datumKurz, datumKopf, datumLang, uhrzeitText, dauerText, namenText } from '../../lib/termine';
+import { datumText, datumKopf, datumLang, uhrzeitText, dauerText, namenText } from '../../lib/termine';
 import { VERPFLEGUNG, verpflegungZusatz, PREIS_AB_UST, euro, ustText, naechte } from '../../lib/termin-felder';
 
 export async function getStaticPaths() {
@@ -66,109 +68,218 @@ const eventDaten = {
   image: new URL(teilenBild, Astro.site).href,
 };
 ---
-<Basis titel={`${d.titel} · SELBSTGEMACHT`} beschreibung={beschreibung} bild={teilenBild} ohneAnfrage>
+<Basis titel={`${d.titel} · SELBSTGEMACHT`} beschreibung={beschreibung} bild={teilenBild} ohneAnfrage geruest={false}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(eventDaten)} />
-  <p><a href="/termine/">← Alle Termine</a></p>
-  <p class="offen vorbei" hidden data-ende={d.ende.toISOString().slice(0, 10)}>Dieser Termin ist bereits vorbei. <a href="/termine/">Zu den aktuellen Terminen</a></p>
+  <div class="w ts-zurueck">
+    <a class="textlink" href="/termine/"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>Alle Termine</a>
+    <p class="ts-vorbei" hidden data-ende={d.ende.toISOString().slice(0, 10)}>Dieser Termin ist bereits vorbei. <a href="/termine/">Zu den aktuellen Terminen</a></p>
+  </div>
   <script>
-    const v = document.querySelector<HTMLElement>('.vorbei');
+    const v = document.querySelector<HTMLElement>('.ts-vorbei');
     const heute = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
     if (v && (v.dataset.ende ?? '') < heute) v.hidden = false;
   </script>
 
-  <Medienbild wert={d.bild} alt={d.bild_alt} nachweis={d.bild_nachweis} sizes="(min-width: 72rem) 70rem, 100vw" priorisiert />
-
-  <section class="termin-kopf">
-    <p><strong>{datumKopf(d.beginn, d.ende)}</strong></p>
-    <h1>{d.titel}</h1>
-    <p>{d.kurzbeschreibung}</p>
-  </section>
-
-  <section class="termin-kacheln">
-    <div class="kachel">
-      <h2>Termin</h2>
-      <p>{datumLang(d.beginn, d.ende)}<br />{uebernachtungen}{uhrzeitText(d)}</p>
+  <section class="w ts-kopf">
+    <div class="ts-kursbild">
+      <Medienbild wert={d.bild} alt={d.bild_alt} nachweis={d.bild_nachweis} sizes="(min-width: 1024px) 680px, 100vw" priorisiert />
     </div>
-    {d.kursgebuehr !== undefined && d.ust !== undefined && (
-      <div class="kachel">
-        <h2>Kursgebühr</h2>
-        <p>{euro(d.kursgebuehr)} ({ustText(d.ust)}){!d.eigener_termin && <>, zu zahlen an die Kursleitung</>}</p>
+    <div class="ts-kopftext">
+      <span class="ts-datum"><strong>{datumKopf(d.beginn, d.ende)}</strong></span>
+      <h1 class="ts-h1">{d.titel}</h1>
+      <p class="p">{d.kurzbeschreibung}</p>
+      <div class="ts-knoepfe">
+        <a class="knopf" href="#anmeldung">Unverbindlich anfragen</a>
+        <button type="button" class="ts-teilen" data-teilen data-titel={d.titel} aria-label="Termin teilen">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" x2="15.42" y1="13.51" y2="17.49" /><line x1="15.41" x2="8.59" y1="6.51" y2="10.49" /></svg>
+        </button>
+        <span class="ts-kopiert" data-kopiert role="status"></span>
       </div>
-    )}
-    {d.preis_ab !== undefined && (
-      <div class="kachel">
-        <h2>{d.uebernachtung ? 'Übernachtung und Verpflegung' : 'Verpflegung'}</h2>
-        <p>ab {euro(d.preis_ab)} ({PREIS_AB_UST}) pro Person für den gesamten Aufenthalt{d.uebernachtung && ', je nach Zimmerkategorie'}. Gezahlt wird vor Ort.</p>
-      </div>
-    )}
-    {d.verpflegung !== 'keine' && (
-      <div class="kachel">
-        <h2>Verpflegung</h2>
-        <p>{VERPFLEGUNG[d.verpflegung]}. {verpflegungZusatz(d.verpflegung)}</p>
-      </div>
-    )}
-    {leitungen.map((l) => (
-      <div class="kachel leitung">
-        <Medienbild wert={l.data.foto} alt={l.data.foto_alt} nachweis={l.data.foto_nachweis} sizes="(min-width: 40rem) 30rem, 100vw" />
-        <h2>Kursleitung: {l.data.name}</h2>
-        {l.data.vorstellung && <p>{l.data.vorstellung}</p>}
-      </div>
-    ))}
+    </div>
   </section>
-  {d.anmeldung_web && <p><a href={d.anmeldung_web} target="_blank" rel="noopener">Website zum Kurs ↗</a></p>}
-
-  <p class="zeile-knoepfe">
-    <a class="knopf" href="#anmeldung">Unverbindlich anfragen</a>
-    <button type="button" class="teilen" data-titel={d.titel} aria-label="Termin teilen">Teilen</button>
-  </p>
   <script>
-    document.querySelector<HTMLButtonElement>('.teilen')?.addEventListener('click', async (e) => {
+    document.querySelector<HTMLButtonElement>('[data-teilen]')?.addEventListener('click', async (e) => {
       const b = e.currentTarget as HTMLButtonElement;
       const daten = { title: b.dataset.titel, url: location.href };
       try {
         if (navigator.share) await navigator.share(daten);
-        else { await navigator.clipboard.writeText(location.href); b.textContent = 'Link kopiert'; }
+        else {
+          await navigator.clipboard.writeText(location.href);
+          const k = document.querySelector<HTMLElement>('[data-kopiert]');
+          if (k) k.textContent = 'Link kopiert';
+        }
       } catch { /* abgebrochen */ }
     });
   </script>
 
-  <section class="abschnitt">
-    <h2>Über den Kurs</h2>
-    <Content />
+  <section class="w ts-fakten">
+    <div class="ts-karten">
+      <div class="ts-karte">
+        <svg viewBox="0 0 24 24" aria-hidden="true" set:html={ICON.kalender} />
+        <div><span class="ts-titel">Termin</span><span>{datumLang(d.beginn, d.ende)}<br />{uebernachtungen}{uhrzeitText(d)}</span></div>
+      </div>
+      {d.kursgebuehr !== undefined && d.ust !== undefined && (
+        <div class="ts-karte">
+          <svg viewBox="0 0 24 24" aria-hidden="true" set:html={ICON.euro} />
+          <div><span class="ts-titel">Kursgebühr</span><span>{euro(d.kursgebuehr)} ({ustText(d.ust)}){!d.eigener_termin && <>, zu zahlen an die Kursleitung</>}</span></div>
+        </div>
+      )}
+      {d.preis_ab !== undefined && (
+        <div class="ts-karte">
+          <svg viewBox="0 0 24 24" aria-hidden="true" set:html={ICON.bett} />
+          <div><span class="ts-titel">{d.uebernachtung ? 'Übernachtung und Verpflegung' : 'Verpflegung'}</span><span>ab {euro(d.preis_ab)} ({PREIS_AB_UST}) pro Person für den gesamten Aufenthalt{d.uebernachtung && ', je nach Zimmerkategorie'}. Gezahlt wird vor Ort.</span></div>
+        </div>
+      )}
+      {d.verpflegung !== 'keine' && (
+        <div class="ts-karte">
+          <svg viewBox="0 0 24 24" aria-hidden="true" set:html={ICON.suppe} />
+          <div><span class="ts-titel">Verpflegung</span><span>{VERPFLEGUNG[d.verpflegung]}. {verpflegungZusatz(d.verpflegung)}</span></div>
+        </div>
+      )}
+    </div>
+    <div class="ts-leitungen">
+      {leitungen.map((l) => (
+        <div class="ts-leitung">
+          <Medienbild wert={l.data.foto} alt={l.data.foto_alt} nachweis={l.data.foto_nachweis} sizes="(min-width: 1024px) 588px, 100vw" />
+          <div class="ts-leitung-text">
+            <span class="ts-titel">Kursleitung: {l.data.name}</span>
+            {l.data.vorstellung && <span>{l.data.vorstellung}</span>}
+          </div>
+        </div>
+      ))}
+      {d.anmeldung_web && (
+        <a class="textlink ts-web" href={d.anmeldung_web} target="_blank" rel="noopener">Website zum Kurs<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON.extern} /></a>
+      )}
+    </div>
+  </section>
+
+  <section class="w ts-ueber">
+    <h2 class="h2">Über den Kurs</h2>
+    <div class="ts-inhalt"><Content /></div>
   </section>
 
   {d.uebernachtung && (
-    <section class="abschnitt">
-      <h2>Zimmer</h2>
-      <p>Alle wohnen unter einem Dach, in 10 Zimmern mit eigenem Bad.</p>
-      <p class="offen">Zimmerbilder (Slider nach Wireframe), nur bei Terminen mit Übernachtung</p>
+    <section class="ts-zimmer">
+      <div class="w"><h2 class="h2">Zimmer</h2><p class="p einleitung">Alle wohnen unter einem Dach, in 10 Zimmern mit eigenem Bad.</p></div>
+      <Slider
+        label="Zimmer"
+        folien={[
+          { nr: '158', alt: 'Zimmer in Orange mit Kunst an der Wand' },
+          { nr: '162', alt: 'Zimmer mit roter Kunst' },
+          { nr: '176', alt: 'Zimmer mit Pflanzen' },
+          { nr: '221', alt: 'Zimmer mit Bad und Balkon' },
+        ]}
+      />
     </section>
   )}
 
-  <section id="anmeldung" class="abschnitt anfrage">
-    <h2>Interesse?</h2>
-    {d.eigener_termin ? (
-      <>
-        <p>Schreiben Sie uns, wir melden uns innerhalb eines Werktags bei Ihnen.</p>
-        <Anfrageformular termin={`${d.titel} · ${datumText(d.beginn, d.ende)}`} />
-      </>
-    ) : (
-      <>
-        <p>{leitungsText} {leitungen.length > 1 ? 'beantworten' : 'beantwortet'} Ihre Fragen zum Kurs und {leitungen.length > 1 ? 'nehmen' : 'nimmt'} Ihre Anmeldung entgegen.</p>
-        {mailLink && <p><a class="knopf" href={mailLink}>Unverbindlich anfragen</a></p>}
-        {!mailLink && d.anmeldung_web && <p><a class="knopf" href={d.anmeldung_web} target="_blank" rel="noopener">Zur Anmeldung ↗</a></p>}
-      </>
-    )}
+  <section id="anmeldung" class="ts-anmeldung">
+    <div class="w ts-anm-raster">
+      <h2 class="h2">Interesse?</h2>
+      <div class="ts-anm-inhalt">
+        {d.eigener_termin ? (
+          <>
+            <p class="p">Schreiben Sie uns, wir melden uns innerhalb eines Werktags bei Ihnen.</p>
+            <Anfrageformular termin={`${d.titel} · ${datumText(d.beginn, d.ende)}`} />
+          </>
+        ) : (
+          <>
+            <p class="p">{leitungsText} {leitungen.length > 1 ? 'beantworten' : 'beantwortet'} Ihre Fragen zum Kurs und {leitungen.length > 1 ? 'nehmen' : 'nimmt'} Ihre Anmeldung entgegen.</p>
+            {mailLink && <a class="knopf ts-mail" href={mailLink}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>Unverbindlich anfragen</a>}
+            {!mailLink && d.anmeldung_web && <a class="knopf ts-mail" href={d.anmeldung_web} target="_blank" rel="noopener">Zur Anmeldung<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON.extern} /></a>}
+          </>
+        )}
+      </div>
+    </div>
   </section>
 
   {weitere.length > 0 && (
-    <section class="abschnitt">
-      <h2>Weitere Termine mit {leitungsText}</h2>
-      <ul>
+    <section class="w ts-weitere" data-weitere>
+      <h2 class="h2">Weitere Termine mit {leitungsText}</h2>
+      <div class="ts-weitere-raster">
         {weitere.map((t) => (
-          <li data-ende={t.data.ende.toISOString().slice(0, 10)}><strong>{datumKurz(t.data.beginn)}</strong> <a href={`/termine/${t.id}/`}>{t.data.titel}</a> · {dauerText(t.data)}</li>
+          <a class="ts-weiterer" href={`/termine/${t.id}/`} data-ende={t.data.ende.toISOString().slice(0, 10)}>
+            <strong>{datumKopf(t.data.beginn, t.data.ende)}</strong>
+            <span class="ts-w-titel">{t.data.titel}</span>
+            <span>{dauerText(t.data)}</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+          </a>
         ))}
-      </ul>
+      </div>
     </section>
   )}
+  <script>
+    // vergangene weitere Termine ausblenden (Build kann älter sein als heute)
+    const heuteW = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+    document.querySelectorAll<HTMLElement>('.ts-weiterer').forEach((a) => { a.hidden = (a.dataset.ende ?? '') < heuteW; });
+    const w = document.querySelector<HTMLElement>('[data-weitere]');
+    if (w && !w.querySelector('.ts-weiterer:not([hidden])')) w.hidden = true;
+  </script>
 </Basis>
+
+<style>
+  .ts-zurueck { padding-top: 16px; }
+  .ts-zurueck .textlink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+  .ts-vorbei { margin: 8px 0 0; padding: 12px 16px; background: #fff4c2; border-radius: var(--radius-md); font-size: 16px; color: #000; }
+  .ts-kopf { padding-top: 16px; display: grid; gap: 24px; }
+  .ts-kursbild { border-radius: var(--radius-xl); overflow: hidden; }
+  .ts-kopf :global(figure), .ts-leitung :global(figure) { margin: 0; }
+  .ts-kursbild :global(img), .ts-leitung :global(img) { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; height: auto; }
+  .ts-kopf :global(.bildnachweis), .ts-leitung :global(.bildnachweis) { font-size: 12px; color: var(--neutral-600); padding: 4px 8px 0; margin: 0; }
+  .ts-kopftext { display: flex; flex-direction: column; gap: 12px; }
+  .ts-datum { font-size: 16px; line-height: 1.5; }
+  .ts-datum strong { font-weight: 500; color: #000; }
+  .ts-h1 { margin: 0; font-size: 34px; line-height: 1.15; font-weight: 200; color: #000; overflow-wrap: anywhere; }
+  .ts-knoepfe { margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .ts-teilen { width: 48px; height: 48px; box-sizing: border-box; border: 1px solid var(--green-700); border-radius: 5px; background: #fff; color: var(--green-800); display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+  .ts-kopiert { font-size: 15px; }
+  .ts-fakten { padding-top: 64px; display: grid; gap: 16px; }
+  .ts-karten, .ts-leitungen { display: flex; flex-direction: column; gap: 16px; }
+  .ts-karte { background: #fff; border-radius: var(--radius-lg); padding: 20px; display: flex; gap: 16px; align-items: flex-start; font-size: 16px; line-height: 1.55; }
+  .ts-karte svg { flex: 0 0 28px; width: 28px; height: 28px; margin-top: 2px; fill: none; stroke: #555; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .ts-karte > div, .ts-leitung-text { display: flex; flex-direction: column; gap: 4px; }
+  .ts-titel { font-size: 18px; font-weight: 500; color: #000; }
+  .ts-leitung { background: #fff; border-radius: var(--radius-lg); overflow: hidden; }
+  .ts-leitung-text { padding: 20px; font-size: 16px; line-height: 1.55; }
+  .ts-web { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+  .ts-ueber { padding-top: 64px; display: grid; gap: 24px; }
+  .ts-inhalt { display: flex; flex-direction: column; gap: 16px; max-width: 720px; font-size: 16px; line-height: 1.6; }
+  .ts-inhalt :global(p), .ts-inhalt :global(ul), .ts-inhalt :global(ol) { margin: 0; }
+  .ts-inhalt :global(ul), .ts-inhalt :global(ol) { padding-left: 1.4em; }
+  .ts-inhalt :global(strong) { font-weight: 500; color: #000; }
+  .ts-zimmer { padding-top: 64px; }
+  .ts-zimmer .einleitung { margin: 16px 0 24px; }
+  .ts-anmeldung { margin-top: 64px; padding: 64px 0; background: #fff; }
+  .ts-anm-raster { display: grid; gap: 24px; }
+  .ts-anm-inhalt { display: flex; flex-direction: column; gap: 16px; max-width: 720px; }
+  .ts-mail { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; }
+  .ts-weitere { padding: 64px 20px; }
+  .ts-weitere .h2 { margin-bottom: 24px; }
+  .ts-weitere-raster { display: grid; gap: 16px; }
+  .ts-weiterer { background: #fff; border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: var(--neutral-600); font-size: 16px; line-height: 1.5; }
+  .ts-weiterer[hidden] { display: none; }
+  .ts-weiterer strong { font-weight: 500; color: #000; }
+  .ts-w-titel { font-size: 20px; line-height: 1.3; color: #000; }
+  .ts-weiterer:hover .ts-w-titel { color: var(--green-800); }
+  .ts-weiterer svg { margin-top: auto; align-self: flex-end; }
+  @media (min-width: 1024px) {
+    .ts-zurueck { padding-top: 24px; }
+    .ts-kopf { padding-top: 24px; grid-template-columns: 7fr 5fr; gap: 64px; align-items: center; }
+    .ts-kopftext { gap: 16px; }
+    .ts-h1 { font-size: 56px; line-height: 1.1; }
+    .ts-fakten { padding-top: 96px; grid-template-columns: 1fr 1fr; gap: 24px; align-items: stretch; }
+    .ts-karten, .ts-leitungen { gap: 24px; }
+    .ts-karte { padding: 24px; gap: 20px; }
+    .ts-leitung-text { padding: 24px; gap: 6px; }
+    .ts-ueber { padding-top: 120px; grid-template-columns: 4fr 8fr; gap: 64px; align-items: start; }
+    .ts-inhalt { font-size: 18px; }
+    .ts-zimmer { padding-top: 120px; }
+    .ts-zimmer .einleitung { margin: 16px 0 40px; }
+    .ts-anmeldung { margin-top: 120px; padding: 96px 0; }
+    .ts-anm-raster { grid-template-columns: 4fr 8fr; gap: 80px; align-items: start; }
+    .ts-weitere { padding: 120px 20px 96px; }
+    .ts-weitere .h2 { margin-bottom: 40px; }
+    .ts-weitere-raster { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+    .ts-w-titel { font-size: 22px; }
+  }
+</style>
