@@ -23,7 +23,8 @@ const { nr, position = 'center', titel, id } = Astro.props;
   .hg { display: none; }
   .spalte { display: flex; flex-direction: column; gap: 16px; }
   @media (min-width: 1024px) {
-    .bild-hg { margin-top: 120px; min-height: 706px; padding: 96px 0; display: flex; align-items: center; }
+    /* Höhe wächst mit der Breite (Seitenverhältnis wie im Wireframe 1440 × 706), damit der Ausschnitt bei jeder Breite gleich bleibt */
+    .bild-hg { margin-top: 120px; min-height: max(706px, 49vw); padding: 96px 0; display: flex; align-items: center; }
     .hg { display: block; position: absolute; inset: 0; }
     .hg :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos); }
     .hg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, color-mix(in srgb, var(--seite, var(--neutral-50)) 95%, transparent) 0%, color-mix(in srgb, var(--seite, var(--neutral-50)) 85%, transparent) 38%, transparent 56%); }

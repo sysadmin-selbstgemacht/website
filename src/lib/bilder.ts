@@ -14,7 +14,7 @@ export const FOTOGRAF = {
   '156': 'Karoline Wolf', '158': 'Karoline Wolf', '162': 'Karoline Wolf', '175': 'Karoline Wolf', '176': 'Karoline Wolf',
   '178': 'Karoline Wolf', '179': 'Karoline Wolf', '181': 'Karoline Wolf', '192': 'Karoline Wolf', '194': 'Karoline Wolf',
   '197': 'Karoline Wolf', '199': 'Karoline Wolf',
-  '221': 'Hoppe', '232': 'Hoppe', '239': 'Hoppe', '241': 'Hoppe',
+  '221': 'Andrea Hoppe', '232': 'Andrea Hoppe', '239': 'Andrea Hoppe', '241': 'Andrea Hoppe',
   '250': 'Michel Fleißner', '251': 'Michel Fleißner', '259': 'Michel Fleißner', '260': 'Michel Fleißner',
   '271': 'Michel Fleißner', '272': 'Michel Fleißner', '274': 'Michel Fleißner', '283': 'Michel Fleißner',
   '290': 'Michel Fleißner', '291': 'Michel Fleißner', '314': 'Michel Fleißner', '341': 'Michel Fleißner',
