@@ -22,6 +22,7 @@ const breiten = [480, 800, 1200, 1600, 2400].filter((b) => b <= src.width);
   widths={breiten.length ? breiten : [src.width]}
   sizes={sizes}
   formats={['avif', 'webp']}
+  fallbackFormat="webp"
   loading={priorisiert ? 'eager' : 'lazy'}
   fetchpriority={priorisiert ? 'high' : 'auto'}
 />
