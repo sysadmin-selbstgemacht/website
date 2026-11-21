@@ -14,7 +14,7 @@ export const HAUS_ZUSATZ = 'Seminar- und Gästehaus';
 export const ADRESSE = 'Arnsgrün 56, 07937 Zeulenroda-Triebes';
 export const ROUTE_LINK = 'https://www.google.com/maps/dir/?api=1&destination=Arnsgr%C3%BCn+56%2C+07937+Zeulenroda-Triebes';
 
-// Noch offen (Stand 21.11.): bis zur Lieferung zeigt der Footer einen sichtbaren Platzhalter.
-export const FACTSHEET_LINK: string | null = null; // PDF, z. B. /unterlagen/factsheet.pdf
-export const FACEBOOK_LINK: string | null = null;
-export const INSTAGRAM_LINK: string | null = null;
+// Factsheet (A4, aus dem Design-Canvas), Social-Media-Profile des Hauses (21.11.)
+export const FACTSHEET_LINK: string | null = '/unterlagen/selbstgemacht-factsheet.pdf';
+export const FACEBOOK_LINK: string | null = 'https://www.facebook.com/share/1CB6Hp8cSH/';
+export const INSTAGRAM_LINK: string | null = 'https://www.instagram.com/selbstgemacht.eu/'; // ohne Teilen-Kennung (?dmpr=…)
