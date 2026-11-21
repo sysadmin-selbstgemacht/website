@@ -70,9 +70,10 @@ const istAktuell = (href: string) => aktuell === href || aktuell.startsWith(href
     .kopf-zeile { height: 88px; display: grid; grid-template-columns: 1fr auto 1fr; }
     .kopf-logo img { height: 60px; }
     .hauptmenue { display: flex; gap: 28px; }
-    .hauptmenue a { color: #000; text-decoration: none; font-size: 20px; font-weight: 200; padding: 10px 4px; }
-    .hauptmenue a:hover { color: var(--green-800); text-decoration: underline; }
-    .hauptmenue a[aria-current='page'] { text-decoration: underline; text-decoration-color: var(--kennfarbe, var(--green-700)); text-decoration-thickness: 2px; text-underline-offset: 8px; }
+    /* Unterstreichung bei Hover und aktuellem Punkt identisch (Höhe, Stärke, Farbe), damit nichts springt */
+    .hauptmenue a { color: #000; text-decoration: underline 2px transparent; text-underline-offset: 8px; font-size: 20px; font-weight: 200; padding: 10px 4px; transition: color .15s, text-decoration-color .15s; }
+    .hauptmenue a:hover, .hauptmenue a:focus-visible { color: var(--green-800); text-decoration-color: var(--kennfarbe, var(--green-700)); }
+    .hauptmenue a[aria-current='page'] { text-decoration-color: var(--kennfarbe, var(--green-700)); }
     .kopf-rechts { justify-self: end; }
     .kopf-anfragen { min-height: 48px; padding: 0 24px; font-size: 16px; background: var(--color-action-primary-default); color: #fff; border: 0; }
     .kopf-anfragen:hover { background: var(--color-action-primary-hover); color: #fff; }
