@@ -8,6 +8,7 @@
 //   GET  /api/test/smtp          – VORÜBERGEHEND: Erreichbarkeit des all-inkl-Mailservers
 //   GET  /api/test/smtp-anmeldung – VORÜBERGEHEND: Anmeldung am Postfach prüfen, verschickt nichts
 //   /intern/*, /api/intern/*       – Termin-Formular, nur nach Anmeldung (worker/intern.ts)
+//   GET  /medien/video/*           – Videos aus R2, nur eingetragene (worker/video.ts, src/lib/videos.ts)
 //   GET  /medien/*                 – Bilder zu Terminen und Kursleitungen aus R2 (worker/intern.ts)
 //
 // Spamschutz nach Leitfaden (docs/formular.md), Reihenfolge:
@@ -21,6 +22,7 @@ import { deriveKey } from 'altcha-lib/algorithms/web/pbkdf2';
 import { connect } from 'cloudflare:sockets';
 import { sende, SmtpFehler, type SmtpZugang } from './smtp';
 import { intern, medien, type InternEnv } from './intern';
+import { video } from './video';
 import { verfuegbarkeit, type VerfuegbarkeitEnv } from './verfuegbarkeit';
 import { ANLIEGEN, ALLE_ANLIEGEN, ANREDE, FELDER, BESCHRIFTUNG, STANDARD, GRENZEN, UEBERNACHTUNG, MIN_NAECHTE, naechte, sichtbareFelder, pflichtfelder, type Anliegen, type Feld } from '../src/lib/anfrage';
 
@@ -257,6 +259,7 @@ export default {
 async function bearbeiten(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
 
+  if (url.pathname.startsWith('/medien/video/')) return video(request, env.MEDIEN);
   if (url.pathname.startsWith('/medien/')) return medien(request, env);
   if (url.pathname === '/intern' || url.pathname.startsWith('/intern/') || url.pathname.startsWith('/api/intern/')) return intern(request, env);
 

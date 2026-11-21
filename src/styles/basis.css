@@ -10,13 +10,15 @@
 @font-face { font-family: Roboto; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/roboto-latin-500-normal.woff2') format('woff2'); }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 68px; }
+@media (min-width: 1024px) { html { scroll-padding-top: 92px; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body {
   margin: 0;
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.6;
+  font-weight: 300; /* Token text-body: 300 (leichter, Entscheidung 21.11.) */
   color: var(--color-text-primary);
   background: var(--seite, var(--color-bg-page));
   display: flex;

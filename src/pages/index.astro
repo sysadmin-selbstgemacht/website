@@ -1,8 +1,19 @@
 ---
+// Startseite nach Wireframe „Startseite · Desktop“ und „Startseite · mobil“ (Canvas, Stand 21.11.).
+// Bilder laut Bildliste (bildliste_canvas_2026-11-21.md). Offene Texte bleiben sichtbar markiert.
 import Basis from '../layouts/Basis.astro';
-import Abschnitt from '../components/Abschnitt.astro';
 import Bild from '../components/Bild.astro';
-import platzhalter from '../assets/bilder/platzhalter.webp';
+import Slider from '../components/Slider.astro';
+import Stimmen from '../components/Stimmen.astro';
+import BildHintergrund from '../components/BildHintergrund.astro';
+import { katalogBild } from '../lib/bilder';
+import { SEITEN } from '../lib/seiten';
+import { ROUTE_LINK } from '../lib/kontakt';
+import lageskizze from '../assets/bilder/lageskizze.svg?raw';
+
+import { videoQuellen } from '../lib/videos';
+// Startseiten-Video (Copter) aus R2 (Matthias, 21.11.); ohne Standbild (laut Bildliste keins vorgesehen)
+const heroVideo = videoQuellen('startseite');
 
 // Angaben zum Haus für Suchmaschinen (schema.org). Quelle: Impressum. Prüfen beim Go-live.
 const haus = {
@@ -15,28 +26,222 @@ const haus = {
   address: { '@type': 'PostalAddress', streetAddress: 'Arnsgrün 56', postalCode: '07937', addressLocality: 'Zeulenroda-Triebes', addressRegion: 'Thüringen', addressCountry: 'DE' },
   description: 'Das ganze Haus für Gruppen, Familien, Tagungen und Kurse. Bis zu 30 Gäste, 10 Zimmer.',
 };
+
+const zielgruppen = [
+  { href: SEITEN.gruppen.pfad, titel: 'Gruppen', text: 'Platz für Gemeinschaft, Freiraum für jeden Einzelnen und die Möglichkeit, sich selbst zu versorgen.', nr: '534', alt: 'Gäste am Abend vor dem Haus', klasse: 'gruppen' },
+  { href: SEITEN.tagungen.pfad, titel: 'Tagungen', text: 'Mit freiem Kopf bleibt der Fokus leicht. So findet Ihr Team zu produktivem Austausch.', nr: '47', alt: 'Team im Tagungsraum', klasse: 'tagungen' },
+  { href: SEITEN.kursleitende.pfad, titel: 'Kursleitende', text: 'Alles, damit Ihr Kurs gelingt – Sie widmen sich Ihren Inhalten, wir sorgen für Atmosphäre zum Wohlfühlen.', nr: '178', alt: 'Bewegungsraum mit Sitzkissen', klasse: 'kursleitende' },
+] as const;
+
+const fakten = [
+  { zahl: '10', text: 'Zimmer mit eigenem Bad' },
+  { zahl: '24', text: 'Betten, bis 30 mit Aufbettung' },
+  { zahl: '2 Min.', text: 'zu Fuß in den Wald' },
+];
+
+const stimmen = [
+  { text: 'Das besondere Etwas findet man hier.', name: 'Nadine Hirche', zusatz: 'Freundesgruppe · September 2025' },
+  { text: 'Die Gastfreundschaft, der Service und die wunderbare Ausstattung im Seminarhaus haben mich nachhaltig beeindruckt.', name: 'Marcus Lärz', zusatz: 'AOK · Juli 2026' },
+  { text: 'Das „SELBSTGEMACHT“ ist einer meiner Lieblingsorte.', name: 'Evelyn Lerchner', zusatz: 'Fastenkursleiterin · April 2026' },
+];
 ---
-<Basis seite="start">
+<Basis seite="start" geruest={false}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(haus)} />
-  <div class="held">
-    <div>
-      <p class="zweck">Imagevideo (aus R2) · noch nicht eingebunden</p>
-      <h1>Platz für Viele – Raum für Ideen</h1>
-      <p>Wenige Sätze: Was man hier bekommt. Ein Haus, exklusiv für eure Gruppe.</p>
+
+  <!-- Hero: Video stumm in Schleife (einzige Ausnahme vom „Start erst auf Klick“) -->
+  <section class="held">
+    <video class="held-video" autoplay muted loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture>
+      {heroVideo.map((q) => <source src={q.src} type={q.type} />)}
+    </video>
+    <div class="held-verlauf" aria-hidden="true"></div>
+    <div class="w held-inhalt">
+      <h1 class="h1">Ihr Ort zum Sein</h1>
+      <nav class="held-wege" aria-label="Für wen">
+        {zielgruppen.map((z) => <a class={z.klasse} href={z.href}>{z.titel}</a>)}
+      </nav>
     </div>
-  </div>
+  </section>
 
-  <Abschnitt titel="Drei Wege zu uns" zweck="Führt in die drei Zielgruppen-Seiten.">
-    <div class="raster">
-      <a class="kachel" href="/gruppen/">Gruppen und Familien</a>
-      <a class="kachel" href="/tagungen/">Firmen: Tagung · Workshop · Seminar</a>
-      <a class="kachel" href="/kursleitende/">Kursleitende: Kurse · Retreats</a>
+  <!-- Willkommen -->
+  <section class="w sektion willkommen">
+    <div class="willkommen-text">
+      <h2 class="h2">Einfach willkommen sein.</h2>
+      <p class="willkommen-satz">SELBSTGEMACHT ist mehr als ein Wort. <br />Für uns ist es ein Gefühl von Selbstwirksamkeit, Freiheit, Möglichkeiten. <br />Von Gastfreundschaft und Herzlichkeit.</p>
     </div>
-  </Abschnitt>
+    <div class="willkommen-bild"><Bild src={katalogBild('p420')} alt="Katrin und Annekathrin im Haus" sizes="(min-width: 1024px) 700px, 100vw" /></div>
+  </section>
 
-  <Abschnitt titel="Das läuft bei uns" zweck="Die nächsten Termine als Anker, Link zur Terminliste." />
+  <!-- Für wen ist das Haus? -->
+  <section class="w sektion">
+    <h2 class="h2 titel-abstand">Für wen ist das Haus?</h2>
+    <div class="karten" data-einblenden>
+      {zielgruppen.map((z) => (
+        <a class:list={['karte', z.klasse]} href={z.href}>
+          <Bild src={katalogBild(z.nr)} alt={z.alt} sizes="(min-width: 1024px) 720px, 100vw" />
+          <span class="karte-text">
+            <span class="karte-titel">{z.titel}</span>
+            <span class="karte-satz">{z.text}</span>
+            <span class="karte-pfeil" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+          </span>
+        </a>
+      ))}
+    </div>
+  </section>
 
-  <Abschnitt titel="Gemeinsamzeit" zweck="Haltung des Hauses in wenigen Sätzen, Link zu Über uns." offen="Text aus Katrins Stichpunkten verdichten.">
-    <Bild src={platzhalter} alt="Platzhalter" sizes="(min-width: 72rem) 70rem, 100vw" priorisiert />
-  </Abschnitt>
+  <!-- Das Haus -->
+  <section class="w sektion">
+    <h2 class="h2">Das Haus</h2>
+    <p class="p haus-text">Wir haben einen Ort geschaffen, an dem wir uns selbst wohlfühlen. Natürliche Materialien wie Holz und Lehm, lebendige, stimmige Farben, klare Formen treffen ländliche Idylle. Bei uns zählen herzliches Miteinander, Leichtigkeit und Lebensfreude. Hier darf jeder EINFACH SEIN.</p>
+    <div class="haus-raster">
+      <div class="haus-links">
+        <div class="fakten">
+          {fakten.map((f) => <div class="fakt"><span class="fakt-zahl">{f.zahl}</span><span>{f.text}</span></div>)}
+        </div>
+        <div class="lage">
+          <p class="p">Ländliche Idylle im Thüringer Vogtland. <span class="offen-markiert">[Formulierung zur Lage offen]</span></p>
+          <a class="textlink" href={ROUTE_LINK} target="_blank" rel="noopener">Route planen in Google Maps<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6" /></svg></a>
+        </div>
+      </div>
+      <div class="skizze" set:html={lageskizze} />
+    </div>
+  </section>
+
+  <!-- Galerie -->
+  <section class="sektion galerie" aria-labelledby="eindruecke-titel">
+    <div class="w"><h2 class="h2 titel-abstand" id="eindruecke-titel"><span class="offen-markiert">[Sektionsüberschrift offen]</span></h2></div>
+    <Slider
+      label="Eindrücke vom Haus"
+      hoeheDesktop={640}
+      folien={[
+        { nr: '534', alt: 'Das Haus von oben am Abend' },
+        { nr: '271', alt: 'Aufenthaltsraum mit Küche' },
+        { nr: '478', alt: 'Abend an der Feuerschale' },
+        { nr: '178', alt: 'Bewegungsraum mit Sitzkissen' },
+        { nr: '250', alt: 'Lamawanderung', position: 'center 9%' },
+      ]}
+    />
+  </section>
+
+  <Stimmen stimmen={stimmen} gross />
+
+  <!-- Ein Ort für Entwicklung: Hintergrund Bild 3 (Hochformat; Ausschnitt center 52 %, von Matthias bestätigt) -->
+  <BildHintergrund nr="3" position="center 52%" titel="Ein Ort für Entwicklung" id="termine-titel">
+    <div class="entwicklung">
+      <p class="p">In unserem Haus finden Seminare, Kurse und Retreats statt. Gruppen treffen sich für besondere gemeinsame Momente. Wir bieten Raum für Entfaltung, neue Sichtweisen und neue Leichtigkeit.</p>
+      <a class="knopf" href={SEITEN.termine.pfad}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" /><path d="M8 14h.01" /><path d="M12 14h.01" /><path d="M16 14h.01" /><path d="M8 18h.01" /><path d="M12 18h.01" /><path d="M16 18h.01" /></svg>Zu den Terminen</a>
+    </div>
+  </BildHintergrund>
 </Basis>
+
+<style>
+  /* Abstände zwischen Abschnitten: mobil 64, Desktop 120 (Wireframe) */
+  .sektion { padding-top: 64px; }
+  .titel-abstand { margin-bottom: 24px; }
+
+  /* Hero */
+  /* Hero füllt höchstens das Fenster unter dem Kopf, damit Titel und Wege ohne Scrollen sichtbar sind */
+  .held { position: relative; height: min(600px, calc(100svh - 64px)); min-height: 420px; overflow: hidden; }
+  .held-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .held { background: var(--neutral-300); }
+  .held-verlauf { position: absolute; left: 0; right: 0; bottom: 0; height: 230px; background: linear-gradient(to bottom, rgba(244, 243, 239, 0) 0%, rgba(244, 243, 239, .9) 55%, #f4f3ef 78%); }
+  .held-inhalt { position: absolute; left: 0; right: 0; bottom: 32px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+  .held-wege { display: flex; flex-wrap: wrap; gap: 8px; }
+  .held-wege a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: var(--radius-md); font-size: 15px; font-weight: 500; text-decoration: none; }
+  .gruppen { background: var(--color-audience-gruppen); color: #000; }
+  .tagungen { background: var(--color-audience-tagungen); color: #fff; }
+  .kursleitende { background: var(--color-audience-kursleitende); color: #000; }
+  .held-wege a:hover { filter: brightness(1.08); }
+
+  /* Willkommen */
+  .willkommen { display: flex; flex-direction: column; gap: 16px; }
+  .willkommen-text { display: flex; flex-direction: column; gap: 16px; }
+  .willkommen-satz { margin: 0; font-size: 16px; line-height: 1.6; }
+  .willkommen-bild :global(img) { width: 100%; height: 240px; object-fit: cover; object-position: center 25%; border-radius: var(--radius-xl); }
+
+  /* Karten */
+  .karten { display: flex; flex-direction: column; gap: 12px; }
+  .karte { position: relative; display: block; height: 300px; border-radius: var(--radius-xl); overflow: hidden; background: var(--neutral-300); text-decoration: none; }
+  .karte :global(img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+  .karte:hover :global(img) { transform: scale(1.03); }
+  .karte-text { position: absolute; left: 0; right: 0; bottom: 0; min-height: 110px; padding: 16px 72px 16px 20px; display: flex; flex-direction: column; gap: 4px; background: inherit; }
+  .karte.gruppen .karte-text { background: var(--color-audience-gruppen); }
+  .karte.tagungen .karte-text { background: var(--color-audience-tagungen); }
+  .karte.kursleitende .karte-text { background: var(--color-audience-kursleitende); }
+  .karte { background: var(--neutral-300); }
+  .karte-titel { font-size: 20px; font-weight: 400; }
+  .karte-satz { font-size: 15px; line-height: 1.4; }
+  .karte-pfeil { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 9999px; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; }
+
+  /* Das Haus */
+  .haus-text { margin: 16px 0 24px; max-width: 588px; }
+  .haus-raster { display: flex; flex-direction: column; gap: 12px; }
+  .haus-links { display: flex; flex-direction: column; gap: 12px; }
+  .fakten { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .fakt { background: #fff; border-radius: var(--radius-lg); padding: 14px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; line-height: 1.35; }
+  .fakt-zahl { font-size: 26px; font-weight: 300; color: #000; }
+  .lage { background: #fff; border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .haus-links { display: contents; }
+  .fakten { order: 1; }
+  .skizze { background: #fff; border-radius: var(--radius-lg); padding: 16px; order: 2; }
+  .lage { order: 3; }
+  .skizze :global(svg) { width: 100%; height: auto; display: block; border-radius: var(--radius-lg); }
+
+  .entwicklung { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+
+  @media (min-width: 1024px) {
+    .sektion { padding-top: 120px; }
+    .titel-abstand { margin-bottom: 40px; }
+    .held { height: min(810px, calc(100svh - 88px)); min-height: 520px; }
+    .held-verlauf { height: 300px; background: linear-gradient(to bottom, rgba(244, 243, 239, 0) 0%, rgba(244, 243, 239, .9) 55%, #f4f3ef 80%); }
+    .held-inhalt { bottom: 56px; gap: 20px; }
+    .held-wege { gap: 12px; }
+    .held-wege a { min-height: 48px; padding: 0 20px; font-size: 16px; }
+
+    .willkommen { padding-top: 96px; display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: center; }
+    .willkommen-text { gap: 20px; }
+    .willkommen-satz { font-size: 36px; line-height: 1.25; font-weight: 200; color: #000; }
+    .willkommen-bild :global(img) { height: 440px; }
+
+    .karten { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+    .karte { height: 480px; }
+    .karte-text { min-height: 128px; padding: 20px 80px 20px 24px; gap: 6px; }
+    .karte-titel { font-size: 24px; }
+    .karte-satz { font-size: 16px; line-height: 1.45; }
+    .karte-pfeil { right: 20px; width: 48px; height: 48px; }
+    /* Karten gleiten nacheinander von unten herein (Wireframe-Notiz: 0,3 s Versatz) */
+    .karten.bereit .karte { opacity: 0; transform: translateY(40px); transition: opacity .6s ease, transform .6s ease; }
+    .karten.bereit .karte:nth-child(2) { transition-delay: .3s; }
+    .karten.bereit .karte:nth-child(3) { transition-delay: .6s; }
+    .karten.bereit.sichtbar .karte { opacity: 1; transform: none; }
+
+    .haus-text { margin: 16px 0 40px; }
+    .haus-raster { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: stretch; }
+    .haus-links { display: flex; gap: 24px; }
+    .fakten { gap: 16px; }
+    .fakt { padding: 24px 20px; gap: 6px; font-size: 16px; line-height: 1.4; }
+    .fakt-zahl { font-size: 40px; }
+    .lage { flex: 1; padding: 24px; justify-content: center; }
+    .skizze { order: 0; display: flex; align-items: center; }
+
+    .galerie { padding-top: 96px; }
+    .entwicklung { background: #fff; border-radius: var(--radius-lg); padding: 24px; gap: 20px; }
+    .entwicklung .knopf { min-height: 52px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .karten.bereit .karte { opacity: 1 !important; transform: none !important; transition: none !important; }
+  }
+</style>
+
+<script>
+  // Hero-Video: bei „Bewegung reduzieren“ nicht automatisch abspielen
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelector<HTMLVideoElement>('.held-video')?.pause();
+
+  // Karten erst beim Hineinscrollen einblenden (nur Desktop, nur mit Skript; ohne Skript sofort sichtbar)
+  const karten = document.querySelector<HTMLElement>('[data-einblenden]');
+  if (karten && matchMedia('(min-width: 1024px)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+    karten.classList.add('bereit');
+    new IntersectionObserver((eintraege, beob) => {
+      if (eintraege.some((e) => e.isIntersecting)) { karten.classList.add('sichtbar'); beob.disconnect(); }
+    }, { threshold: 0.2 }).observe(karten);
+  }
+</script>

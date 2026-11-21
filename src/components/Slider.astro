@@ -1,0 +1,162 @@
+---
+// Bilder-Slider über die volle Breite (Wireframes, Notiz „Desktop · Entwurf“, Handoff 21.11.):
+// - jede Folie mit zentrierter Bildunterschrift: Desktop in H2-Größe, mobil Fließtext
+// - Desktop: Pfeile links/rechts (links erst ab Bild 2, rechts bis zum letzten), Punkte klickbar, Ziehen mit der Maus
+// - mobil: Wischen, Punkte
+// - Video-Folien starten erst auf Klick
+// Technik: natives horizontales Scrollen mit Einrasten (scroll-snap); Wischen und Tastatur funktionieren ohne Skript.
+import Bild from './Bild.astro';
+import { katalogBild, type KatalogNr } from '../lib/bilder';
+import { videoQuellen, type VideoName } from '../lib/videos';
+
+export interface Folie {
+  nr?: KatalogNr;
+  alt: string;
+  text?: string; // Bildunterschrift; fehlt sie, erscheint „[Bildtext offen]“
+  video?: { name?: VideoName; poster?: KatalogNr }; // name fehlt: Video noch nicht auf R2
+  position?: string; // object-position, z. B. 'center 60%'
+}
+interface Props {
+  folien: Folie[];
+  label: string; // für Vorleseprogramme, z. B. „Eindrücke vom Haus“
+  hoeheDesktop?: number; // Wireframe: 640 (Startseite) oder 810 (16:9)
+  hoeheMobil?: number; // Wireframe: 300
+}
+const { folien, label, hoeheDesktop = 810, hoeheMobil = 300 } = Astro.props;
+---
+<div class="slider" data-slider role="region" aria-roledescription="Karussell" aria-label={label} style={`--h-d:${hoeheDesktop}px;--h-d-zahl:${hoeheDesktop};--h-m:${hoeheMobil}px`}>
+  <div class="spur" data-spur tabindex="0">
+    {folien.map((f, i) => (
+      <figure class="folie" aria-roledescription="Folie" aria-label={`${i + 1} von ${folien.length}`}>
+        <div class="medium" style={f.position ? `--pos:${f.position}` : undefined}>
+          {f.video ? (
+            f.video.name ? (
+              <>
+                <video poster={f.video.poster ? katalogBild(f.video.poster).src : undefined} preload="metadata" playsinline aria-label={f.alt}>
+                  {videoQuellen(f.video.name).map((q) => <source src={q.src} type={q.type} />)}
+                </video>
+                <button type="button" class="abspielen" data-abspielen aria-label="Video abspielen">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="#000" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3" /></svg>
+                </button>
+              </>
+            ) : (
+              <div class="video-offen"><span class="offen-markiert">[Video offen: R2-Link] {f.alt}</span></div>
+            )
+          ) : f.nr ? (
+            <Bild src={katalogBild(f.nr)} alt={f.alt} sizes="100vw" />
+          ) : (
+            <div class="video-offen"><span class="offen-markiert">TODO bild: {f.alt}</span></div>
+          )}
+        </div>
+        <figcaption class:list={['bildtext', { leer: !f.text }]}>
+          {f.text ?? <span class="offen-markiert">[Bildtext offen]</span>}
+        </figcaption>
+      </figure>
+    ))}
+  </div>
+  <button type="button" class="pfeil zurueck" data-zurueck aria-label="Vorheriges Bild" hidden>
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+  </button>
+  <button type="button" class="pfeil vor" data-vor aria-label="Nächstes Bild">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+  </button>
+  <div class="punkte">
+    {folien.map((_, i) => (
+      <button type="button" data-punkt={i} aria-label={`Bild ${i + 1}`} aria-current={i === 0 ? 'true' : undefined}><span></span></button>
+    ))}
+  </div>
+</div>
+
+<style>
+  .slider { position: relative; }
+  .spur { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .spur::-webkit-scrollbar { display: none; }
+  .spur:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: -2px; }
+  .folie { flex: 0 0 100%; margin: 0; scroll-snap-align: start; }
+  .medium { position: relative; height: var(--h-m); background: var(--neutral-300); }
+  .medium :global(img), .medium video { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, center); display: block; user-select: none; -webkit-user-drag: none; }
+  .video-offen { height: 100%; display: grid; place-items: center; padding: 16px; text-align: center; }
+  .abspielen { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 72px; height: 72px; border-radius: 9999px; border: 0; background: rgba(255, 255, 255, .92); box-shadow: 0 4px 16px rgba(0, 0, 0, .25); display: flex; align-items: center; justify-content: center; padding: 0 0 0 4px; cursor: pointer; }
+  .bildtext { margin: 16px 20px 0; min-height: 48px; font-size: 16px; line-height: 1.5; text-align: center; }
+  .pfeil { display: none; }
+  .punkte { display: flex; justify-content: center; gap: 0; margin-top: 8px; }
+  .punkte button { width: 24px; height: 24px; border: 0; padding: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .punkte span { display: block; width: 8px; height: 8px; border-radius: 9999px; background: var(--neutral-200); }
+  .punkte button[aria-current='true'] span { background: var(--neutral-600); }
+
+  @media (min-width: 1024px) {
+    /* Höhe wächst ab 1440 px mit der Breite (Verhältnis wie im Wireframe), damit der Bildausschnitt gleich bleibt */
+    .medium { height: max(var(--h-d), calc(100vw * var(--h-d-zahl) / 1440)); }
+    .bildtext { margin: 24px auto 0; max-width: 1200px; padding-inline: 20px; min-height: 45px; font-size: 36px; line-height: 1.25; font-weight: 300; color: #000; }
+    .spur { cursor: grab; }
+    .spur.ziehen { cursor: grabbing; scroll-snap-type: none; }
+    .pfeil { position: absolute; top: calc(max(var(--h-d), calc(100vw * var(--h-d-zahl) / 1440)) / 2 - 28px); width: 56px; height: 56px; border-radius: 9999px; border: 0; background: rgba(255, 255, 255, .92); box-shadow: 0 2px 12px rgba(0, 0, 0, .2); color: #000; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+    .pfeil[hidden] { display: none; }
+    .zurueck { left: 24px; }
+    .vor { right: 24px; }
+    .punkte { margin-top: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .spur { scroll-behavior: auto; } }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-slider]').forEach((s) => {
+    const spur = s.querySelector<HTMLElement>('[data-spur]')!;
+    const folien = [...spur.children] as HTMLElement[];
+    const zurueck = s.querySelector<HTMLButtonElement>('[data-zurueck]')!;
+    const vor = s.querySelector<HTMLButtonElement>('[data-vor]')!;
+    const punkte = [...s.querySelectorAll<HTMLButtonElement>('[data-punkt]')];
+    const ruhig = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const index = () => Math.round(spur.scrollLeft / spur.clientWidth);
+    const gehe = (i: number) => {
+      const z = Math.max(0, Math.min(folien.length - 1, i));
+      spur.scrollTo({ left: z * spur.clientWidth, behavior: ruhig ? 'auto' : 'smooth' });
+    };
+    const anzeigen = () => {
+      const i = index();
+      zurueck.hidden = i <= 0;
+      vor.hidden = i >= folien.length - 1;
+      punkte.forEach((p, k) => p.setAttribute('aria-current', k === i ? 'true' : 'false'));
+    };
+    zurueck.addEventListener('click', () => gehe(index() - 1));
+    vor.addEventListener('click', () => gehe(index() + 1));
+    punkte.forEach((p, k) => p.addEventListener('click', () => gehe(k)));
+    let warte: number | undefined;
+    spur.addEventListener('scroll', () => { clearTimeout(warte); warte = window.setTimeout(anzeigen, 60); }, { passive: true });
+    spur.addEventListener('scrollend', anzeigen);
+    spur.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); gehe(index() + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); gehe(index() - 1); }
+    });
+    // Ziehen mit der Maus (Touch scrollt nativ)
+    let start: { x: number; links: number } | null = null;
+    spur.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse' || (e.target as HTMLElement).closest('button, video[controls]')) return;
+      start = { x: e.clientX, links: spur.scrollLeft };
+      spur.classList.add('ziehen');
+      spur.setPointerCapture(e.pointerId);
+    });
+    spur.addEventListener('pointermove', (e) => { if (start) spur.scrollLeft = start.links - (e.clientX - start.x); });
+    const loslassen = (e: PointerEvent) => {
+      if (!start) return;
+      const dx = e.clientX - start.x;
+      const i = Math.round(start.links / spur.clientWidth);
+      start = null;
+      spur.classList.remove('ziehen');
+      gehe(dx < -40 ? i + 1 : dx > 40 ? i - 1 : i);
+    };
+    spur.addEventListener('pointerup', loslassen);
+    spur.addEventListener('pointercancel', loslassen);
+    // Video erst auf Klick
+    s.querySelectorAll<HTMLButtonElement>('[data-abspielen]').forEach((b) => b.addEventListener('click', () => {
+      const v = b.parentElement!.querySelector('video')!;
+      v.controls = true;
+      v.play();
+      b.remove();
+    }));
+    // Beim Weiterblättern laufende Videos anhalten
+    spur.addEventListener('scroll', () => s.querySelectorAll('video').forEach((v) => { if (!v.paused) v.pause(); }), { passive: true, once: false });
+    addEventListener('resize', () => gehe(index()));
+    anzeigen();
+  });
+</script>

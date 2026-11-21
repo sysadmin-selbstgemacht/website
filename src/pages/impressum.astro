@@ -2,6 +2,7 @@
 // ENTWURF. Angaben übernommen aus dem bisherigen Impressum (selbst-gemacht.eu/business-impressum/, 12.11.2026).
 // Prüfung und Freigabe: Katrin Liesch. Keine Rechtsberatung.
 import Basis from '../layouts/Basis.astro';
+import { FOTOGRAFEN } from '../lib/bilder';
 ---
 <Basis seite="impressum">
   <h1>Impressum</h1>
@@ -32,7 +33,8 @@ import Basis from '../layouts/Basis.astro';
   <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
 
   <h2>Bildnachweis</h2>
-  <p class="offen">Offen: Liste der Fotografinnen und Fotografen der verwendeten Bilder. Bisher genannt: Karoline Wolf (Bildhaus), Andrea Hoppe, Sabine Finger. Neu hinzu kommen ggf. weitere aus der aktuellen Auswahl.</p>
+  <!-- Aus src/lib/bilder.ts (Spalte Fotograf der Bildliste); nur Urheber, gesammelt (Entscheidung 21.11.) -->
+  <p>Fotos: {FOTOGRAFEN.join(', ')}</p>
 
   <h2>Website</h2>
   <p class="offen">Offen: Nennung der Umsetzung (z. B. „Website: Kado – Matthias Nitsche“) ja oder nein.</p>

@@ -1,0 +1,60 @@
+---
+// Gästestimmen (nur Originale mit Einwilligung). Startseite groß, Unterseiten kleiner (Wireframe-Notiz).
+// Desktop drei nebeneinander, mobil zum Wischen mit Punkten.
+interface Stimme { text: string; name: string; zusatz: string } // zusatz: „Freundesgruppe · September 2025“
+interface Props { stimmen: Stimme[]; gross?: boolean; titel?: string }
+const { stimmen, gross = false, titel = 'Was unsere Gäste schätzen' } = Astro.props;
+---
+<section class:list={['stimmen', { gross }]} aria-labelledby="stimmen-titel">
+  <div class="w"><h2 class="h2" id="stimmen-titel">{titel}</h2></div>
+  <div class="stimmen-spur" data-stimmen tabindex="0">
+    {stimmen.map((s) => (
+      <figure>
+        <span class="zeichen" aria-hidden="true">“</span>
+        <div>
+          <blockquote>{s.text}</blockquote>
+          <figcaption><strong>{s.name}</strong> · {s.zusatz}</figcaption>
+        </div>
+      </figure>
+    ))}
+  </div>
+  <div class="stimmen-punkte" aria-hidden="true">{stimmen.map(() => <span></span>)}</div>
+</section>
+
+<style>
+  .stimmen { padding-top: 64px; }
+  .stimmen .h2 { margin-bottom: 24px; }
+  .stimmen-spur { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .stimmen-spur::-webkit-scrollbar { display: none; }
+  figure { flex: 0 0 100%; margin: 0; padding: 0 24px; scroll-snap-align: start; display: flex; gap: 12px; align-items: flex-start; }
+  .zeichen { flex: 0 0 auto; display: block; font: 300 120px/0.6 Georgia, serif; color: var(--kennfarbe, var(--green-700)); height: 56px; margin-top: 14px; }
+  :global(body[data-bereich='gruppen']) .zeichen { color: var(--green-700); }
+  blockquote { margin: 0; font-weight: 300; font-size: 18px; line-height: 1.6; color: #000; }
+  .gross blockquote { font-size: 30px; line-height: 1.45; }
+  figcaption { margin-top: 20px; font-size: 15px; line-height: 1.5; }
+  figcaption strong { font-weight: 500; color: #000; }
+  .stimmen-punkte { display: flex; justify-content: center; gap: 8px; margin-top: 24px; }
+  .stimmen-punkte span { width: 8px; height: 8px; border-radius: 9999px; background: var(--neutral-200); }
+  .stimmen-punkte span.an { background: var(--neutral-600); }
+  @media (min-width: 1024px) {
+    .stimmen { padding-top: 120px; }
+    .stimmen .h2 { margin-bottom: 48px; }
+    .stimmen-spur { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px; overflow: visible; max-width: calc(1200px + 40px); margin-inline: auto; padding-inline: 20px; }
+    figure { padding: 0; }
+    blockquote { font-size: 20px; }
+    .gross blockquote { font-size: 26px; }
+    .stimmen-punkte { display: none; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-stimmen]').forEach((spur) => {
+    const punkte = [...spur.parentElement!.querySelectorAll<HTMLElement>('.stimmen-punkte span')];
+    const zeigen = () => {
+      const i = Math.round(spur.scrollLeft / Math.max(1, spur.clientWidth));
+      punkte.forEach((p, k) => p.classList.toggle('an', k === i));
+    };
+    spur.addEventListener('scroll', zeigen, { passive: true });
+    zeigen();
+  });
+</script>
