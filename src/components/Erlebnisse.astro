@@ -3,10 +3,10 @@
 import Bild from './Bild.astro';
 import { katalogBild, type KatalogNr } from '../lib/bilder';
 interface Karte { nr: KatalogNr; alt: string; titel: string; text: string }
-interface Props { titel: string; einleitung?: string; karten: Karte[] }
-const { titel, einleitung, karten } = Astro.props;
+interface Props { titel: string; einleitung?: string; karten: Karte[]; spalten?: 3 | 4 }
+const { titel, einleitung, karten, spalten = 3 } = Astro.props;
 ---
-<section class="sektion erlebnisse">
+<section class="sektion erlebnisse" style={`--spalten:${spalten}`}>
   <div class="w">
     <h2 class="h2">{titel}</h2>
     {einleitung && <p class="p einleitung">{einleitung}</p>}
@@ -15,10 +15,11 @@ const { titel, einleitung, karten } = Astro.props;
     {karten.map((k) => (
       <div class="erl-karte">
         <Bild src={katalogBild(k.nr)} alt={k.alt} sizes="(min-width: 1024px) 384px, 240px" />
-        <div class="erl-text"><span class="erl-titel">{k.titel}</span><span>{k.text}</span></div>
+        <div class="erl-text"><span class="erl-titel">{k.titel}</span><span set:html={k.text.replace(/\[([^\]]+)\]/g, '<span class="offen-markiert">[$1]</span>')} /></div>
       </div>
     ))}
   </div>
+  <slot />
 </section>
 
 <style>
@@ -30,7 +31,7 @@ const { titel, einleitung, karten } = Astro.props;
   .erl-text { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; line-height: 1.4; color: var(--kennschrift, #000); }
   .erl-titel { font-size: 16px; font-weight: 500; }
   @media (min-width: 1024px) {
-    .erl-spur { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; overflow: visible; max-width: calc(1200px + 40px); margin-inline: auto; padding-inline: 20px; }
+    .erl-spur { display: grid; grid-template-columns: repeat(var(--spalten), minmax(0, 1fr)); gap: 24px; overflow: visible; max-width: calc(1200px + 40px); margin-inline: auto; padding-inline: 20px; }
     .erl-karte :global(img) { height: 220px; }
     .erl-text { padding: 20px 24px; gap: 6px; font-size: 16px; line-height: 1.5; }
     .erl-titel { font-size: 18px; }
