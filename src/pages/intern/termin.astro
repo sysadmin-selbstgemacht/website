@@ -97,6 +97,16 @@ const logo = await getImage({ src: logoDatei, height: 96, format: 'webp' });
     input[type=file] { padding: .5rem; }
     textarea { min-height: 7rem; resize: vertical; }
     textarea.lang { min-height: 14rem; }
+    form > .feld-gruppe { background: var(--n0); border-radius: var(--radius-lg); box-shadow: var(--schatten); padding: 1rem; display: grid; gap: .35rem; }
+    .feld-titel { font-weight: 500; color: var(--n1000); }
+    .werkzeuge { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .werkzeuge button { font: inherit; font-size: .9rem; min-height: 40px; padding: 0 .75rem; border: 1px solid var(--n500); border-radius: var(--radius-md); background: var(--n0); color: var(--n1000); cursor: pointer; }
+    .werkzeuge button[aria-pressed=true] { border-color: var(--green-700); background: var(--green-100); }
+    .editor { min-height: 14rem; max-height: 60vh; overflow-y: auto; padding: .65rem .75rem; border: 1px solid var(--n500); border-radius: var(--radius-md); background: var(--n0); color: var(--n1000); line-height: 1.5; }
+    .editor:focus { outline: 2px solid var(--green-800); outline-offset: 0; border-color: var(--green-800); }
+    .editor p { margin: 0 0 .6rem; }
+    .editor ul, .editor ol { margin: 0 0 .6rem; padding-left: 1.5rem; }
+    .editor[aria-invalid=true] { border-color: var(--red-700); }
     .zwei { display: grid; gap: .75rem; grid-template-columns: 1fr 1fr; }
     .hinweis { font-size: .85rem; color: var(--n500); font-weight: 400; }
     .zaehler { font-size: .8rem; color: var(--n500); justify-self: end; font-weight: 400; }
@@ -221,12 +231,21 @@ const logo = await getImage({ src: logoDatei, height: 96, format: 'webp' });
           <span class="fehler" data-fehler="kurzbeschreibung"></span>
         </label>
 
-        <label><span>Ausführliche Beschreibung</span>
-          <textarea id="beschreibung" name="beschreibung" class="lang" data-max={T.beschreibungMax}></textarea>
+        <!-- Einfacher Editor (Handoff 21.11.): Absatz, Aufzählung, Nummerierung, Fett. Das versteckte Feld trägt das Zwischenformat. -->
+        <div class="feld-gruppe" role="group" aria-labelledby="l-beschreibung">
+          <span id="l-beschreibung" class="feld-titel">Ausführliche Beschreibung</span>
+          <div class="werkzeuge" role="toolbar" aria-label="Formatierung" aria-controls="beschreibung-editor">
+            <button type="button" data-befehl="bold" aria-pressed="false" title="Fett (Strg+B bzw. ⌘B)"><strong>F</strong> Fett</button>
+            <button type="button" data-befehl="insertUnorderedList" aria-pressed="false">• Aufzählung</button>
+            <button type="button" data-befehl="insertOrderedList" aria-pressed="false">1. Nummerierung</button>
+            <button type="button" data-befehl="entfernen">Formatierung entfernen</button>
+          </div>
+          <div id="beschreibung-editor" class="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="l-beschreibung" aria-describedby="h-beschreibung" spellcheck="true"><p><br /></p></div>
+          <textarea id="beschreibung" name="beschreibung" hidden></textarea>
           <span class="zaehler" data-zaehler="beschreibung"></span>
-          <span class="hinweis">Leerzeile = neuer Absatz · Zeile mit „- “ am Anfang = Aufzählung · **Wort** = fett. Sonst keine Formatierung.</span>
+          <span class="hinweis" id="h-beschreibung">Text aus Mail oder Word einfach einfügen. Aufzählungen werden erkannt, Fett und Listen über die Knöpfe.</span>
           <span class="fehler" data-fehler="beschreibung"></span>
-        </label>
+        </div>
 
         <fieldset>
           <legend>Kursbild *</legend>
@@ -315,6 +334,7 @@ const logo = await getImage({ src: logoDatei, height: 96, format: 'webp' });
 
   <script>
     import { GRENZEN_TERMIN as T, GRENZEN_LEITUNG as L, MEDIEN_GROESSEN, MEDIEN_MAX_BYTES, beschreibungText, naechte } from '../../lib/termin-felder';
+    import { textZuHtml, einfuegenHtml, einfuegenAusHtml, editorZuText, editorTextLaenge } from '../../lib/beschreibung-editor';
 
     type Bildteile = { gross: string; klein: string; url: string };
     type Stand = { termine: any[]; kursleitungen: any[]; hausbilder: any[]; entwuerfe: any[] };
@@ -516,6 +536,66 @@ const logo = await getImage({ src: logoDatei, height: 96, format: 'webp' });
       }
     }
 
+    // ---------- Editor „Ausführliche Beschreibung“ ----------
+    const ed = $<HTMLElement>('#beschreibung-editor');
+    const edFeld = $<HTMLTextAreaElement>('#beschreibung');
+    const edZaehler = $<HTMLElement>('[data-zaehler="beschreibung"]');
+    const edKnoepfe = $$<HTMLButtonElement>('.werkzeuge [data-befehl]');
+    try { document.execCommand('defaultParagraphSeparator', false, 'p'); document.execCommand('styleWithCSS', false, 'false'); } catch {}
+    function editorSync() {
+      edFeld.value = editorZuText(ed);
+      const n = editorTextLaenge(ed);
+      edZaehler.textContent = `${n} / ${T.beschreibungMax}`;
+      edZaehler.classList.toggle('zuviel', n > T.beschreibungMax);
+    }
+    // Schranke: Inhalt neu aufbauen (nur p, ul/ol/li, strong). Nicht während des Tippens, sonst springt die Schreibmarke.
+    function editorBereinigen() { ed.innerHTML = textZuHtml(editorZuText(ed)); editorSync(); }
+    function editorSetzen(text: string) { ed.innerHTML = textZuHtml(text ?? ''); editorSync(); }
+    function editorZustand() {
+      const sel = getSelection();
+      if (!sel || !sel.anchorNode || !ed.contains(sel.anchorNode)) return;
+      for (const b of edKnoepfe) if (b.dataset.befehl !== 'entfernen') b.setAttribute('aria-pressed', String(document.queryCommandState(b.dataset.befehl!)));
+    }
+    ed.addEventListener('input', editorSync);
+    ed.addEventListener('blur', editorBereinigen);
+    document.addEventListener('selectionchange', editorZustand);
+    ed.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = e.clipboardData?.getData('text/plain') ?? '';
+      const html = e.clipboardData?.getData('text/html') ?? '';
+      // Websites und Webmail liefern Listen nur im HTML; dort nur die Struktur übernehmen. Word/Outlook: reiner Text.
+      const neu = html && /<li[\s>]/i.test(html) && !/urn:schemas-microsoft-com:office/i.test(html) ? einfuegenAusHtml(html) : einfuegenHtml(text);
+      if (!neu) return;
+      document.execCommand('insertHTML', false, neu);
+      editorSync();
+    });
+    // Ziehen und Ablegen von Fremdinhalten: wie Einfügen als reiner Text
+    ed.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const text = e.dataTransfer?.getData('text/plain') ?? '';
+      if (text) { document.execCommand('insertHTML', false, einfuegenHtml(text)); editorSync(); }
+    });
+    ed.addEventListener('keydown', (e) => {
+      const mod = e.ctrlKey || e.metaKey;
+      // Nur Fett ist erlaubt; Kursiv und Unterstreichen abfangen
+      if (mod && /^[iu]$/i.test(e.key)) e.preventDefault();
+      if (mod && /^b$/i.test(e.key)) { e.preventDefault(); document.execCommand('bold'); editorSync(); editorZustand(); }
+    });
+    edKnoepfe.forEach((b) => {
+      b.addEventListener('mousedown', (e) => e.preventDefault()); // Auswahl im Editor behalten
+      b.addEventListener('click', () => {
+        if (!ed.contains(getSelection()?.anchorNode ?? null)) ed.focus();
+        const befehl = b.dataset.befehl!;
+        if (befehl === 'entfernen') {
+          document.execCommand('removeFormat');
+          if (document.queryCommandState('bold')) document.execCommand('bold');
+          if (document.queryCommandState('insertUnorderedList')) document.execCommand('insertUnorderedList');
+          if (document.queryCommandState('insertOrderedList')) document.execCommand('insertOrderedList');
+        } else document.execCommand(befehl);
+        editorSync(); editorZustand();
+      });
+    });
+
     // ---------- Termin-Formular ----------
     const F = () => $<HTMLFormElement>('#termin');
     const wert = (id: string) => $<HTMLInputElement>('#' + id).value;
@@ -551,7 +631,7 @@ const logo = await getImage({ src: logoDatei, height: 96, format: 'webp' });
       let erstes: HTMLElement | null = null;
       for (const [k, t] of Object.entries(felder)) {
         const f = $(`[data-fehler="${k}"]`, box);
-        if (f) { f.textContent = t; erstes ??= f; f.closest('label, fieldset')?.querySelector('input, select, textarea')?.setAttribute('aria-invalid', 'true'); }
+        if (f) { f.textContent = t; erstes ??= f; f.closest('label, fieldset, .feld-gruppe')?.querySelector('input, select, textarea, [contenteditable]')?.setAttribute('aria-invalid', 'true'); }
       }
       melde(`Bitte prüfen: ${Object.values(felder).join(' · ')}`, 'rot');
       erstes?.scrollIntoView({ block: 'center' });
@@ -562,7 +642,7 @@ const logo = await getImage({ src: logoDatei, height: 96, format: 'webp' });
       setze('uhrzeit_beginn', d.uhrzeit_beginn); setze('uhrzeit_ende', d.uhrzeit_ende);
       leitungAuswahl(Array.isArray(d.leitung) ? d.leitung : []);
       radio('art', d.eigener_termin === undefined ? undefined : d.eigener_termin ? 'eigen' : 'extern');
-      setze('anmeldung_web', d.anmeldung_web); setze('kurzbeschreibung', d.kurzbeschreibung); setze('beschreibung', beschreibung);
+      setze('anmeldung_web', d.anmeldung_web); setze('kurzbeschreibung', d.kurzbeschreibung); editorSetzen(beschreibung);
       setze('bild_alt', d.bild_alt); setze('bild_nachweis', d.bild_nachweis);
       radio('uebernachtung', d.uebernachtung === undefined ? undefined : d.uebernachtung ? 'ja' : 'nein');
       setze('verpflegung', d.verpflegung); setze('preis_ab', d.preis_ab); setze('kursgebuehr', d.kursgebuehr); setze('ust', d.ust);
@@ -571,7 +651,7 @@ const logo = await getImage({ src: logoDatei, height: 96, format: 'webp' });
 
     async function terminOeffnen(modus: 'neu' | 'bearbeiten' | 'kopie', id?: string) {
       melde('');
-      F().reset(); fehlerLeeren(F());
+      F().reset(); fehlerLeeren(F()); editorSetzen('');
       $('#neue-leitungen').innerHTML = ''; neuZaehler = 0; neuesBild = null; entwurfsLeitungen = [];
       $('#hausbilder').innerHTML = stand.hausbilder.map((h, i) => `<label><input type="radio" name="hausbild" value="${esc(h.wert)}" ${i === 0 ? 'checked' : ''} /><img class="vorschaubild" src="${esc(h.vorschau)}" alt="" />${esc(h.titel)}</label>`).join('');
       zustand = { modus, id: modus === 'bearbeiten' ? id : undefined, von: modus === 'kopie' ? id : undefined };

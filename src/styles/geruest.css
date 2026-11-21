@@ -29,3 +29,5 @@ main.geruest { width: 100%; max-width: calc(1200px + 40px); margin: 0 auto; padd
 .termin-kacheln .kachel p { margin: 0; }
 .zeile-knoepfe { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
 
+main.geruest ul, main.geruest ol { padding-left: 1.5rem; }
+main.geruest li + li { margin-top: .25rem; }

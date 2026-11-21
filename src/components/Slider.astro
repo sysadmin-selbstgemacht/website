@@ -7,12 +7,13 @@
 // Technik: natives horizontales Scrollen mit Einrasten (scroll-snap); Wischen und Tastatur funktionieren ohne Skript.
 import Bild from './Bild.astro';
 import { katalogBild, type KatalogNr } from '../lib/bilder';
+import { videoQuellen, type VideoName } from '../lib/videos';
 
 export interface Folie {
   nr?: KatalogNr;
   alt: string;
   text?: string; // Bildunterschrift; fehlt sie, erscheint „[Bildtext offen]“
-  video?: { src?: string; poster?: KatalogNr }; // src fehlt: Video noch nicht auf R2
+  video?: { name?: VideoName; poster?: KatalogNr }; // name fehlt: Video noch nicht auf R2
   position?: string; // object-position, z. B. 'center 60%'
 }
 interface Props {
@@ -29,9 +30,11 @@ const { folien, label, hoeheDesktop = 810, hoeheMobil = 300 } = Astro.props;
       <figure class="folie" aria-roledescription="Folie" aria-label={`${i + 1} von ${folien.length}`}>
         <div class="medium">
           {f.video ? (
-            f.video.src ? (
+            f.video.name ? (
               <>
-                <video src={f.video.src} poster={f.video.poster ? katalogBild(f.video.poster).src : undefined} preload="none" playsinline aria-label={f.alt}></video>
+                <video poster={f.video.poster ? katalogBild(f.video.poster).src : undefined} preload="metadata" playsinline aria-label={f.alt}>
+                  {videoQuellen(f.video.name).map((q) => <source src={q.src} type={q.type} />)}
+                </video>
                 <button type="button" class="abspielen" data-abspielen aria-label="Video abspielen">
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="#000" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3" /></svg>
                 </button>

@@ -11,8 +11,9 @@ import { SEITEN } from '../lib/seiten';
 import { ROUTE_LINK } from '../lib/kontakt';
 import lageskizze from '../assets/bilder/lageskizze.svg?raw';
 
-// Startseiten-Video (Copter) liegt auf R2; Link folgt (Matthias, 21.11.).
-const HERO_VIDEO: string | null = null;
+import { videoQuellen } from '../lib/videos';
+// Startseiten-Video (Copter) aus R2 (Matthias, 21.11.); ohne Standbild (laut Bildliste keins vorgesehen)
+const heroVideo = videoQuellen('startseite');
 
 // Angaben zum Haus für Suchmaschinen (schema.org). Quelle: Impressum. Prüfen beim Go-live.
 const haus = {
@@ -49,9 +50,9 @@ const stimmen = [
 
   <!-- Hero: Video stumm in Schleife (einzige Ausnahme vom „Start erst auf Klick“) -->
   <section class="held">
-    {HERO_VIDEO
-      ? <video class="held-video" src={HERO_VIDEO} autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
-      : <div class="held-video held-offen"><span class="offen-markiert">[Video offen: Startseiten-Video auf R2]</span></div>}
+    <video class="held-video" autoplay muted loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture>
+      {heroVideo.map((q) => <source src={q.src} type={q.type} />)}
+    </video>
     <div class="held-verlauf" aria-hidden="true"></div>
     <div class="w held-inhalt">
       <h1 class="h1">Ihr Ort zum Sein</h1>
@@ -140,7 +141,7 @@ const stimmen = [
   /* Hero */
   .held { position: relative; height: 600px; overflow: hidden; }
   .held-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .held-offen { background: var(--neutral-300); display: grid; place-items: center; }
+  .held { background: var(--neutral-300); }
   .held-verlauf { position: absolute; left: 0; right: 0; bottom: 0; height: 230px; background: linear-gradient(to bottom, rgba(244, 243, 239, 0) 0%, rgba(244, 243, 239, .9) 55%, #f4f3ef 78%); }
   .held-inhalt { position: absolute; left: 0; right: 0; bottom: 32px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
   .held-wege { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -231,6 +232,9 @@ const stimmen = [
 </style>
 
 <script>
+  // Hero-Video: bei „Bewegung reduzieren“ nicht automatisch abspielen
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelector<HTMLVideoElement>('.held-video')?.pause();
+
   // Karten erst beim Hineinscrollen einblenden (nur Desktop, nur mit Skript; ohne Skript sofort sichtbar)
   const karten = document.querySelector<HTMLElement>('[data-einblenden]');
   if (karten && matchMedia('(min-width: 1024px)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {

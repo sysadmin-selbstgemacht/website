@@ -88,35 +88,57 @@ export function kurzname(text: string, max = 40): string {
 
 // Ausführliche Beschreibung: erlaubt sind nur Absätze, Aufzählungen (- ) und **fett** (offene Fragen 1.6).
 // Alles andere, was Markdown sonst deuten würde, wird maskiert. Das Ergebnis ist Markdown.
+// Zwischenformat zwischen Termin-Formular (Editor) und Termin-Datei, Zeile für Zeile:
+//   Leerzeile        = neuer Absatz
+//   „- “ (auch •, –, *) = Aufzählung mit Punkten
+//   „1. “ (auch „1) “)  = nummerierte Aufzählung (wird fortlaufend neu nummeriert)
+//   „\“ am Zeilenanfang = Absatz, auch wenn die Zeile wie ein Listenpunkt aussieht (z. B. „2026. war …“)
+//   **Wort**          = fett
+// Alles andere wird maskiert und erscheint wörtlich (#, [, <, _, * …). Entscheidung 1.6, erweitert 21.11.
+const PUNKT = /^\s*[-*•–]\s+(.*)$/;
+const NUMMER = /^\s*\d+[.)]\s+(.*)$/;
+
 export function beschreibungMarkdown(eingabe: string): string {
   const zeilen = eingabe.replace(/\r\n?/g, '\n').split('\n').map((z) => z.replace(/\s+$/, ''));
   const aus: string[] = [];
-  let vorher: 'leer' | 'text' | 'liste' = 'leer';
+  let vorher: 'leer' | 'text' | 'ul' | 'ol' = 'leer';
+  let nr = 0;
   for (const roh of zeilen) {
     if (!roh.trim()) {
       if (vorher !== 'leer') aus.push('');
       vorher = 'leer';
       continue;
     }
-    const liste = /^\s*(?:[-*•–]|\d+[.)])\s+(.*)$/.exec(roh);
-    const art = liste ? 'liste' : 'text';
-    // Wechsel zwischen Absatz und Aufzählung braucht in Markdown eine Leerzeile
+    const woertlich = /^\s*\\/.test(roh);
+    const p = woertlich ? null : PUNKT.exec(roh);
+    const n = woertlich || p ? null : NUMMER.exec(roh);
+    const art = p ? 'ul' : n ? 'ol' : 'text';
+    // Wechsel zwischen Absatz und Aufzählungen braucht in Markdown eine Leerzeile
     if (vorher !== 'leer' && vorher !== art) aus.push('');
-    const inhalt = liste ? liste[1] : roh.trim();
+    if (art === 'ol' && vorher !== 'ol') nr = 0;
+    const inhalt = p ? p[1] : n ? n[1] : woertlich ? roh.replace(/^\s*\\/, '').trim() : roh.trim();
     // **fett** schützen, Rest maskieren
     const teile = inhalt.split(/(\*\*[^*\n]+?\*\*)/g).map((t, i) =>
-      i % 2 === 1 ? '**' + maske(t.slice(2, -2).trim()) + '**' : maske(t),
+      i % 2 === 1 ? '**' + maske(t.slice(2, -2).trim(), false) + '**' : maske(t, i === 0),
     );
-    aus.push((liste ? '- ' : '') + teile.join(''));
+    aus.push((art === 'ul' ? '- ' : art === 'ol' ? `${++nr}. ` : '') + teile.join(''));
     vorher = art;
   }
   return aus.join('\n').trim();
 }
-function maske(t: string): string {
-  return t.replace(/([\\`*_\[\]<>#|~!])/g, '\\$1').replace(/^(\d+)\./, '$1\\.').replace(/^([+=-])/, '\\$1');
+// zeilenanfang: Zeichen, die am Anfang einer Zeile Markdown-Struktur bilden würden (1., -, +, =)
+function maske(t: string, zeilenanfang: boolean): string {
+  const m = t.replace(/([\\`*_\[\]<>#|~!])/g, '\\$1');
+  return zeilenanfang ? m.replace(/^(\d+)([.)])/, '$1\\$2').replace(/^([+=-])/, '\\$1') : m;
 }
 
-// Markdown der Beschreibung zurück in Formular-Text (Umkehrung von beschreibungMarkdown).
+// Markdown der Beschreibung zurück ins Zwischenformat (Umkehrung von beschreibungMarkdown).
+// Absätze, die nach dem Entmaskieren wie ein Listenpunkt aussehen, bekommen das „\“ zurück.
 export function beschreibungText(md: string): string {
-  return md.replace(/\\([\\`*_\[\]<>#|~!.+=-])/g, '$1').trim();
+  return md.replace(/\r\n?/g, '\n').split('\n').map((zeile) => {
+    const liste = /^(- |\d+\. )/.exec(zeile);
+    const rest = (liste ? zeile.slice(liste[0].length) : zeile).replace(/\\([\\`*_\[\]<>#|~!.)+=-])/g, '$1');
+    if (liste) return liste[0] + rest;
+    return rest.trim() && (PUNKT.test(rest) || NUMMER.test(rest)) ? '\\' + rest : rest;
+  }).join('\n').trim();
 }
