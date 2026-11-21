@@ -4,19 +4,17 @@
 // Mobil:   Logo · „Anfragen“ umrandet · Burger. Burger öffnet ein vollflächiges Menü (#f4f3ef) mit
 //          Logo, X, fünf Punkten und Telefon / WhatsApp / E-Mail; ohne Adresse, Route und „Anfragen“.
 // „Anfragen“ springt zu #anfrage der Seite; fehlt auf der Terminunterseite (ohneAnfrage).
-import { getImage } from 'astro:assets';
-import logoDatei from '../assets/bilder/logo.webp';
+import logoUrl from '../assets/bilder/logo.svg?url';
 import { MAIL_ANFRAGE, mailtoAnfrage, TELEFON_ANZEIGE, TELEFON_LINK, WHATSAPP_LINK } from '../lib/kontakt';
 import { MENUE } from '../lib/seiten';
 
 const { ohneAnfrage = false } = Astro.props as { ohneAnfrage?: boolean };
 const aktuell = Astro.url.pathname;
-const logo = await getImage({ src: logoDatei, height: 120, format: 'webp' });
 const istAktuell = (href: string) => aktuell === href || aktuell.startsWith(href);
 ---
 <header class="kopf">
   <div class="w kopf-zeile">
-    <a class="kopf-logo" href="/"><img src={logo.src} alt="SELBSTGEMACHT, zur Startseite" width={logo.attributes.width} height={logo.attributes.height} /></a>
+    <a class="kopf-logo" href="/"><img src={logoUrl} alt="SELBSTGEMACHT, zur Startseite" width="371" height="295" /></a>
     <nav class="hauptmenue" aria-label="Hauptmenü">
       {MENUE.map((m) => <a href={m.href} aria-current={istAktuell(m.href) ? 'page' : undefined}>{m.text}</a>)}
       <a href="#kontakt">Kontakt</a>
@@ -32,7 +30,7 @@ const istAktuell = (href: string) => aktuell === href || aktuell.startsWith(href
 
 <dialog id="menue-mobil" class="menue-mobil" aria-label="Menü">
   <div class="menue-kopf">
-    <a class="kopf-logo" href="/"><img src={logo.src} alt="SELBSTGEMACHT, zur Startseite" width={logo.attributes.width} height={logo.attributes.height} /></a>
+    <a class="kopf-logo" href="/"><img src={logoUrl} alt="SELBSTGEMACHT, zur Startseite" width="371" height="295" /></a>
     <button type="button" class="menue-zu" aria-label="Menü schließen" data-menue-zu>
       <svg width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
     </button>

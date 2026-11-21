@@ -1,0 +1,51 @@
+---
+// FAQ als Akkordeon (Wireframes, Handoff 21.11.): erste Frage offen, immer nur eine offen.
+// <details name="…"> schließt die anderen von selbst (aktuelle Browser); ohne Skript.
+// Antworten mit „[offen]“ bleiben bis zum Go-live sichtbar markiert (Entscheidung 21.11.).
+interface Props {
+  titel?: string;
+  fragen: { frage: string; antwort: string }[];
+  id: string; // eindeutiger Name je Seite
+}
+const { titel = 'Häufige Fragen', fragen, id } = Astro.props;
+// [ … ] im Antworttext als Platzhalter markieren
+const markiere = (t: string) => t.replace(/\[([^\]]+)\]/g, '<span class="offen-markiert">[$1]</span>');
+---
+<section class="faq" aria-labelledby={`${id}-titel`}>
+  <div class="w faq-raster">
+    <div class="faq-kopf">
+      <h2 class="h2" id={`${id}-titel`}>{titel}</h2>
+      <slot name="einleitung" />
+    </div>
+    <div class="faq-liste">
+      {fragen.map((f, i) => (
+        <details name={id} open={i === 0}>
+          <summary>{f.frage}<span class="zeichen" aria-hidden="true"></span></summary>
+          <p set:html={markiere(f.antwort)} />
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq { padding-top: 64px; }
+  .faq-raster { display: flex; flex-direction: column; gap: 12px; }
+  .faq-kopf { display: flex; flex-direction: column; gap: 16px; margin-bottom: 12px; }
+  .faq-liste { display: flex; flex-direction: column; gap: 12px; }
+  details { background: #fff; border-radius: var(--radius-lg); padding: 0 16px; }
+  summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 56px; padding: 8px 0; font-size: 16px; font-weight: 500; color: #000; cursor: pointer; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: 2px; border-radius: 4px; }
+  .zeichen::before { content: '+'; font-size: 22px; font-weight: 300; }
+  details[open] .zeichen::before { content: '−'; }
+  details p { margin: 0 0 16px; font-size: 15px; line-height: 1.5; white-space: pre-line; }
+  @media (min-width: 1024px) {
+    .faq { padding-top: 120px; }
+    .faq-raster { display: grid; grid-template-columns: 4fr 8fr; gap: 64px; align-items: start; }
+    .faq-kopf { margin: 0; }
+    details { padding: 0 24px; }
+    summary { min-height: 64px; font-size: 18px; gap: 16px; }
+    details p { margin-bottom: 20px; font-size: 16px; line-height: 1.55; }
+  }
+</style>
