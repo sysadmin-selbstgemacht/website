@@ -2,105 +2,232 @@
 // Anfrageformular: eine Komponente, Felder je Anliegen (docs/formular.md, Regeln in src/lib/anfrage.ts).
 // Spamschutz nach Leitfaden: verstecktes Feld, Zeitprüfung, Rechenaufgabe (ALTCHA) im Hintergrund.
 //
-// Anliegen:
-//   - ohne Angabe (Startseite, Terminübersicht, übrige Seiten): Auswahl „Worum geht es?“
+// Varianten (Wireframes 21.11., „Konzept C“):
+//   - ohne Angabe (Startseite, Termine, Über uns): Anliegen-Chips Gruppen · Tagungen · Kursleitende · Sonstiges, zunächst keiner gewählt
 //   - mit `anliegen` (Zielgruppenseiten): fest und unsichtbar
-//   - mit `termin` (Terminseite, eigener Termin): fest, „Ihre Anfrage zu: …“
+//   - mit `termin` (Terminseite, eigener Termin): fest, „Ihre Anfrage zu: …“, nur Kontaktdaten
+// Ablauf: Gruppen, Tagungen, Kursleitende zweistufig (1 · Anliegen-Daten, 2 · Kontaktdaten mit Zusammenfassung
+// und „Ändern“); Sonstiges und Termin einstufig. Beschriftung als Floating Label.
 // Gruppen wählen Anreise und Abreise im Verfügbarkeitskalender (3RPMS, /api/verfuegbarkeit).
-// „Anfrage senden“ bleibt überall gesperrt, bis alle Pflichtfelder gültig sind.
+// „Weiter“ und „Anfrage senden“ bleiben gesperrt, bis die Pflichtfelder gültig sind.
 import { ANLIEGEN, ANREDE, UEBERNACHTUNG, STANDARD, type Anliegen } from '../lib/anfrage';
 interface Props {
   anliegen?: Anliegen;
   termin?: string; // „Titel · Datum“
 }
 const { anliegen, termin } = Astro.props;
+const variante = termin ? 'termin' : anliegen ? 'fest' : 'auswahl';
 ---
-<form class="anfrageformular" data-formular novalidate>
+<form class="anfrageformular" data-formular data-variante={variante} novalidate>
   {termin ? (
     <>
       <input type="hidden" name="anliegen" value="termin" />
       <input type="hidden" name="termin" value={termin} />
       <p class="fester-termin">Ihre Anfrage zu: <strong>{termin}</strong></p>
+      <p class="schritt-titel">Ihre Kontaktdaten</p>
     </>
   ) : anliegen ? (
     <input type="hidden" name="anliegen" value={anliegen} />
   ) : (
     <>
-      <label>Ihr Anliegen
-        <select name="anliegen" required>
-          <option value="" selected>Bitte wählen</option>
-          {ANLIEGEN.map((o) => <option value={o.wert}>{o.text}</option>)}
-        </select>
-      </label>
+      <fieldset class="chips">
+        <legend class="nur-vorleser">Ihr Anliegen</legend>
+        {ANLIEGEN.map((o) => (
+          <label class="chip"><input type="radio" name="anliegen" value={o.wert} /><span>{o.text}</span></label>
+        ))}
+      </fieldset>
       <p class="hinweis" data-ohne-anliegen>Wählen Sie Ihr Anliegen, dann erscheinen die passenden Felder.</p>
     </>
   )}
 
-  <label data-feld="unternehmen"><span>{STANDARD.unternehmen}</span> <input name="unternehmen" autocomplete="organization" maxlength="200" /></label>
+  <ol class="fortschritt" aria-label="Fortschritt" data-fortschritt hidden>
+    <li><button type="button" data-zu-schritt="1"><span class="balken"></span><span>1 · <span data-schritt1-name></span></span></button></li>
+    <li><button type="button" data-zu-schritt="2"><span class="balken"></span><span>2 · Ihre Kontaktdaten</span></button></li>
+  </ol>
 
-  <!-- Verfügbarkeitskalender (nur Gruppen): schreibt in die Felder von/bis -->
-  <div class="kalender" data-kalender hidden>
-    <p class="kalender-titel"><span>Anreise und Abreise</span></p>
-    <div class="kalender-kopf">
-      <button type="button" data-zurueck aria-label="Vorheriger Monat">‹</button>
-      <strong data-monat aria-live="polite"></strong>
-      <button type="button" data-vor aria-label="Nächster Monat">›</button>
+  <!-- Schritt 1: Angaben zum Anliegen -->
+  <div class="schritt" data-schritt="1">
+    <label data-feld="offen" class="haken"><input name="offen" type="checkbox" /> {STANDARD.offen}</label>
+
+    <!-- Verfügbarkeitskalender (nur Gruppen): schreibt in die Felder von/bis -->
+    <div class="kalender" data-kalender role="group" aria-label="Anreise und Abreise wählen" hidden>
+      <div class="kalender-kopf">
+        <button type="button" data-zurueck aria-label="Vorheriger Monat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
+        <strong data-monat aria-live="polite"></strong>
+        <button type="button" data-vor aria-label="Nächster Monat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+      </div>
+      <div class="kalender-tage" data-tage></div>
+      <p class="kalender-legende"><span class="probe frei"></span> frei <span class="probe belegt"></span> belegt</p>
+      <p class="kalender-auswahl" data-auswahl aria-live="polite"></p>
+      <p class="hinweis" data-kalenderhinweis></p>
     </div>
-    <div class="kalender-tage" data-tage></div>
-    <p class="kalender-legende"><span class="probe frei"></span> frei <span class="probe belegt"></span> belegt</p>
-    <p class="kalender-auswahl" data-auswahl aria-live="polite"></p>
-    <p class="hinweis" data-kalenderhinweis></p>
+
+    <div class="paar feld-datum" data-gruppe>
+      <label class="fl fl-datum" data-feld="von"><input class="fi" name="von" type="date" /><span data-text="von">Anreise</span></label>
+      <label class="fl fl-datum" data-feld="bis"><input class="fi" name="bis" type="date" /><span data-text="bis">Abreise</span></label>
+    </div>
+    <label class="fl" data-feld="zeitraum"><input class="fi" name="zeitraum" maxlength="200" placeholder="Zeitraum" /><span data-text="zeitraum">Zeitraum</span></label>
+    <label class="fl" data-feld="thema"><input class="fi" name="thema" maxlength="200" placeholder={STANDARD.thema} /><span>{STANDARD.thema}</span></label>
+
+    <div class="paar" data-gruppe>
+      <label class="fl" data-feld="erwachsene"><input class="fi" name="erwachsene" type="number" min="1" max="200" inputmode="numeric" placeholder={STANDARD.erwachsene} /><span>{STANDARD.erwachsene}</span></label>
+      <label class="fl" data-feld="kinder"><input class="fi" name="kinder" type="number" min="0" max="200" inputmode="numeric" placeholder={STANDARD.kinder} /><span>{STANDARD.kinder}</span></label>
+    </div>
+    <div class="paar-desktop" data-gruppe>
+      <label class="fl" data-feld="personen"><input class="fi" name="personen" type="number" min="1" max="200" inputmode="numeric" placeholder="Personen" /><span data-text="personen">Personen</span></label>
+      <label class="fl" data-feld="uebernachtung">
+        <select class="fi" name="uebernachtung">
+          <option value="">{STANDARD.uebernachtung}</option>
+          {UEBERNACHTUNG.map((u) => <option value={u}>{u}</option>)}
+        </select><span>{STANDARD.uebernachtung}</span>
+      </label>
+    </div>
+    <label class="fl" data-feld="unternehmen"><input class="fi" name="unternehmen" autocomplete="organization" maxlength="200" placeholder={STANDARD.unternehmen} /><span>{STANDARD.unternehmen}</span></label>
+
+    <div class="aktion">
+      <button type="button" class="knopf" data-weiter disabled>Weiter zu Ihren Kontaktdaten<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></button>
+      <p class="hinweis" data-weiterhinweis></p>
+    </div>
   </div>
 
-  <div class="zeile">
-    <label data-feld="von"><span data-text="von">Anreise</span> <input name="von" type="date" /></label>
-    <label data-feld="bis"><span data-text="bis">Abreise</span> <input name="bis" type="date" /></label>
+  <!-- Schritt 2: Kontaktdaten -->
+  <div class="schritt" data-schritt="2">
+    <div class="zusammenfassung" data-zusammenfassung hidden>
+      <span data-zusammenfassung-text></span>
+      <button type="button" class="textknopf" data-zu-schritt="1">Ändern</button>
+    </div>
+    <div class="namen">
+      <label class="fl" data-feld="anrede">
+        <select class="fi" name="anrede">
+          <option value="">{STANDARD.anrede}</option>
+          {ANREDE.map((a) => <option value={a}>{a}</option>)}
+        </select><span>{STANDARD.anrede}</span>
+      </label>
+      <label class="fl" data-feld="vorname"><input class="fi" name="vorname" autocomplete="given-name" maxlength="100" placeholder={STANDARD.vorname} /><span>{STANDARD.vorname}</span></label>
+      <label class="fl" data-feld="nachname"><input class="fi" name="nachname" autocomplete="family-name" maxlength="100" placeholder={STANDARD.nachname} /><span>{STANDARD.nachname}</span></label>
+    </div>
+    <div class="paar-desktop">
+      <label class="fl" data-feld="email"><input class="fi" name="email" type="email" autocomplete="email" maxlength="200" placeholder={STANDARD.email} /><span>{STANDARD.email}</span></label>
+      <label class="fl" data-feld="telefon"><input class="fi" name="telefon" type="tel" autocomplete="tel" maxlength="50" placeholder={STANDARD.telefon} /><span data-text="telefon">{STANDARD.telefon}</span></label>
+    </div>
+    <label class="fl" data-feld="nachricht"><textarea class="fi" name="nachricht" rows="3" maxlength="5000" placeholder={STANDARD.nachricht}></textarea><span data-text="nachricht">{STANDARD.nachricht}</span></label>
+    <!-- verstecktes Feld: nur Bots füllen es (display:none, unverfänglicher Name) -->
+    <div class="hp" aria-hidden="true"><input type="text" name="sg_feld7" tabindex="-1" autocomplete="off" /></div>
+    <p class="hinweis">Ihre Angaben nutzen wir nur, um Ihre Anfrage zu beantworten (<a href="/datenschutz/">Datenschutz</a>).</p>
+    <div class="aktion">
+      <button type="submit" class="knopf">Anfrage senden</button>
+      <p class="hinweis" data-sperrhinweis></p>
+    </div>
   </div>
-  <label data-feld="offen" class="haken"><input name="offen" type="checkbox" /> {STANDARD.offen}</label>
-  <label data-feld="zeitraum"><span data-text="zeitraum">Zeitraum</span> <input name="zeitraum" maxlength="200" placeholder="z. B. ein Wochenende im Mai" /></label>
-  <label data-feld="thema"><span>{STANDARD.thema}</span> <input name="thema" maxlength="200" /></label>
 
-  <div class="zeile">
-    <label data-feld="erwachsene"><span>{STANDARD.erwachsene}</span> <input name="erwachsene" type="number" min="1" max="200" inputmode="numeric" /></label>
-    <label data-feld="kinder"><span>{STANDARD.kinder}</span> <input name="kinder" type="number" min="0" max="200" inputmode="numeric" /></label>
-  </div>
-  <label data-feld="personen"><span data-text="personen">Personen</span> <input name="personen" type="number" min="1" max="200" inputmode="numeric" /></label>
-  <label data-feld="uebernachtung"><span>{STANDARD.uebernachtung}</span>
-    <select name="uebernachtung">
-      <option value="">Bitte wählen</option>
-      {UEBERNACHTUNG.map((u) => <option value={u}>{u}</option>)}
-    </select>
-  </label>
-
-  <label data-feld="anrede"><span>{STANDARD.anrede}</span>
-    <select name="anrede">
-      <option value="">Bitte wählen</option>
-      {ANREDE.map((a) => <option value={a}>{a}</option>)}
-    </select>
-  </label>
-  <div class="zeile namen">
-    <label data-feld="vorname"><span>{STANDARD.vorname}</span> <input name="vorname" autocomplete="given-name" maxlength="100" /></label>
-    <label data-feld="nachname"><span>{STANDARD.nachname}</span> <input name="nachname" autocomplete="family-name" maxlength="100" /></label>
-  </div>
-  <label data-feld="email"><span>{STANDARD.email}</span> <input name="email" type="email" autocomplete="email" maxlength="200" /></label>
-  <label data-feld="telefon"><span data-text="telefon">{STANDARD.telefon}</span> <input name="telefon" type="tel" autocomplete="tel" maxlength="50" /></label>
-  <label data-feld="nachricht"><span data-text="nachricht">{STANDARD.nachricht}</span> <textarea name="nachricht" rows="5" maxlength="5000"></textarea></label>
-
-  <!-- verstecktes Feld: nur Bots füllen es (display:none, unverfänglicher Name) -->
-  <div class="hp" aria-hidden="true"><input type="text" name="sg_feld7" tabindex="-1" autocomplete="off" /></div>
-
-  <p class="hinweis" data-nur-mit-anliegen>Mit * markierte Felder brauchen wir. Die Angaben nutzen wir nur, um die Anfrage zu beantworten (<a href="/datenschutz/">Datenschutz</a>).</p>
-  <button type="submit">Anfrage senden</button>
-  <p class="hinweis" data-sperrhinweis>Wird aktiv, sobald alle Pflichtfelder ausgefüllt sind.</p>
   <p class="meldung" role="status" aria-live="polite"></p>
   <pre class="trockenlauf" hidden></pre>
 </form>
 
+<style>
+  /* Felder nach Wireframe: weißes Feld, Rand weiß auf farbiger Fläche, grau auf weißer Fläche (--feldrand) */
+  .anfrageformular { --feldrand: #fff; display: flex; flex-direction: column; gap: 16px; }
+  .anfrageformular[data-variante='termin'] { --feldrand: var(--neutral-500); }
+  .schritt { display: flex; flex-direction: column; gap: 16px; }
+  .anfrageformular :global(.hinweis) { margin: 0; font-size: 14px; line-height: 1.5; color: var(--neutral-600); }
+  .hp { display: none; }
+
+  /* Chips */
+  .chips { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .chip span { display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: var(--radius-md); border: 1px solid var(--neutral-500); background: #fff; color: #000; font-size: 15px; cursor: pointer; }
+  .chip input:checked + span { border: 2px solid var(--green-800); background: var(--green-100); padding: 0 15px; }
+  .chip input:focus-visible + span { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
+
+  /* Fortschritt */
+  .fortschritt { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fortschritt button { width: 100%; min-height: 44px; border: 0; background: transparent; padding: 0; font: inherit; font-size: 14px; color: var(--neutral-600); text-align: left; display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
+  .fortschritt button:disabled { cursor: default; }
+  .fortschritt .balken { display: block; height: 4px; border-radius: 2px; background: var(--neutral-300); }
+  .fortschritt button.erledigt .balken, .fortschritt button[aria-current='step'] .balken { background: var(--green-700); }
+  .fortschritt button[aria-current='step'] { font-weight: 500; color: #000; }
+
+  /* Floating Label: Beschriftung im Feld (Platzhalter), beim Tippen klein über dem Feld */
+  .fl { position: relative; display: block; font-size: 16px; color: var(--neutral-600); }
+  .fi { height: 48px; width: 100%; border: 1px solid var(--feldrand); border-radius: var(--radius-md); padding: 0 12px; font: inherit; font-size: 16px; font-weight: 400; background: #fff; color: #000; }
+  textarea.fi { height: auto; padding: 12px; resize: vertical; }
+  .fi::placeholder { color: var(--neutral-600); opacity: 1; }
+  .fi:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: 0; }
+  .fi:user-invalid { border-color: var(--color-border-error, #7f0925); }
+  .fl > span { position: absolute; left: 8px; top: -9px; padding: 0 6px; border-radius: 4px; background: #fff; font-size: 12px; line-height: 16px; color: var(--neutral-600); opacity: 0; transform: translateY(4px); transition: opacity .15s, transform .15s; pointer-events: none; }
+  .fl > input.fi:not(:placeholder-shown) + span,
+  .fl > textarea.fi:not(:placeholder-shown) + span,
+  .fl > select.fi + span,
+  .fl-datum > span { opacity: 1; transform: none; }
+  .fl > select.fi:has(option:first-child:checked) + span { opacity: 0; transform: translateY(4px); }
+  select.fi:has(option:first-child:checked) { color: var(--neutral-600); }
+  /* Datumsfeld: Beschriftung steht immer darüber, Platz für den Wert des Geräts */
+  .fl-datum .fi { padding-top: 6px; }
+  @media (prefers-reduced-motion: reduce) { .fl > span { transition: none; } }
+
+  .haken { display: flex; gap: 10px; align-items: center; min-height: 44px; font-size: 16px; color: var(--neutral-600); cursor: pointer; }
+  .haken input { width: 20px; height: 20px; margin: 0; accent-color: var(--green-700); }
+
+  .paar, .namen { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .namen > :first-child { grid-column: 1 / -1; }
+  .paar-desktop { display: grid; gap: 16px; }
+
+  /* Reihenfolge je Anliegen (Wireframe): Tagungen beginnen mit den Datumsfeldern */
+  .anfrageformular[data-anliegen='firma'] .feld-datum { order: -1; }
+
+  .aktion { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding-top: 4px; }
+  .aktion .knopf { min-height: 48px; padding: 0 32px; border-radius: var(--radius-md); }
+
+  .zusammenfassung { background: #fff; border-radius: var(--radius-lg); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .zusammenfassung span { font-size: 15px; line-height: 1.45; color: #000; white-space: pre-line; }
+  .textknopf { flex: 0 0 auto; min-height: 44px; border: 0; background: transparent; padding: 0; font: inherit; font-size: 15px; font-weight: 500; color: var(--green-800); text-decoration: underline; cursor: pointer; }
+
+  .fester-termin { margin: 0; font-size: 16px; line-height: 1.5; padding: 12px 16px; background: var(--neutral-50); border-radius: var(--radius-md); }
+  .fester-termin strong { font-weight: 500; color: #000; }
+  .schritt-titel { margin: 0; padding-top: 8px; font-size: 20px; color: #000; }
+
+  .meldung { margin: 0; font-size: 16px; line-height: 1.5; font-weight: 500; color: #000; }
+  .meldung:empty { display: none; }
+  .trockenlauf { background: #fff4c2; padding: .75rem; white-space: pre-wrap; font-size: .85rem; }
+
+  /* Kalender (Wireframe: weiße Fläche, freie Tage hellgrün, belegte grau durchgestrichen, Auswahl dunkelgrün) */
+  .kalender { background: #fff; border-radius: var(--radius-lg); padding: 12px; display: flex; flex-direction: column; gap: 10px; max-width: 480px; }
+  .kalender-kopf { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .kalender-kopf strong { font-size: 17px; font-weight: 500; color: #000; }
+  .kalender-kopf button { width: 44px; height: 44px; border: 1px solid var(--green-700); border-radius: var(--radius-md); background: #fff; color: var(--green-800); display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+  .kalender-kopf button:disabled { opacity: .35; cursor: default; }
+  .kalender-tage { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .kalender-tage :global(.wochentag) { font-size: 13px; text-align: center; color: var(--neutral-600); }
+  .kalender-tage :global(button) { height: 40px; border: 0; border-radius: 6px; padding: 0; font: inherit; font-size: 15px; background: var(--green-50); color: #000; cursor: pointer; }
+  .kalender-tage :global(button:disabled) { cursor: default; background: transparent; color: #b5b3ab; }
+  .kalender-tage :global(button.belegt) { background: var(--neutral-200); color: var(--neutral-500); text-decoration: line-through; }
+  .kalender-tage :global(button.zwischen), .kalender-tage :global(button.gewaehlt) { background: var(--green-700); color: #fff; }
+  .kalender-tage :global(button.gewaehlt) { font-weight: 500; }
+  .kalender-legende { margin: 0; font-size: 14px; display: flex; gap: 6px; align-items: center; }
+  .kalender-legende .probe { display: inline-block; width: 14px; height: 14px; border-radius: 3px; }
+  .kalender-legende .probe.frei { background: var(--green-50); }
+  .kalender-legende .probe.belegt { background: var(--neutral-200); margin-left: 8px; }
+  .kalender-auswahl { margin: 0; font-size: 15px; line-height: 1.5; font-weight: 500; color: #000; white-space: pre-line; }
+
+  @media (min-width: 1024px) {
+    .anfrageformular { gap: 12px; }
+    .schritt { gap: 12px; }
+    .fortschritt { gap: 12px; }
+    .fortschritt button { font-size: 16px; gap: 8px; }
+    .paar-desktop { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .namen { grid-template-columns: 1fr 2fr 2fr; }
+    .namen > :first-child { grid-column: auto; }
+    .aktion { align-items: flex-start; }
+    .zusammenfassung span { font-size: 16px; }
+    .kalender-tage :global(button) { height: 44px; }
+  }
+</style>
+
 <script>
   import { solveChallenge, pbkdf2 } from 'altcha/lib';
   import {
-    FELDER, BESCHRIFTUNG, STANDARD, BESTAETIGUNG, MIT_KALENDER, MIN_NAECHTE, KALENDER_MONATE,
-    sichtbareFelder, pflichtfelder, naechte, type Anliegen, type Feld,
+    FELDER, BESCHRIFTUNG, BEISPIEL, STANDARD, BESTAETIGUNG, MIT_KALENDER, MIN_NAECHTE, KALENDER_MONATE, SCHRITT1_NAME,
+    sichtbareFelder, pflichtfelder, naechte, zweistufig, type Anliegen, type Feld,
   } from '../lib/anfrage';
 
   const geladen = Date.now();
@@ -257,14 +384,90 @@ const { anliegen, termin } = Astro.props;
       if (!bis.value || bis.value < frueheste) bis.value = frueheste;
     });
 
-    // ---------- Anzeige ----------
-    const ohneAnliegen = form.querySelector<HTMLElement>('[data-ohne-anliegen]');
-    const nurMitAnliegen = form.querySelectorAll<HTMLElement>('[data-nur-mit-anliegen]');
-    function anzeigen() {
+    // ---------- Schritte (zweistufig: Gruppen, Tagungen, Kursleitende) ----------
+    const schritt1 = form.querySelector<HTMLElement>('[data-schritt="1"]')!;
+    const schritt2 = form.querySelector<HTMLElement>('[data-schritt="2"]')!;
+    const fortschritt = form.querySelector<HTMLElement>('[data-fortschritt]')!;
+    const zuSchritt = form.querySelectorAll<HTMLButtonElement>('[data-fortschritt] [data-zu-schritt]');
+    const schritt1Name = form.querySelector<HTMLElement>('[data-schritt1-name]')!;
+    const weiter = form.querySelector<HTMLButtonElement>('[data-weiter]')!;
+    const weiterhinweis = form.querySelector<HTMLElement>('[data-weiterhinweis]')!;
+    const zusammenfassung = form.querySelector<HTMLElement>('[data-zusammenfassung]')!;
+    const zusammenfassungText = form.querySelector<HTMLElement>('[data-zusammenfassung-text]')!;
+    let schritt: 1 | 2 = 1;
+    let letztesAnliegen = '';
+
+    const felderIn = (bereich: HTMLElement) =>
+      [...bereich.querySelectorAll<HTMLInputElement>('input, select, textarea')].filter((i) => i.type !== 'hidden' && i.name !== 'sg_feld7');
+    // Schritt 1 gültig: sichtbare Pflichtfelder dort, bei Gruppen Anreise und Abreise im Kalender
+    const schritt1Gueltig = () =>
+      felderIn(schritt1).every((i) => i.checkValidity()) && (!mitKalender() || (!!von.value && !!bis.value));
+
+    const wert = (n: string) => (el(n)?.value ?? '').trim();
+    const datumDe = (s: string) => (s ? ausIso(s).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : '');
+    function zusammenfassen(a: Anliegen): string {
+      const offen = !!el('offen')?.checked;
+      const zeit = offen ? `Flexibel im Termin: ${wert('zeitraum')}` : `Anreise ${datumDe(von.value)} · Abreise ${datumDe(bis.value)}`;
+      if (a === 'gruppe') {
+        const k = +wert('kinder') || 0;
+        return `${zeit}\n${+wert('erwachsene') || 0} Erwachsene${k > 0 ? `, ${k} ${k === 1 ? 'Kind' : 'Kinder'}` : ''}`;
+      }
+      if (a === 'firma') {
+        const u = wert('uebernachtung');
+        return `${zeit}\n${+wert('personen') || 0} Teilnehmende · ${wert('unternehmen')}${u && !el('uebernachtung')!.closest('[data-feld]')!.hidden ? `\nÜbernachtung: ${u}` : ''}`;
+      }
+      if (a === 'kursleitung') return `Wunschzeitraum: ${wert('zeitraum')}\nKurs: ${wert('thema')}`;
+      return '';
+    }
+    function weiterText(a: Anliegen): string {
+      if (a === 'gruppe') return 'Wird aktiv, sobald Zeitraum und Anzahl der Erwachsenen eingetragen sind.';
+      if (a === 'firma') {
+        const mitU = !el('uebernachtung')!.closest('[data-feld]')!.hidden;
+        return `Wird aktiv, sobald Zeitraum, Teilnehmende, ${mitU ? 'Übernachtung ' : ''}und Unternehmen eingetragen sind.`.replace('Teilnehmende, und', 'Teilnehmende und');
+      }
+      return 'Wird aktiv, sobald Wunschzeitraum und Kurs oder Thema eingetragen sind.';
+    }
+
+    function schrittZeigen() {
       const a = anliegen();
       const gewaehlt = a in FELDER;
+      const zwei = gewaehlt && zweistufig(a);
+      fortschritt.hidden = !zwei;
+      schritt1.hidden = !zwei || schritt !== 1;
+      schritt2.hidden = !gewaehlt || (zwei && schritt !== 2);
+      zusammenfassung.hidden = !zwei;
+      if (zwei) {
+        schritt1Name.textContent = SCHRITT1_NAME[a] ?? '';
+        zuSchritt.forEach((b) => {
+          const s = +b.dataset.zuSchritt! as 1 | 2;
+          b.setAttribute('aria-label', `Zu Schritt ${s}: ${s === 1 ? SCHRITT1_NAME[a] : 'Ihre Kontaktdaten'}`);
+          if (s === schritt) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+          b.classList.toggle('erledigt', s === 1 && schritt === 2);
+          if (s === 2) b.disabled = !schritt1Gueltig();
+        });
+        if (schritt === 2) zusammenfassungText.textContent = zusammenfassen(a);
+      }
+    }
+    function zeigeSchritt(s: 1 | 2) {
+      if (s === 2 && !schritt1Gueltig()) return;
+      schritt = s;
+      schrittZeigen();
+      const ziel = s === 2 ? el('anrede') : felderIn(schritt1).find((i) => !i.closest('[hidden]'));
+      (ziel as HTMLElement | null)?.focus({ preventScroll: true });
+      fortschritt.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    weiter.addEventListener('click', () => zeigeSchritt(2));
+    form.querySelectorAll<HTMLButtonElement>('[data-zu-schritt]').forEach((b) =>
+      b.addEventListener('click', () => zeigeSchritt(+b.dataset.zuSchritt! as 1 | 2)));
+
+    // ---------- Anzeige ----------
+    const ohneAnliegen = form.querySelector<HTMLElement>('[data-ohne-anliegen]');
+    function anzeigen() {
+      const a = anliegen();
+      if (a !== letztesAnliegen) { schritt = 1; letztesAnliegen = a; }
+      form.dataset.anliegen = a;
+      const gewaehlt = a in FELDER;
       if (ohneAnliegen) ohneAnliegen.hidden = gewaehlt;
-      nurMitAnliegen.forEach((n) => { n.hidden = !gewaehlt; });
       if (!gewaehlt) {
         form.querySelectorAll<HTMLElement>('[data-feld]').forEach((l) => {
           l.hidden = true;
@@ -272,6 +475,7 @@ const { anliegen, termin } = Astro.props;
           if (input) input.required = false;
         });
         kal.hidden = true;
+        schrittZeigen();
         return;
       }
       const z = zustand();
@@ -282,25 +486,45 @@ const { anliegen, termin } = Astro.props;
       form.querySelectorAll<HTMLElement>('[data-feld]').forEach((l) => {
         const f = l.dataset.feld as Feld;
         l.hidden = !sichtbar.has(f);
-        l.classList.toggle('pflicht', pflicht.has(f));
         const input = l.querySelector('input, select, textarea') as HTMLInputElement | null;
         if (input) input.required = pflicht.has(f) && sichtbar.has(f);
       });
+      // Feldpaare ausblenden, wenn keines ihrer Felder sichtbar ist
+      form.querySelectorAll<HTMLElement>('[data-gruppe]').forEach((g) => {
+        g.hidden = [...g.querySelectorAll<HTMLElement>('[data-feld]')].every((l) => l.hidden);
+      });
       kal.hidden = !kalender;
-      kal.classList.toggle('pflicht', kalender);
       if (kalender) kalenderStarten();
       const b = BESCHRIFTUNG[a] ?? {};
+      const bsp = BEISPIEL[a] ?? {};
       form.querySelectorAll<HTMLElement>('[data-text]').forEach((s) => {
         const f = s.dataset.text as Feld;
-        s.textContent = b[f] ?? STANDARD[f] ?? f;
+        const text = b[f] ?? STANDARD[f] ?? f;
+        s.textContent = text;
+        const input = s.parentElement?.querySelector<HTMLInputElement>('input:not([type=date]), textarea');
+        if (input) input.placeholder = bsp[f] ?? text;
       });
+      schrittZeigen();
     }
 
     // Gültig: alle sichtbaren Pflichtfelder, bei Gruppen Anreise und Abreise im Kalender
     const gueltig = () => form.checkValidity() && (!mitKalender() || (!!von.value && !!bis.value));
     function sperre() {
+      const a = anliegen();
       knopf.disabled = !gueltig();
+      sperrhinweis.textContent = a === 'sonstiges'
+        ? 'Wird aktiv, sobald alle Pflichtfelder und Ihre Nachricht ausgefüllt sind.'
+        : 'Wird aktiv, sobald alle Pflichtfelder ausgefüllt sind.';
       sperrhinweis.hidden = !knopf.disabled;
+      if (a in FELDER && zweistufig(a)) {
+        const ok = schritt1Gueltig();
+        weiter.disabled = !ok;
+        weiterhinweis.textContent = weiterText(a);
+        weiterhinweis.hidden = ok;
+        zuSchritt.forEach((b) => { if (b.dataset.zuSchritt === '2') b.disabled = !ok; });
+        // Wird Schritt 1 nachträglich ungültig (z. B. Belegung neu geladen), zurück zu Schritt 1
+        if (schritt === 2 && !ok) { schritt = 1; schrittZeigen(); }
+      }
     }
     form.addEventListener('change', () => { anzeigen(); sperre(); });
     form.addEventListener('input', sperre);
@@ -310,6 +534,9 @@ const { anliegen, termin } = Astro.props;
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       trocken.hidden = true;
+      // Enter in Schritt 1: weiter zu den Kontaktdaten statt senden
+      const a0 = anliegen();
+      if (a0 in FELDER && zweistufig(a0) && schritt === 1) { zeigeSchritt(2); return; }
       // erst im Browser prüfen (Leitfaden 6), dann senden
       if (!gueltig()) {
         form.reportValidity();
@@ -330,8 +557,9 @@ const { anliegen, termin } = Astro.props;
         if (r.ok && b.status === 'ok') {
           meldung.textContent = BESTAETIGUNG;
           if (b.trockenlauf) { trocken.textContent = 'TROCKENLAUF – diese Mail würde verschickt:\n\n' + b.trockenlauf; trocken.hidden = false; }
-          else { form.reset(); if (bel) zeichnen(); }
+          else { form.reset(); schritt = 1; letztesAnliegen = ''; if (bel) zeichnen(); }
           anzeigen();
+          meldung.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         } else if (r.status === 400 && b.felder) {
           meldung.textContent = 'Bitte prüfen: ' + Object.values(b.felder).join(' · ');
         } else if (r.status === 429) {

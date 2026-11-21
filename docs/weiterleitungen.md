@@ -8,7 +8,7 @@ Wer über Google, Lesezeichen oder alte Links kommt, landet mit einer dauerhafte
 
 | Alte Adresse | Jetzt → | Frage |
 |---|---|---|
-| `/business/` („Unternehmer & Kursleiter“) | `/firmen/` | Kamen hier eher Firmen oder Kursleitende an? |
+| `/business/` („Unternehmer & Kursleiter“) | `/tagungen/` | Kamen hier eher Firmen oder Kursleitende an? |
 | `/faq/`, `/business-faq/` | Gruppen- bzw. Firmenseite | Gibt es auf der neuen Seite häufige Fragen? Dann dorthin. |
 | `/galerie/` | Start | Gibt es eine Bildergalerie? |
 | `/kunst/`, `/architektur/` | Über uns | Passt das (Alfred als Architekt, Kunst im Haus)? |

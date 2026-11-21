@@ -1,0 +1,69 @@
+/* Grundlage aller Seiten: Schrift, Seitenfläche, Inhaltsbreite, Typografie, Knöpfe.
+   Maße nach den Wireframes (Canvas, Notiz „Desktop · Entwurf“): mobil 390, Desktop 1440 mit Inhalt 1200.
+   Umbruch auf Desktop-Maße ab 1024 px (Wireframe zeigt nur 390 und 1440; Wert gewählt, damit das Menü passt). */
+@import './tokens.css';
+
+/* Roboto selbst gehostet (kein Abruf bei Google, Datenschutz). Lizenz: public/fonts/LICENSE-Roboto.txt */
+@font-face { font-family: Roboto; font-style: normal; font-weight: 200; font-display: swap; src: url('/fonts/roboto-latin-200-normal.woff2') format('woff2'); }
+@font-face { font-family: Roboto; font-style: normal; font-weight: 300; font-display: swap; src: url('/fonts/roboto-latin-300-normal.woff2') format('woff2'); }
+@font-face { font-family: Roboto; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/roboto-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: Roboto; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/roboto-latin-500-normal.woff2') format('woff2'); }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  background: var(--seite, var(--color-bg-page));
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+main { flex: 1 0 auto; }
+img, video { max-width: 100%; display: block; }
+a { color: var(--color-link-default); }
+a:hover { color: var(--color-link-hover); }
+:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Seitenfläche und Kennfarbe je Zielgruppe (body[data-bereich]) */
+body[data-bereich='gruppen'] { --seite: var(--color-bg-page-gruppen); --kennfarbe: var(--color-audience-gruppen); --kennschrift: #000; }
+body[data-bereich='tagungen'] { --seite: var(--color-bg-page-tagungen); --kennfarbe: var(--color-audience-tagungen); --kennschrift: #fff; }
+body[data-bereich='kursleitende'] { --seite: var(--color-bg-page-kursleitende); --kennfarbe: var(--color-audience-kursleitende); --kennschrift: #000; }
+
+/* Inhaltsbreite: 1200 px, darunter 20 px Rand */
+.w { width: 100%; max-width: calc(1200px + 40px); margin-inline: auto; padding-inline: 20px; }
+
+/* Typografie (mobil zuerst) */
+.h1 { margin: 0; font-size: 34px; line-height: 1.15; font-weight: 200; color: var(--color-text-heading); }
+.h2 { margin: 0; font-size: 24px; line-height: 1.3; font-weight: 300; color: var(--color-text-heading); }
+.p { margin: 0; font-size: 16px; line-height: 1.6; }
+.meta { font-size: 15px; line-height: 1.5; }
+@media (min-width: 1024px) {
+  .h1 { font-size: 64px; line-height: 1.1; }
+  .h2 { font-size: 36px; line-height: 1.25; }
+  .p { font-size: 18px; }
+}
+
+/* Knöpfe */
+.knopf {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 24px; border-radius: var(--radius-sm); border: 0;
+  background: var(--color-action-primary-default); color: #fff;
+  font: inherit; font-size: 16px; font-weight: 500; text-decoration: none; cursor: pointer;
+}
+.knopf:hover { background: var(--color-action-primary-hover); color: #fff; }
+.knopf.umrandet { background: #fff; color: var(--green-800); border: 1.5px solid var(--green-700); }
+.knopf.umrandet:hover { background: var(--color-bg-brand-subtle); color: var(--green-800); }
+.knopf:disabled, .knopf[aria-disabled='true'] { background: var(--neutral-200); color: var(--neutral-600); cursor: not-allowed; }
+
+.textlink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 500; color: var(--green-800); text-decoration: underline; }
+
+/* Platzhalter für offene Inhalte: bleiben bis zum Go-live sichtbar (Entscheidung 21.11.) */
+.offen-markiert { background: #fff4c2; color: #000; padding: 0 4px; border-radius: 3px; }
+
+.nur-vorleser { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

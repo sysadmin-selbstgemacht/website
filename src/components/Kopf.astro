@@ -1,23 +1,107 @@
 ---
-// Kopfzeile mit Menü nach Zielgruppen (Wireframes v1, Brief 6d).
-const menue = [
-  { href: '/gruppen-und-familien/', text: 'Gruppen und Familien' },
-  { href: '/firmen/', text: 'Firmen' },
-  { href: '/kursleitende/', text: 'Kursleitende' },
-  { href: '/termine/', text: 'Termine' },
-  { href: '/ueber-uns/', text: 'Über uns' },
-];
-const aktuell = Astro.url.pathname;
+// Kopf nach Wireframes und Spec 21.11. (spec_menue-footer-faq):
+// Desktop: Logo · Gruppen · Tagungen · Kursleitende · Termine · Über uns · Kontakt (#kontakt) · „Anfragen“ gefüllt.
+// Mobil:   Logo · „Anfragen“ umrandet · Burger. Burger öffnet ein vollflächiges Menü (#f4f3ef) mit
+//          Logo, X, fünf Punkten und Telefon / WhatsApp / E-Mail; ohne Adresse, Route und „Anfragen“.
+// „Anfragen“ springt zu #anfrage der Seite; fehlt auf der Terminunterseite (ohneAnfrage).
+import { getImage } from 'astro:assets';
+import logoDatei from '../assets/bilder/logo.webp';
+import { MAIL_ANFRAGE, mailtoAnfrage, TELEFON_ANZEIGE, TELEFON_LINK, WHATSAPP_LINK } from '../lib/kontakt';
+import { MENUE } from '../lib/seiten';
+
 const { ohneAnfrage = false } = Astro.props as { ohneAnfrage?: boolean };
+const aktuell = Astro.url.pathname;
+const logo = await getImage({ src: logoDatei, height: 120, format: 'webp' });
+const istAktuell = (href: string) => aktuell === href || aktuell.startsWith(href);
 ---
 <header class="kopf">
-  <a class="marke" href="/">SELBSTGEMACHT</a>
-  <nav aria-label="Hauptmenü">
-    <ul>
-      {menue.map((m) => (
-        <li><a href={m.href} aria-current={aktuell.startsWith(m.href) ? 'page' : undefined}>{m.text}</a></li>
-      ))}
-    </ul>
-  </nav>
-  {!ohneAnfrage && <a class="knopf" href="#anfrage">Anfragen</a>}
+  <div class="w kopf-zeile">
+    <a class="kopf-logo" href="/"><img src={logo.src} alt="SELBSTGEMACHT, zur Startseite" width={logo.attributes.width} height={logo.attributes.height} /></a>
+    <nav class="hauptmenue" aria-label="Hauptmenü">
+      {MENUE.map((m) => <a href={m.href} aria-current={istAktuell(m.href) ? 'page' : undefined}>{m.text}</a>)}
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+    <div class="kopf-rechts">
+      {!ohneAnfrage && <a class="knopf kopf-anfragen" href="#anfrage">Anfragen</a>}
+      <button class="burger" type="button" aria-label="Menü öffnen" aria-haspopup="dialog" aria-controls="menue-mobil" data-menue-auf>
+        <svg width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+      </button>
+    </div>
+  </div>
 </header>
+
+<dialog id="menue-mobil" class="menue-mobil" aria-label="Menü">
+  <div class="menue-kopf">
+    <a class="kopf-logo" href="/"><img src={logo.src} alt="SELBSTGEMACHT, zur Startseite" width={logo.attributes.width} height={logo.attributes.height} /></a>
+    <button type="button" class="menue-zu" aria-label="Menü schließen" data-menue-zu>
+      <svg width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+    </button>
+  </div>
+  <nav class="menue-punkte" aria-label="Hauptmenü">
+    {MENUE.map((m) => (
+      <a href={m.href} aria-current={istAktuell(m.href) ? 'page' : undefined}>{m.text}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      </a>
+    ))}
+  </nav>
+  <div class="menue-kontakt">
+    <a href={TELEFON_LINK}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>{TELEFON_ANZEIGE}</a>
+    <a href={WHATSAPP_LINK} target="_blank" rel="noopener"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>WhatsApp</a>
+    <a href={mailtoAnfrage}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>{MAIL_ANFRAGE}</a>
+  </div>
+</dialog>
+
+<style>
+  .kopf { background: #fff; }
+  .kopf-zeile { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .kopf-logo { display: flex; align-items: center; }
+  .kopf-logo img { height: 46px; width: auto; }
+  .hauptmenue { display: none; }
+  .kopf-rechts { display: flex; align-items: center; gap: 4px; }
+  /* mobil: umrandet */
+  .kopf-anfragen { min-height: 44px; padding: 0 16px; font-size: 15px; background: #fff; color: var(--green-800); border: 1.5px solid var(--green-700); }
+  .kopf-anfragen:hover { background: var(--color-bg-brand-subtle); color: var(--green-800); }
+  .burger, .menue-zu { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border: 0; padding: 0; background: transparent; cursor: pointer; margin-right: -8px; }
+
+  /* Kennfarben-Linie unter dem Kopf auf Zielgruppenseiten */
+  :global(body[data-bereich]) .kopf { border-bottom: 4px solid var(--kennfarbe); }
+
+  @media (min-width: 1024px) {
+    .kopf-zeile { height: 88px; display: grid; grid-template-columns: 1fr auto 1fr; }
+    .kopf-logo img { height: 60px; }
+    .hauptmenue { display: flex; gap: 28px; }
+    /* Unterstreichung bei Hover und aktuellem Punkt identisch (Höhe, Stärke, Farbe), damit nichts springt */
+    .hauptmenue a { color: #000; text-decoration: underline 2px transparent; text-underline-offset: 8px; font-size: 20px; font-weight: 200; padding: 10px 4px; transition: color .15s, text-decoration-color .15s; }
+    .hauptmenue a:hover, .hauptmenue a:focus-visible { color: var(--green-800); text-decoration-color: var(--kennfarbe, var(--green-700)); }
+    .hauptmenue a[aria-current='page'] { text-decoration-color: var(--kennfarbe, var(--green-700)); }
+    .kopf-rechts { justify-self: end; }
+    .kopf-anfragen { min-height: 48px; padding: 0 24px; font-size: 16px; background: var(--color-action-primary-default); color: #fff; border: 0; }
+    .kopf-anfragen:hover { background: var(--color-action-primary-hover); color: #fff; }
+    .burger { display: none; }
+  }
+
+  /* Menü mobil, vollflächig */
+  .menue-mobil { width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: 0; background: var(--neutral-50); color: var(--color-text-primary); }
+  .menue-mobil::backdrop { background: var(--neutral-50); }
+  .menue-kopf { height: 64px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; }
+  .menue-punkte { padding: 32px 20px 0; display: flex; flex-direction: column; }
+  .menue-punkte a { display: flex; align-items: center; justify-content: space-between; min-height: 64px; border-bottom: 1px solid var(--neutral-200); font-size: 28px; line-height: 1.2; font-weight: 300; color: #000; text-decoration: none; }
+  .menue-punkte a:hover, .menue-punkte a[aria-current='page'] { color: var(--green-800); }
+  .menue-kontakt { padding: 40px 20px 32px; display: flex; flex-direction: column; gap: 4px; font-size: 18px; }
+  .menue-kontakt a { color: #000; min-height: 48px; display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .menue-kontakt svg { flex: 0 0 22px; }
+</style>
+
+<script>
+  const dialog = document.getElementById('menue-mobil') as HTMLDialogElement | null;
+  const auf = document.querySelector<HTMLButtonElement>('[data-menue-auf]');
+  if (dialog && auf) {
+    auf.addEventListener('click', () => { dialog.showModal(); auf.setAttribute('aria-expanded', 'true'); });
+    dialog.querySelector('[data-menue-zu]')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => { auf.setAttribute('aria-expanded', 'false'); auf.focus(); });
+    // Ein Link im Menü schließt es (auch Anker auf derselben Seite)
+    dialog.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => dialog.close()));
+    // Wird das Fenster breit, Menü schließen
+    matchMedia('(min-width: 1024px)').addEventListener('change', (e) => { if (e.matches) dialog.close(); });
+  }
+</script>

@@ -1,0 +1,56 @@
+/* Designsystem SELBSTGEMACHT – Farben und Abstände.
+   Quelle: Canvas „selbst-gemacht · Wireframes“, project/ds/selbstgemacht/tokens.css (Stand 18.11.2026).
+   Nur die Variablen übernommen; Schriftgrößen folgen den Wireframes (siehe basis.css). */
+:root {
+  --green-50: #e3eac5;
+  --green-100: #e3eaa1;
+  --green-500: #b6bf00; /* Markengrün: nur Fläche, Logo, Bildakzent, nie Schrift */
+  --green-700: #6a6f04; /* Buttons */
+  --green-800: #4e5203; /* grüne Schrift und Links */
+  --red-50: #f2e4de;
+  --red-100: #ffdadc;
+  --red-500: #a50235;
+  --red-700: #7f0925;
+  --neutral-0: #ffffff;
+  --neutral-50: #f4f3ef;
+  --neutral-200: #d8d6ce;
+  --neutral-300: #c9c7bd; /* aus den Wireframes (Fortschrittsbalken, Bildfläche) */
+  --neutral-500: #6c6b67;
+  --neutral-600: #555555;
+  --neutral-1000: #000000;
+  --logo-taupe: #a5a390;
+  --taupe-100: #e3e0d3;
+
+  --color-text-primary: var(--neutral-600);
+  --color-text-heading: var(--neutral-1000);
+  --color-text-secondary: var(--neutral-500);
+  --color-text-brand: var(--green-800);
+  --color-text-error: var(--red-700);
+  --color-bg-page: var(--neutral-50);
+  --color-bg-surface: var(--neutral-0);
+  --color-bg-brand-subtle: var(--green-100);
+  --color-bg-neutral-subtle: var(--neutral-200);
+  --color-bg-inverse: var(--neutral-600);
+  --color-border-default: var(--neutral-200);
+  --color-border-control: var(--neutral-500);
+  --color-border-focus: var(--green-800);
+  --color-action-primary-default: var(--green-700);
+  --color-action-primary-hover: var(--green-800);
+  --color-link-default: var(--neutral-600);
+  --color-link-hover: var(--green-800);
+
+  --color-audience-gruppen: var(--green-500); /* darauf schwarze Schrift */
+  --color-audience-tagungen: var(--red-700); /* darauf weiße Schrift */
+  --color-audience-kursleitende: var(--logo-taupe); /* darauf schwarze Schrift */
+  --color-bg-page-gruppen: var(--green-50);
+  --color-bg-page-tagungen: var(--red-50);
+  --color-bg-page-kursleitende: var(--taupe-100);
+
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  --font-sans: Roboto, system-ui, sans-serif;
+}
