@@ -24,14 +24,17 @@ const geruest = p.geruest ?? true;
 const BEREICH = { gruppe: 'gruppen', firma: 'tagungen', kursleitung: 'kursleitende' } as const;
 const bereich = anliegen ? BEREICH[anliegen] : undefined;
 const beschreibung = angaben.beschreibung;
-const bild = 'bild' in angaben ? (angaben.bild as string | undefined) : undefined;
+// Teilen-Bild: eigenes der Seite (Termine: Kursbild), sonst das Haus von außen (Bild 144, wie im Anfrage-Bereich)
+const STANDARD_BILD = '/teilen/selbstgemacht-haus.jpg';
+const bild = ('bild' in angaben ? (angaben.bild as string | undefined) : undefined) ?? STANDARD_BILD;
 
 // Bis zum Go-live wird keine Seite indexiert.
 // Beim Go-live auf false setzen (siehe docs/go-live.md).
 const NOINDEX = true;
 const seitentitel = angaben.titel;
 const kanonisch = new URL(Astro.url.pathname, Astro.site);
-const bildUrl = bild ? new URL(bild, Astro.site).href : undefined;
+const bildUrl = new URL(bild, Astro.site).href;
+const standardBild = bild === STANDARD_BILD;
 ---
 <!doctype html>
 <html lang="de">
@@ -42,7 +45,10 @@ const bildUrl = bild ? new URL(bild, Astro.site).href : undefined;
     <meta name="description" content={beschreibung} />
     {NOINDEX && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={kanonisch.href} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- Favicon wie bisher auf selbst-gemacht.eu (Logo am Haus, Website-Icon der alten Seite) -->
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/favicon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preload" href="/fonts/roboto-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="sitemap" href="/sitemap.xml" />
     <!-- Vorschau beim Teilen (WhatsApp, Facebook, LinkedIn …) -->
@@ -52,8 +58,11 @@ const bildUrl = bild ? new URL(bild, Astro.site).href : undefined;
     <meta property="og:title" content={seitentitel} />
     <meta property="og:description" content={beschreibung} />
     <meta property="og:url" content={kanonisch.href} />
-    {bildUrl && <meta property="og:image" content={bildUrl} />}
-    <meta name="twitter:card" content={bildUrl ? 'summary_large_image' : 'summary'} />
+    <meta property="og:image" content={bildUrl} />
+    {standardBild && <meta property="og:image:width" content="1200" />}
+    {standardBild && <meta property="og:image:height" content="630" />}
+    {standardBild && <meta property="og:image:alt" content="Das Haus SELBSTGEMACHT mit Garten und Terrasse im Sommer" />}
+    <meta name="twitter:card" content="summary_large_image" />
     <slot name="head" />
   </head>
   <body data-bereich={bereich}>
