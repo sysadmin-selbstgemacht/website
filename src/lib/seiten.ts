@@ -3,13 +3,13 @@
 // Neue Seite: hier eintragen, sonst fehlt sie in der Sitemap.
 //
 // Richtwerte: Titel bis ca. 60 Zeichen, Beschreibung bis ca. 155 Zeichen
-// (längere Texte kürzt Google in der Trefferliste). Stand: ENTWURF, Abstimmung mit Katrin und Anne.
+// (längere Texte kürzt Google in der Trefferliste). Stand: ENTWURF, Abstimmung mit Katrin und Annekathrin (Doc „Seitentitel und Beschreibungen“).
 
 export interface Seite {
   pfad: string;
   titel: string; // <title> und Teilen-Titel
   beschreibung: string; // <meta name="description"> und Teilen-Text
-  bild?: string; // Teilen-Bild (Pfad in public/ oder absolute URL), Freitag im Sprint
+  bild?: string; // Teilen-Bild (Pfad in public/ oder absolute URL), Standard: Haus von außen, siehe Basis.astro
   sitemap?: boolean; // Standard: true
 }
 
@@ -18,13 +18,13 @@ export const SEITEN = {
     pfad: '/',
     titel: 'SELBSTGEMACHT – Seminar- und Gästehaus in Thüringen',
     beschreibung:
-      'Ein Haus, exklusiv für eine Gruppe: Seminar- und Gästehaus in Arnsgrün für Familien, Freundeskreise, Tagungen, Kurse und Retreats. Bis zu 30 Gäste.',
+      'Ein Haus, exklusiv für eine Gruppe: Seminar- und Gästehaus in Arnsgrün für Familien, Freundeskreise, Tagungen, Kurse und Retreats, mit 22 Betten.',
   },
   gruppen: {
     pfad: '/gruppen/',
     titel: 'Gruppenhaus für Familien und Freunde · SELBSTGEMACHT',
     beschreibung:
-      'Das ganze Haus für Familienfeste, Freundeswochenenden und Gruppenreisen: 10 Zimmer, bis zu 30 Gäste, Küche, Terrassen und Wiese in Arnsgrün.',
+      'Das ganze Haus für Familienfeste, Freundeswochenenden und Gruppenreisen: 10 Zimmer, 22 Betten, Küche, Terrassen und Wiese in Arnsgrün.',
   },
   tagungen: {
     pfad: '/tagungen/',
@@ -42,13 +42,13 @@ export const SEITEN = {
     pfad: '/termine/',
     titel: 'Kurse, Retreats und Veranstaltungen · SELBSTGEMACHT',
     beschreibung:
-      'Termine im Seminar- und Gästehaus SELBSTGEMACHT: Kurse, Retreats und Veranstaltungen der nächsten zwölf Monate in Arnsgrün, Thüringen.',
+      'Termine im Seminar- und Gästehaus SELBSTGEMACHT: Kurse, Retreats und Veranstaltungen der nächsten 15 Monate in Arnsgrün, Thüringen.',
   },
   ueberUns: {
     pfad: '/ueber-uns/',
     titel: 'Über uns: Gastgeberinnen und Haus · SELBSTGEMACHT',
     beschreibung:
-      'Wer hinter SELBSTGEMACHT steht: Katrin und Anne, ein ehemaliger Konsum als Gästehaus, Lamas und Bienen – und was Gastgeber sein für uns heißt.',
+      'Wer hinter SELBSTGEMACHT steht: Katrin und Annekathrin, ein ehemaliger Konsum als Gästehaus, Lamas und Bienen – und was Gastgeber sein für uns heißt.',
   },
   impressum: {
     pfad: '/impressum/',
