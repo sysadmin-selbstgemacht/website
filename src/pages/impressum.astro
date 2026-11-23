@@ -4,9 +4,11 @@
 import Basis from '../layouts/Basis.astro';
 import { FOTOGRAFEN } from '../lib/bilder';
 ---
-<Basis seite="impressum">
+<Basis seite="impressum" geruest={false}>
+  <div class="w rt-zurueck"><a class="textlink" href="/"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>Zurück</a></div>
+  <div class="w"><div class="rt">
   <h1>Impressum</h1>
-  <p class="offen">ENTWURF – Angaben aus dem bisherigen Impressum übernommen. Prüfung und Freigabe durch Katrin Liesch.</p>
+  <p class="offen">Entwurf. Angaben aus dem bisherigen Impressum übernommen. Katrin Liesch prüft und gibt frei.</p>
 
   <h2>Angaben gemäß § 5 DDG</h2>
   <p>
@@ -34,8 +36,10 @@ import { FOTOGRAFEN } from '../lib/bilder';
 
   <h2>Bildnachweis</h2>
   <!-- Aus src/lib/bilder.ts (Spalte Fotograf der Bildliste); nur Urheber, gesammelt (Entscheidung 21.11.) -->
-  <p>Fotos: {FOTOGRAFEN.join(', ')}</p>
+  <p>Fotos: {FOTOGRAFEN.join(', ')}<br />Videos: Joachim Neumann</p>
+  <p>Texte und Bilder auf den Terminseiten externer Kursleitungen stammen von diesen. Die Rechte daran liegen bei den jeweiligen Kursleitungen.</p>
 
   <h2>Website</h2>
   <p class="offen">Offen: Nennung der Umsetzung (z. B. „Website: Kado – Matthias Nitsche“) ja oder nein.</p>
+  </div></div>
 </Basis>

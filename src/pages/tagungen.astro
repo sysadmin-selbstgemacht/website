@@ -1,16 +1,113 @@
 ---
+// Tagungen nach Wireframe „Tagungen · Desktop“ und „Tagungen · mobil“ (Canvas, Stand 21.11.).
+// Bilder laut Bildliste, FAQ-Texte laut spec_menue-footer-faq_2026-11-21.md. Offenes bleibt sichtbar markiert.
 import Basis from '../layouts/Basis.astro';
-import Abschnitt from '../components/Abschnitt.astro';
+import Bild from '../components/Bild.astro';
+import ZielgruppenHero from '../components/ZielgruppenHero.astro';
+import AufEinenBlick from '../components/AufEinenBlick.astro';
+import Slider from '../components/Slider.astro';
+import Stimmen from '../components/Stimmen.astro';
+import BildHintergrund from '../components/BildHintergrund.astro';
+import Ablauf from '../components/Ablauf.astro';
+import Faq from '../components/Faq.astro';
+import { katalogBild } from '../lib/bilder';
+import { FACTSHEET_LINK } from '../lib/kontakt';
+import { ICON } from '../lib/icons';
+const factsheet = FACTSHEET_LINK ?? '#';
 ---
-<Basis seite="tagungen" anliegen="firma">
-  <div class="held"><div><p class="zweck">Kopfbereich: Header-Clip „Seminarraum Hero“</p><h1>Tagung · Workshop · Seminar</h1></div></div>
+<Basis seite="tagungen" anliegen="firma" geruest={false}>
+  <ZielgruppenHero desktop="41" etikett="Tagungen" titel="Gute Teams verdienen einfach gute Räume" />
 
-  <Abschnitt titel="Ungestört arbeiten" zweck="Exklusiv im Haus, zeitliche Flexibilität: „Wir gehen mit der Tagung, nicht die Tagung mit uns.“" />
-  <Abschnitt titel="Tagungsraum und Technik" zweck="Kapazität, Ausstattung, Beamer und Leinwand; kein V-Frame." offen="Zweiter Raum (Frühstücksraum): eigene Sektion oder Zeile?" />
-  <Abschnitt titel="Verpflegung" zweck="Leicht, durchdacht, an die Gruppe angepasst. Steht vor dem Tagesablauf." />
-  <Abschnitt titel="Ein Tag bei uns" zweck="Beispielablauf ohne Wald und Lamas." />
-  <Abschnitt titel="Rahmenprogramm" zweck="Wald, Lamas, Waldbaden für Unternehmen." />
-  <Abschnitt titel="Raumplan und Factsheet" zweck="Download als PDF." offen="Wer erstellt es, wer hält es aktuell?" />
-  <Abschnitt titel="Gästestimmen" zweck="Zitate von Firmen mit Freigabe." />
-  <Abschnitt titel="Preise" zweck="Tagungspauschale „ab … € pro Person und Tag“?" offen="Preisanker ja oder nein, gibt es eine Kalkulation?" />
+  <section class="w versprechen">
+    <p class="versprechen-text">Unser SELBSTGEMACHT ist ein Ort für Durchdenker und Ideenakrobaten.<br /><br />Produktives und kreatives Arbeiten gelingt hier in anregender, unkonventioneller Atmosphäre ganz von selbst.<br /><br />Schön, dass wir Sie unterstützen dürfen.</p>
+    <div class="versprechen-bild nur-desktop"><Bild src={katalogBild('19')} alt="Obstbuffet in der Pause, Gäste bedienen sich" sizes="(min-width: 1024px) 700px, 0px" /></div>
+  </section>
+
+  <AufEinenBlick
+    einleitung="Die wichtigsten Informationen für Ihren Aufenthalt – sprechen Sie uns bei Fragen gerne an."
+    karten={[
+      { icon: 'leinwand', titel: 'Tagungsraum', text: '60 m², 22 Plätze parlamentarisch, 18 im Stuhlkreis. Viel Tageslicht und große Fenster zur Natur.', link: { href: factsheet, text: 'Factsheet (PDF)' } },
+      { icon: 'bett', titel: 'Übernachten im Haus', text: 'Alle unter einem Dach: 10 Zimmer mit eigenem Bad, davon 5 Doppel-, 2 Einzel- und 3 Vierbettzimmer. Einzelbelegung möglich.' },
+      { icon: 'suppe', titel: 'Verpflegung', text: 'Regional gekocht, wann und wie es zu Ihrem Tag passt. Vegetarisch und vegan möglich, glutenfrei und laktosefrei auf Wunsch.' },
+    ]}
+    lage="Ländliche Idylle im Thüringer Vogtland."
+  />
+
+  <section class="sektion" aria-labelledby="arbeiten-titel">
+    <div class="w"><h2 class="h2 titel-abstand" id="arbeiten-titel">Einfach ungestört arbeiten</h2></div>
+    <Slider
+      label="Einfach ungestört arbeiten"
+      hoeheDesktop={810}
+      hoeheMobil={219}
+      folien={[
+        { video: { name: 'seminarraum' }, alt: 'Video: Seminarraum', text: 'Zusammenarbeiten kann so schön sein' },
+        { nr: '67', alt: 'Seminar mit Pausenbuffet', text: 'Gemeinsam produktiv – die Kaffeepause wartet bereits', position: 'center 40%' },
+        { nr: '341', alt: 'Aufenthaltsraum mit Tischen', text: 'Raumgefühl – hier ist viel möglich' },
+        { nr: '156', alt: 'Einzelzimmer mit Schreibtisch', text: 'Lichtdurchflutetes Einzelzimmer mit Schreibtisch' },
+        { nr: '175', alt: 'Waschschale im Bad', text: 'Durchdachtes Design auch im Bad' },
+        { nr: '162', alt: 'Zimmer mit roter Kunst', text: 'Originalkunst von Alfred Görstner in allen Räumen' },
+        { nr: '272', alt: 'Aufenthaltsraum mit Sofas', text: 'Entspannt – auch im Tagungsraum' },
+        { nr: '274', alt: 'Kaffeepause mit Etagere', text: 'Kaffeepause in der Nachmittagssonne' },
+        { nr: '430', alt: 'Gedeckte Tafel auf der Terrasse', text: 'Abendessen auf unserer Teichterrasse', position: 'center 60%' },
+        { nr: '291', alt: 'Gespräch im Wald', text: 'Erweiterter Tagungsraum im nahen Wald', position: 'center 30%' },
+        { nr: '283', alt: 'Picknick im Wald', text: 'Kaffeepause als Picknick' },
+        { nr: '527', alt: 'Gruppe am Feuer', text: 'Mit ruhigen Gesprächen den Tag ausklingen lassen' },
+      ]}
+    />
+  </section>
+
+  <Stimmen stimmen={[
+    { text: 'Das SELBSTGEMACHT ist ein Seminarhotel wie eine Umarmung: Ein bildschönes, modernes Design, das sich hervorragend in den idyllischen Ort und die waldreiche Umgebung einfügt und das von der ebenso herzlichen wie persönlichen Betreuung über die hellen, großzügigen Zimmer, der exzellenten kulinarischen Versorgung bis hin zum Seminarraum, der technisch up-to-date ausgestattet ist, unser Seminar auf ein neues Level gehoben hat.', name: 'Bernd Müller', zusatz: 'Co-Leiter Führungskräfteseminar · Juli 2026' },
+    { text: '[…] Gastfreundschaft, die hervorragende Organisation und das Engagement, mit dem ihr diesen Lernort zu etwas ganz Besonderem macht. […]', name: 'Christian Hilbert', zusatz: 'Wertbau · Oktober 2026' },
+    { text: 'Wir haben uns von der ersten Minute an sehr wohlgefühlt. Das kleine, gemütliche Hotel überzeugt mit seiner familiären Atmosphäre, liebevoll eingerichteten Zimmern und herzlichen Gastgebern. Besonders angenehm war das Seminar, das in einer ruhigen und professionellen Umgebung stattfinden konnte. Eine perfekte Kombination aus Arbeiten und Wohlfühlen. Wir kommen gerne wieder!', name: 'Ulrike Woköck-Scheunemann', zusatz: 'IG Metall · Januar 2025' },
+  ]} />
+
+  <!-- Gut zu wissen: Hintergrund Bild 24 (Hochformat, Ausschnitt auf die Personen im Seminarraum) -->
+  <BildHintergrund nr="24" position="center 52%" titel="Gut zu wissen" id="wissen-titel">
+    <div class="wissen">
+      <div class="wissen-karte"><span class="wissen-titel">Technik im Tagungsraum</span><span>Großer Fernseher, Beamer, Leinwand, Flipcharts, Pinnwände, Moderationskoffer, Bluetooth-Box</span>
+        <a class="textlink" href={factsheet} download><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON.download} />Factsheet (PDF)</a></div>
+      <div class="wissen-karte"><span class="wissen-titel">Verpflegung nach Ihrem Rhythmus</span><span>Wir richten uns nach Ihrem Programm: Gegessen wird, wann es für Ihren Tag passt. Ernährungsgewohnheiten berücksichtigen wir, ob vegetarisch, vegan, glutenfrei oder laktosefrei. Volle Flexibilität bei bestem Geschmack.</span></div>
+      <div class="wissen-karte"><span class="wissen-titel">Rahmenprogramm</span><span class="offen-markiert">[Text offen. Kern: Im Gespräch finden wir gemeinsam heraus, was Ihr Team und Ihre Veranstaltung brauchen, damit sie gelingen.]</span></div>
+    </div>
+  </BildHintergrund>
+
+  <Ablauf
+    karteLinks
+    gespiegelt
+    schritte={[
+      { titel: 'Sie fragen an', text: 'über das Formular, per Telefon oder Mail' },
+      { titel: 'Wir melden uns', text: 'innerhalb eines Werktags und besprechen mit Ihnen, was Sie vorhaben' },
+      { titel: 'Ihr Angebot', text: 'zugeschnitten auf Ihre Tagung' },
+    ]}
+    text="begleitet Sie von der ersten Anfrage über Ihre Tage bei uns bis zur Rechnung. Eine Ansprechperson für alles."
+  />
+
+  <Faq id="faq-tagungen" fragen={[
+    { frage: 'Was enthält die Tagungspauschale?', antwort: 'Raum, Technik, Pausen, Mittag, Getränke. [offen: Bestätigung, ggf. Preisrahmen – Preis laut Brief auf Anfrage]' },
+    { frage: 'Tagesveranstaltung oder mehrtägig?', antwort: 'Beides ist möglich. Für mehrtägige Tagungen übernachtet Ihr Team im Haus: 10 Zimmer mit eigenem Bad, Einzelbelegung möglich. Das Haus gehört in dieser Zeit nur Ihnen.' },
+    { frage: 'Anreise und Parken', antwort: 'Sie erreichen uns mit Bahn und Taxi oder mit dem Auto. Parken ist kostenfrei. [offen: Anzahl Stellplätze; „kostenfrei“ aus der Gruppen-FAQ übertragen, bitte bestätigen]' },
+    { frage: 'Ist das Haus barrierefrei?', antwort: '[offen]' },
+  ]}>
+    <Fragment slot="einleitung">
+      <p class="p nur-desktop"><span class="offen-markiert">[Absatz 1, etwa zwei Zeilen: die wichtigsten Antworten auf einen Blick.]</span></p>
+      <p class="p nur-desktop"><span class="offen-markiert">[Absatz 2, etwa zwei Zeilen: Ihre Frage ist nicht dabei? Annekathrin hilft gern weiter, per Telefon oder WhatsApp.]</span></p>
+    </Fragment>
+  </Faq>
 </Basis>
+
+<style>
+  .versprechen { padding-top: 64px; }
+  .versprechen-text { margin: 0; font-size: 16px; line-height: 1.6; }
+  .wissen { display: flex; flex-direction: column; gap: 12px; }
+  .wissen-karte { background: #fff; border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.5; }
+  .wissen-titel { font-size: 16px; font-weight: 500; color: #000; }
+  @media (min-width: 1024px) {
+    .versprechen { padding-top: 96px; display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: center; }
+    .versprechen-text { font-size: 36px; line-height: 1.25; font-weight: 200; color: #000; }
+    .versprechen-bild :global(img) { width: 100%; height: 440px; object-fit: cover; object-position: center 45%; border-radius: var(--radius-xl); }
+    .wissen { gap: 16px; }
+    .wissen-karte { padding: 24px; font-size: 16px; line-height: 1.55; }
+    .wissen-titel { font-size: 18px; }
+  }
+</style>

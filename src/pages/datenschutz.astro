@@ -4,7 +4,9 @@
 // Offene Punkte stehen in den gelben Kästen und in docs/rechtstexte.md.
 import Basis from '../layouts/Basis.astro';
 ---
-<Basis seite="datenschutz">
+<Basis seite="datenschutz" geruest={false}>
+  <div class="w rt-zurueck"><a class="textlink" href="/"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>Zurück</a></div>
+  <div class="w"><div class="rt">
   <h1>Datenschutzerklärung</h1>
   <p class="offen">ENTWURF – nicht rechtlich geprüft. Beschreibt, was die neue Website tatsächlich verarbeitet. Prüfung und Freigabe durch Katrin Liesch.</p>
 
@@ -92,4 +94,5 @@ import Basis from '../layouts/Basis.astro';
   </p>
 
   <p><small>Stand: Entwurf November 2026</small></p>
+  </div></div>
 </Basis>

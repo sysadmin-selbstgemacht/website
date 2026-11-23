@@ -483,6 +483,7 @@ const logo = await getImage({ src: logoDatei, height: 96, format: 'webp' });
         <label class="pflicht"><span>Name (genaue Schreibweise)</span><input data-feld="name" maxlength="${L.nameMax}" /><span class="fehler" data-fehler="${p}name"></span></label>
         <label><span>Kurzvorstellung</span><textarea data-feld="vorstellung" rows="4" data-max="${L.vorstellungMax}"></textarea><span class="zaehler"></span><span class="fehler" data-fehler="${p}vorstellung"></span></label>
         <label><span>Mail für Anfragen <span class="hinweis">(Pflicht für externe Termine)</span></span><input type="email" data-feld="mail" /><span class="fehler" data-fehler="${p}mail"></span></label>
+        <label><span>Website der Kursleitung <span class="hinweis">(optional)</span></span><input type="url" data-feld="website" placeholder="https://" /><span class="fehler" data-fehler="${p}website"></span></label>
         <img class="vorschaubild" data-foto-vorschau alt="" hidden />
         <label class="pflicht"><span>Foto (wird auf 16:9 zugeschnitten)</span><input type="file" accept="image/*" data-foto /><span class="fehler" data-fehler="${p}foto"></span></label>
         <label><span>Bildrechte <span class="hinweis">(optional)</span></span><input data-feld="foto_nachweis" maxlength="${T.nachweisMax}" placeholder="z. B. Anna Muster" />

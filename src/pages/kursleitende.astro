@@ -1,12 +1,128 @@
 ---
+// Kursleitende nach Wireframe „Kursleitende · Desktop“ und „· mobil“ (Canvas, Stand 21.11.).
+// Bilder laut Bildliste, FAQ-Texte laut Wireframe (Kursraum) und spec_menue-footer-faq_2026-11-21.md.
 import Basis from '../layouts/Basis.astro';
-import Abschnitt from '../components/Abschnitt.astro';
+import Bild from '../components/Bild.astro';
+import ZielgruppenHero from '../components/ZielgruppenHero.astro';
+import AufEinenBlick from '../components/AufEinenBlick.astro';
+import Slider from '../components/Slider.astro';
+import Stimmen from '../components/Stimmen.astro';
+import VideoKarte from '../components/VideoKarte.astro';
+import Ablauf from '../components/Ablauf.astro';
+import Faq from '../components/Faq.astro';
+import { katalogBild } from '../lib/bilder';
+import { ICON } from '../lib/icons';
+import { SEITEN } from '../lib/seiten';
 ---
-<Basis seite="kursleitende" anliegen="kursleitung">
-  <div class="held"><div><p class="zweck">Kopfbereich: Bild oder Clip</p><h1>Kurse · Retreats</h1><p>Der Rahmen für eure Ideen und die eurer Teilnehmenden.</p></div></div>
+<Basis seite="kursleitende" anliegen="kursleitung" geruest={false}>
+  <ZielgruppenHero desktop="178" etikett="Kursleitende" titel="Das ganze Haus für Ihren Kurs" />
 
-  <Abschnitt titel="Was ihr bekommt" zweck="Das ganze Haus exklusiv, Veröffentlichung eures Kurses auf Wunsch, Technik." offen="Gibt es feste Pakete (z. B. Verpflegung)?" />
-  <Abschnitt titel="So läuft es" zweck="Anfrage → Gespräch → Vertrag. Kein Vertrag zum Download." />
-  <Abschnitt titel="Abrechnung in Kürze" zweck="Teilnehmende zahlen Übernachtung und Verpflegung beim Haus, die Kursgebühr geht an euch." />
-  <Abschnitt titel="Gästestimmen" zweck="Zitate von Kursleitenden mit Freigabe." />
+  <section class="w versprechen">
+    <p class="versprechen-text">Sie konzentrieren sich auf Ihren Kurs, Ihre Inhalte, Ihre Teilnehmer – wir kümmern uns um alles andere: <br />Raum, Unterkunft und Verpflegung für Ihre Gruppe.</p>
+    <div class="versprechen-bild nur-desktop"><Bild src={katalogBild('75')} alt="Etagere mit Kuchen und Snacks vor dem Kursraum" sizes="(min-width: 1024px) 700px, 0px" /></div>
+  </section>
+
+  <AufEinenBlick
+    einleitung="Die wichtigsten Informationen für Ihren Aufenthalt – für weitere Details sprechen Sie uns gerne an oder vereinbaren Sie einen Termin vor Ort."
+    karten={[
+      { icon: 'leinwand', titel: 'Kursraum', text: 'Unser Kursraum mit 60 m², geeignet für Yoga, Qigong und kreatives Arbeiten.' },
+      { icon: 'suppe', titel: 'Verpflegung', text: 'Vollverpflegung für Ihre Gruppe, auch vegetarisch und vegan. Fastenverpflegung möglich. Glutenfrei und laktosefrei auf Wunsch.' },
+      { icon: 'bett', titel: '22 Betten', text: '5 Doppel-, 2 Einzel- und 3 Vierbettzimmer, alle mit eigenem Bad.<br>Einzelbelegung möglich.' },
+      { icon: 'euro', titel: 'Abrechnung', text: 'Ihre Teilnehmenden zahlen Zimmer und Verpflegung direkt bei uns. Die Kursgebühr zahlen sie direkt bei Ihnen.' },
+    ]}
+    lage="Ländliche Idylle im Thüringer Vogtland."
+  />
+
+  <Stimmen stimmen={[
+    { text: 'Seit 2015 komme ich jedes Jahr im März und September nach Arnsgrün, um dort ärztlich geleitete F.X.-Mayr-Fastenkuren durchzuführen. Viele Teilnehmerinnen und Teilnehmer sind regelmäßig jedes Jahr dabei. Wir genießen die ruhige, lichtvolle Atmosphäre im „Selbstgemacht“. […]', name: 'Dr. Gisela Schieferdecker', zusatz: 'Fastenkurs · September 2026' },
+    { text: 'Ich durfte in den letzten Jahren zusammen mit Katrin und Anne Fastenwochen im Seminarhaus „SELBSTgemacht“ gestalten und mit meinen Teilnehmern Zeit verbringen. Das „SELBSTgemacht“ steht für mich für naturverbundene und geerdete Menschen, authentisch grüne Küche (dank Anne), einen Kraftort, der Menschen verbindet.', name: 'Andrea Fleischmann', zusatz: 'Fastenleiterin · August 2026' },
+    { text: 'Lichtdurchflutet, liebevoll und klar […] Ich durfte hier immer wieder Herzensgemeinschaft erleben, beim gemeinsamen „Wildkräutern“ und Kreativsein, beim Wanderfasten. Die Natur rundherum ist für mich als Kräuterfrau ein Traum. Sanfte Hügel, Wald und Wiesen, ideal für alle, die gern in der Natur sind, sich erholen und entspannen wollen. Ich liebe die Auszeit vom Alltag im „Selbstgemacht“.', name: 'Evelyn Lerchner', zusatz: 'Fastenkursleiterin · April 2026' },
+  ]} />
+
+  <section class="w sektion essen">
+    <div class="essen-text">
+      <h2 class="h2">Essen, das lebendig macht</h2>
+      <p class="p">Wir kochen nach den Wünschen Ihrer Gruppe und zu den Zeiten, die in Ihren Ablauf passen. Gastgeber sein ist für uns mehr als Übernachtung und Frühstück zu bieten. Wir möchten Menschen besondere Stunden bereiten, uns einfühlen, mit liebenswerten Kleinigkeiten Aufmerksamkeit schenken, im Gedächtnis bleiben. Dafür gehen wir gern raus in unseren wilden Garten oder auf die Wiese vor dem Haus und verarbeiten frische Lebensmittel aus der Region.</p>
+    </div>
+    <div class="essen-video"><VideoKarte name="kueche" label="Video: Küche" /></div>
+  </section>
+
+  <section class="w sektion">
+    <h2 class="h2 titel-abstand">Unsere Zusammenarbeit</h2>
+    <ul class="zusammenarbeit">
+      <li><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON.haus} /><span class="za-titel">Wir sorgen für den Rahmen</span><span>Raum, Unterkunft und Verpflegung: Wir kümmern uns um alles, damit Ihr Kurs mit Leichtigkeit gelingt.</span></li>
+      <li><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON.menschen} /><span class="za-titel">Sie gestalten Ihren Kurs</span><span>Inhalte und Teilnehmende bringen Sie mit.</span></li>
+      <li><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON.kalender} /><span class="za-titel">Ihr Kurs auf unserer Webseite</span><span>Wir listen Ihren Kurs auf unserer <a class="inline-link" href={SEITEN.termine.pfad}>Terminseite</a>. Ihre Teilnehmenden melden sich direkt bei Ihnen an.</span></li>
+    </ul>
+  </section>
+
+  <section class="sektion" aria-labelledby="raum-titel">
+    <div class="w"><h2 class="h2 titel-abstand" id="raum-titel">Raum für Ihren Kurs</h2></div>
+    <Slider
+      label="Raum für Ihren Kurs"
+      hoeheDesktop={810}
+      hoeheMobil={219}
+      folien={[
+        { nr: '149', alt: 'Das Haus zwischen Bäumen', text: 'Unser Haus in dörflicher Idylle – hier werden sich alle wohlfühlen', position: 'center 40%' },
+        { nr: '33', alt: 'Gruppe am Tisch zu Kursbeginn', text: 'Der Kurs beginnt – gespannte Aufmerksamkeit', position: 'center 35%' },
+        { nr: '179', alt: 'Aufenthaltsraum mit Küche', text: 'Im Aufenthaltsraum wird gemeinsam gegessen und zusammengesessen.' },
+        { nr: '341', alt: 'Aufenthaltsraum mit langen Tischen', text: 'Lange Tafeln für die ganze Gruppe.' },
+        { nr: '175', alt: 'Waschschale im Bad', text: 'Durchdachtes Design auch im Bad.' },
+        { nr: '241', alt: 'Zimmer mit Kitchenette', text: 'Helle Zimmer zum Ankommen und Ausruhen.' },
+        { nr: '194', alt: 'Malpalette und Pinsel', text: 'Raum für kreatives Arbeiten.' },
+        { nr: '314', alt: 'Hängematten und Baumzelte im Wald', text: 'Im nahen Wald wird die Natur zum Kursraum.' },
+      ]}
+    />
+  </section>
+
+  <Ablauf
+    titel="Die nächsten Schritte"
+    karteLinks
+    gespiegelt
+    schritte={[
+      { titel: 'Sie fragen an', text: 'mit Ihrem Kurs und Wunschzeitraum, über das Formular, per Telefon oder Mail' },
+      { titel: 'Wir sprechen persönlich', text: 'innerhalb eines Werktags melden wir uns und besprechen Ihr Anliegen' },
+      { titel: 'Ihr Vertrag', text: 'mit allem, was wir für die Durchführung Ihres Kurses bei uns vereinbaren' },
+      { titel: 'Ihr Kurs auf unserer Webseite', text: 'mit Ihrer Kursbeschreibung und allen notwendigen Details. So wissen Ihre Teilnehmenden, worum es geht, und melden sich über den Link direkt bei Ihnen an.' },
+    ]}
+    text="ist Ihre Ansprechpartnerin für Ihre Anfrage. [Text offen]"
+  />
+
+  <Faq id="faq-kursleitende" fragen={[
+    { frage: 'Wie ist der Kursraum ausgestattet?', antwort: 'Fußbodenheizung; Matten und Kissen für 8 Teilnehmende.\nDer Raum lässt sich für Yoga, Qigong oder kreatives Arbeiten komplett leer räumen.\nFläche insgesamt 60 m².' },
+    { frage: 'Welche Ernährung ist möglich?', antwort: 'Vegetarisch und vegan, Fastenverpflegung, glutenfrei immer, laktosefrei auf Wunsch. Besondere Formen wie ayurvedisch sprechen wir mit Ihnen ab.' },
+    { frage: 'Mindestdauer und Mindestbelegung', antwort: '[offen: Mindestdauer; Ausgleich pro leerem Zimmer steht nur im Vertrag, daher hier evtl.: „Das besprechen wir persönlich und halten es im Vertrag fest.“]' },
+    { frage: 'Anreise der Teilnehmenden', antwort: 'Ihre Teilnehmenden reisen mit Bahn und Taxi oder mit dem Auto an. Das Haus liegt in der Mitte Deutschlands, gut erreichbar aus allen Richtungen.' },
+    { frage: 'Wie wird abgerechnet?', antwort: 'Ihre Teilnehmenden zahlen Zimmer und Verpflegung direkt bei uns. Die Kursgebühr zahlen sie bei Ihnen. Alles Weitere halten wir in Ihrem Vertrag fest.' },
+    { frage: 'Machen Sie Werbung für unseren Kurs?', antwort: 'Wir stellen Ihren Kurs auf unsere Terminseite, mit Ihrem Text. Ihre Teilnehmenden melden sich direkt bei Ihnen an.' },
+  ]}>
+    <Fragment slot="einleitung">
+      <p class="p nur-desktop">Antworten auf wiederkehrende Fragen haben wir hier für Sie zusammengefasst.</p>
+      <p class="p nur-desktop">Sie möchten mehr Details im Vorfeld abstimmen? Annekathrin Kuntke hilft Ihnen gern per Telefon oder WhatsApp weiter.</p>
+    </Fragment>
+  </Faq>
 </Basis>
+
+<style>
+  .versprechen { padding-top: 64px; }
+  .versprechen-text { margin: 0; font-size: 16px; line-height: 1.6; }
+  .essen { display: flex; flex-direction: column; gap: 24px; }
+  .essen-text { display: flex; flex-direction: column; gap: 16px; }
+  .zusammenarbeit { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 32px; }
+  .zusammenarbeit li { display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.5; }
+  .zusammenarbeit svg { width: 28px; height: 28px; }
+  .za-titel { font-size: 16px; font-weight: 500; line-height: 1.3; color: #000; }
+  .inline-link { color: var(--green-800); }
+  @media (min-width: 1024px) {
+    .versprechen { padding-top: 96px; display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: center; }
+    .versprechen-text { font-size: 36px; line-height: 1.25; font-weight: 200; color: #000; }
+    .versprechen-bild :global(img) { width: 100%; height: 440px; object-fit: cover; border-radius: var(--radius-xl); }
+    .essen { display: grid; grid-template-columns: 7fr 5fr; gap: 64px; align-items: center; }
+    .essen-text { order: 2; gap: 20px; }
+    .essen-video { order: 1; }
+    .zusammenarbeit { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px; }
+    .zusammenarbeit li { gap: 12px; font-size: 16px; line-height: 1.55; }
+    .zusammenarbeit svg { width: 32px; height: 32px; }
+    .za-titel { font-size: 18px; }
+  }
+</style>

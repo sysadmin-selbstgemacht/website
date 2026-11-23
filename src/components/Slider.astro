@@ -8,6 +8,7 @@
 import Bild from './Bild.astro';
 import { katalogBild, type KatalogNr } from '../lib/bilder';
 import { videoQuellen, type VideoName } from '../lib/videos';
+import { videoPoster } from '../lib/video-poster';
 
 export interface Folie {
   nr?: KatalogNr;
@@ -23,6 +24,9 @@ interface Props {
   hoeheMobil?: number; // Wireframe: 300
 }
 const { folien, label, hoeheDesktop = 810, hoeheMobil = 300 } = Astro.props;
+// Vorschaubild: eigenes Katalogbild, sonst das erste Bild des Films
+const poster = await Promise.all(folien.map(async (f) =>
+  f.video?.poster ? katalogBild(f.video.poster).src : f.video?.name ? await videoPoster(f.video.name, 1920) : undefined));
 ---
 <div class="slider" data-slider role="region" aria-roledescription="Karussell" aria-label={label} style={`--h-d:${hoeheDesktop}px;--h-d-zahl:${hoeheDesktop};--h-m:${hoeheMobil}px`}>
   <div class="spur" data-spur tabindex="0">
@@ -32,7 +36,7 @@ const { folien, label, hoeheDesktop = 810, hoeheMobil = 300 } = Astro.props;
           {f.video ? (
             f.video.name ? (
               <>
-                <video poster={f.video.poster ? katalogBild(f.video.poster).src : undefined} preload="metadata" playsinline aria-label={f.alt}>
+                <video poster={poster[i]} preload="metadata" playsinline aria-label={f.alt}>
                   {videoQuellen(f.video.name).map((q) => <source src={q.src} type={q.type} />)}
                 </video>
                 <button type="button" class="abspielen" data-abspielen aria-label="Video abspielen">
@@ -86,11 +90,14 @@ const { folien, label, hoeheDesktop = 810, hoeheMobil = 300 } = Astro.props;
 
   @media (min-width: 1024px) {
     /* Höhe wächst ab 1440 px mit der Breite (Verhältnis wie im Wireframe), damit der Bildausschnitt gleich bleibt */
-    .medium { height: max(var(--h-d), calc(100vw * var(--h-d-zahl) / 1440)); }
+    /* Höhe: wie gestaltet (mit der Breite wachsend), aber höchstens so hoch, dass unter dem Kopf
+       Bild, Bildtext und Punkte zusammen ins Fenster passen (Kopf 88, Bildtext 24+45, Punkte 16+24, Luft 27) */
+    .slider { --h-desk: min(max(var(--h-d), calc(100vw * var(--h-d-zahl) / 1440)), max(420px, calc(100svh - 224px))); }
+    .medium { height: var(--h-desk); }
     .bildtext { margin: 24px auto 0; max-width: 1200px; padding-inline: 20px; min-height: 45px; font-size: 36px; line-height: 1.25; font-weight: 300; color: #000; }
     .spur { cursor: grab; }
     .spur.ziehen { cursor: grabbing; scroll-snap-type: none; }
-    .pfeil { position: absolute; top: calc(max(var(--h-d), calc(100vw * var(--h-d-zahl) / 1440)) / 2 - 28px); width: 56px; height: 56px; border-radius: 9999px; border: 0; background: rgba(255, 255, 255, .92); box-shadow: 0 2px 12px rgba(0, 0, 0, .2); color: #000; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+    .pfeil { position: absolute; top: calc(var(--h-desk) / 2 - 28px); width: 56px; height: 56px; border-radius: 9999px; border: 0; background: rgba(255, 255, 255, .92); box-shadow: 0 2px 12px rgba(0, 0, 0, .2); color: #000; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
     .pfeil[hidden] { display: none; }
     .zurueck { left: 24px; }
     .vor { right: 24px; }

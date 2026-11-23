@@ -176,10 +176,12 @@ function pruefeLeitungFelder(f: any, fehlerListe: Record<string, string>, praefi
   if (vorstellung.length > L.vorstellungMax) fehlerListe[praefix + 'vorstellung'] = `Kurzvorstellung: höchstens ${L.vorstellungMax} Zeichen`;
   const mail = txt(f?.mail, 120);
   if (mail && !EMAIL.test(mail)) fehlerListe[praefix + 'mail'] = 'Mailadresse prüfen';
+  const website = txt(f?.website, 200);
+  if (website && !/^https?:\/\/[^\s.]+\.[^\s]+$/.test(website)) fehlerListe[praefix + 'website'] = 'Website-Adresse prüfen (mit https://)';
   const foto_nachweis = txt(f?.foto_nachweis, T.nachweisMax);
   if (foto_nachweis.length > T.nachweisMax) fehlerListe[praefix + 'foto_nachweis'] = `Bildrechte: höchstens ${T.nachweisMax} Zeichen`;
   if (neu && f?.einwilligung !== true) fehlerListe[praefix + 'einwilligung'] = 'Einwilligung der Kursleitung muss vorliegen';
-  return { name, vorstellung: vorstellung || undefined, mail: mail || undefined, foto_alt: name, foto_nachweis: foto_nachweis || undefined };
+  return { name, vorstellung: vorstellung || undefined, mail: mail || undefined, website: website || undefined, foto_alt: name, foto_nachweis: foto_nachweis || undefined };
 }
 
 function pruefeTermin(f: any, stand: Stand, neueNamen: Map<string, string>) {

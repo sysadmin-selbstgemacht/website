@@ -1,11 +1,143 @@
 ---
+// Über uns nach UeberUnsDesktop/UeberUns (Canvas 21.11.), Bilder laut Bildliste: P-83, 143, 139, 135.
+// FAQ-Texte nach spec_menue-footer-faq_2026-11-21.md (Abschnitt Über uns).
 import Basis from '../layouts/Basis.astro';
-import Abschnitt from '../components/Abschnitt.astro';
+import ZielgruppenHero from '../components/ZielgruppenHero.astro';
+import Bild from '../components/Bild.astro';
+import VideoKarte from '../components/VideoKarte.astro';
+import Faq from '../components/Faq.astro';
+import { katalogBild } from '../lib/bilder';
+import { ICON } from '../lib/icons';
+
+const markiere = (t: string) => t.replace(/\[([^\]]+)\]/g, '<span class="offen-markiert">[$1]</span>');
+const werte = [
+  { wort: 'natürlich', text: '[ein Satz, Wortlaut offen]' },
+  { wort: 'einfach', text: '[ein Satz, Wortlaut offen]' },
+  { wort: 'sein', text: '[ein Satz, Wortlaut offen]' },
+  { wort: 'interessiert', text: '[ein Satz, Wortlaut offen: wir tun, was wir lieben]' },
+];
 ---
-<Basis seite="ueberUns">
-  <h1>Über uns</h1>
-  <Abschnitt titel="Gastgeber sein" zweck="Philosophie: gesehen, wertgeschätzt, erkannt und beschenkt gehen." />
-  <Abschnitt titel="Das Hausteam" zweck="Katrin und Anne, neue Fotos vom 06.11." />
-  <Abschnitt titel="Die Geschichte des Hauses" zweck="Ehemaliger Konsum, Alfred als Architekt." />
-  <Abschnitt titel="Lamas und Imkerei" zweck="Kurz vorstellen, „Sprecht uns an“." />
+<Basis seite="ueberUns" geruest={false}>
+  <div class="uu-held">
+    <ZielgruppenHero desktop="p83" etikett="Über uns" titel="Von Herzen Gastgeberinnen" position="22% center" positionMobil="22% center" />
+  </div>
+
+  <section class="w sektion">
+    <h2 class="h2 titel-abstand">Was uns wichtig ist</h2>
+    <ul class="uu-werte">
+      {werte.map((w) => (
+        <li><span class="uu-wort">{w.wort}</span><span set:html={markiere(w.text)} /></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="w uu-bewegt">
+    <h2 class="h2">Was uns bewegt</h2>
+    <p class="p" set:html={markiere('Wir, Katrin und Annekathrin … [Philosophie in einem Satz, Entwurf:] Gemeinsame Zeit ist etwas Besonderes. Wir tun alles, damit Sie sie hier bestmöglich verbringen.')} />
+    <p class="p" set:html={markiere('[Zwei Sätze zu Katrin und Annekathrin: wer sie sind, was sie hierher gebracht hat.]')} />
+  </section>
+
+  <!-- Das Haus und Alfred: Desktop zwei Bild-Text-Reihen, mobil zwei Wischkarten (Wireframe) -->
+  <section class="uu-haus" aria-labelledby="uu-haus-titel">
+    <h2 class="h2 w nur-mobil" id="uu-haus-titel">Das Haus</h2>
+    <div class="uu-wisch" data-wisch tabindex="0">
+      <article class="w uu-paar uu-karte">
+        <div class="uu-bild"><Bild src={katalogBild('143')} alt="Das Haus mit Garten und Terrasse im Sommer" sizes="(min-width: 1024px) 680px, 350px" /></div>
+        <div class="uu-text">
+          <h2 class="h2 nur-desktop">Das Haus</h2>
+          <p class="p">Ein ehemaliger Konsum, 2010 gekauft und mit Lehm und heimischem Holz umgebaut. Seit 2012 heißt er SELBSTGEMACHT. Wir heizen mit Pellets, das Regenwasser fließt in den Teich.</p>
+        </div>
+      </article>
+      <article class="w uu-paar uu-gespiegelt uu-eng uu-karte">
+        <div class="uu-bild uu-alfred"><Bild src={katalogBild('139')} alt="Alfred Görstner vor dem Haus" sizes="(min-width: 1024px) 680px, 350px" /></div>
+        <div class="uu-text">
+          <h2 class="h2 nur-desktop">Der Mann hinter dem Haus</h2>
+          <span class="uu-kartentitel nur-mobil">Alfred Görstner</span>
+          <p class="p">Alfred Görstner ist Architekt und Maler. Er hat das Haus umgebaut, seine Bilder hängen in den Zimmern. Sein Atelier liegt ganz in der Nähe.</p>
+          <a class="textlink uu-link" href="https://alfa-kunst.de/" target="_blank" rel="noopener">Zu Alfreds Website<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON.extern} /></a>
+        </div>
+      </article>
+    </div>
+    <div class="uu-punkte nur-mobil" aria-hidden="true"><span data-punkt class="an"></span><span data-punkt></span></div>
+  </section>
+  <script>
+    const spur = document.querySelector<HTMLElement>('[data-wisch]');
+    const punkte = [...document.querySelectorAll<HTMLElement>('.uu-punkte [data-punkt]')];
+    spur?.addEventListener('scroll', () => {
+      const i = Math.round(spur.scrollLeft / (spur.scrollWidth - spur.clientWidth || 1));
+      punkte.forEach((p, k) => p.classList.toggle('an', k === i));
+    }, { passive: true });
+  </script>
+
+  <section class="w uu-paar">
+    <div class="uu-bild"><Bild src={katalogBild('135')} alt="Selbstgemachte Marmelade in Gläsern auf altem Holz" sizes="(min-width: 1024px) 680px, 100vw" /></div>
+    <div class="uu-text">
+      <h2 class="h2">Selbstgemacht</h2>
+      <p class="p">Honig, Liköre, Aufstriche und Sirupe machen wir selbst. Dazu leben bei uns 10 Lamas und unsere Bienen.</p>
+    </div>
+  </section>
+
+  <section class="w sektion">
+    <h2 class="h2 titel-abstand">SELBSTGEMACHT im Film</h2>
+    <VideoKarte name="imagefilm" label="Imagefilm SELBSTGEMACHT" />
+    <p class="uu-hinweis">Mit Ton, startet erst auf Klick · etwa 2:45 Minuten</p>
+  </section>
+
+  <Faq id="faq-ueber-uns" fragen={[
+    { frage: 'Warum heißt das Haus SELBSTGEMACHT?', antwort: 'Weil vieles hier von Hand entsteht: Wir haben den ehemaligen Konsum mit Lehm und heimischem Holz umgebaut, und Honig, Liköre, Aufstriche und Sirupe machen wir selbst. Für uns ist SELBSTGEMACHT auch ein Gefühl: Selbstwirksamkeit, Freiheit, Möglichkeiten. [Entwurf aus Seitentexten, bitte freigeben]' },
+    { frage: 'Kann ich Alfreds Atelier besuchen?', antwort: '[offen: Sein Atelier liegt ganz in der Nähe; Besuch nach Absprache?]' },
+  ]}>
+    <Fragment slot="einleitung">
+      <p class="p nur-desktop"><span class="offen-markiert">[Absatz 1, etwa zwei Zeilen: die wichtigsten Antworten auf einen Blick.]</span></p>
+      <p class="p nur-desktop"><span class="offen-markiert">[Absatz 2, etwa zwei Zeilen: Ihre Frage ist nicht dabei? Annekathrin hilft gern weiter, per Telefon oder WhatsApp.]</span></p>
+    </Fragment>
+  </Faq>
 </Basis>
+
+<style>
+  .uu-held { --kennfarbe: #fff; --kennschrift: #000; }
+  .uu-werte { margin: 0; padding: 0; list-style: none; display: grid; gap: 28px; font-size: 15px; line-height: 1.5; }
+  .uu-werte li { display: flex; flex-direction: column; gap: 4px; }
+  .uu-wort { font-size: 40px; line-height: 1.1; font-weight: 200; color: var(--green-700); }
+  .uu-bewegt { padding-top: 64px; display: flex; flex-direction: column; gap: 16px; }
+  .uu-bewegt .p { max-width: 720px; }
+  .uu-paar { padding-top: 64px; display: grid; gap: 20px; }
+  .uu-bild { border-radius: var(--radius-lg); overflow: hidden; }
+  .uu-bild :global(img) { width: 100%; aspect-ratio: 16 / 9; height: auto; object-fit: cover; display: block; }
+  .uu-alfred :global(img) { object-position: 60% 35%; }
+  .uu-text { display: flex; flex-direction: column; gap: 12px; }
+  .uu-link { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; }
+  .uu-haus { padding-top: 64px; }
+  .uu-haus > .h2 { margin-bottom: 24px; }
+  .uu-wisch { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 0 20px; scroll-padding-left: 20px; }
+  .uu-wisch::-webkit-scrollbar { display: none; }
+  .uu-karte { flex: 0 0 100%; scroll-snap-align: start; padding: 0; background: #fff; border-radius: var(--radius-lg); overflow: hidden; gap: 0; align-content: start; }
+  .uu-karte .uu-bild { border-radius: 0; }
+  .uu-karte .uu-text { padding: 14px 16px; gap: 4px; }
+  .uu-karte .p { font-size: 15px; line-height: 1.5; }
+  .uu-kartentitel { font-size: 16px; font-weight: 500; color: #000; }
+  .uu-punkte { display: flex; justify-content: center; gap: 16px; margin-top: 20px; }
+  .uu-punkte span { width: 8px; height: 8px; border-radius: 9999px; background: var(--neutral-200); }
+  .uu-punkte span.an { background: var(--neutral-600); }
+  .uu-hinweis { margin: 12px 0 0; font-size: 15px; color: var(--neutral-600); }
+  @media (min-width: 1024px) {
+    .uu-haus { padding-top: 0; }
+    .uu-wisch { display: block; overflow: visible; padding: 0; }
+    .uu-karte { padding: 120px 20px 0; background: none; border-radius: 0; overflow: visible; gap: 64px; }
+    .uu-karte.uu-eng { padding-top: 64px; }
+    .uu-karte .uu-bild { border-radius: var(--radius-xl); }
+    .uu-karte .uu-text { padding: 0; gap: 20px; }
+    .uu-karte .p { font-size: 18px; line-height: 1.6; }
+    .uu-werte { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px; font-size: 16px; line-height: 1.55; }
+    .uu-werte li { gap: 8px; }
+    .uu-wort { font-size: 56px; }
+    .uu-bewegt { padding-top: 96px; gap: 20px; }
+    .uu-paar { padding-top: 120px; grid-template-columns: 7fr 5fr; gap: 64px; align-items: center; }
+    .uu-eng { padding-top: 64px; }
+    .uu-gespiegelt { grid-template-columns: 5fr 7fr; }
+    .uu-gespiegelt .uu-text { order: -1; }
+    .uu-bild { border-radius: var(--radius-xl); }
+    .uu-bild :global(img) { aspect-ratio: auto; height: 440px; }
+    .uu-text { gap: 20px; }
+  }
+</style>
