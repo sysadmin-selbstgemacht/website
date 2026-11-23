@@ -13,7 +13,7 @@ Stand: 12.11.2026 · **Entwürfe, nicht rechtlich geprüft.** Prüfung und Freig
 1. **Auftragsverarbeitung bei Cloudflare:** Das Konto, über das die Seite läuft, gehört Fabian Liesch. Verantwortlich im Sinne der DSGVO ist Katrin Liesch. Der Vertrag zur Auftragsverarbeitung von Cloudflare gilt für den Kontoinhaber. Klären, ob das so tragfähig ist oder ob Katrin Inhaberin bzw. Vertragspartnerin werden muss.
 2. **Auftragsverarbeitung bei all-inkl:** besteht vermutlich schon für die Postfächer. Wer hat ihn abgeschlossen (Vertrag läuft über Fabian)? Anschrift von all-inkl im Entwurf prüfen (Modellwissen).
 3. **Data Privacy Framework:** Zertifizierung von Cloudflare vor Veröffentlichung prüfen.
-4. **Karte und Video:** Abschnitt 7 nur aufnehmen, wenn tatsächlich eingebunden, dann je Anbieter ergänzen.
+4. ~~**Karte und Video:**~~ **Entschieden 23.11.:** Es werden keine Inhalte anderer Anbieter eingebunden (Karte nur als Link, Videos selbst ausgeliefert). Der Abschnitt „Inhalte anderer Anbieter“ entfällt; neu ist der Abschnitt zu Anfragen an externe Kursleitungen (mailto).
 5. **Bildnachweis:** vollständige Liste der Fotografinnen und Fotografen der verwendeten Bilder.
 6. **Fax** noch aktuell? **info@** die richtige Kontaktadresse?
 7. ~~AGB / Stornobedingungen~~ **Entschieden 12.11.:** keine eigene Seite, weil online nichts gebucht wird; Bedingungen stehen im Buchungsvertrag.
